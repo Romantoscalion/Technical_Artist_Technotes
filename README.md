@@ -33,12 +33,15 @@
 
 # 内容
 
+建议拉取到本地查看，因为在线的阅读器好像没法定位到目录。
+
 按照我学习的顺序排列：
 
 1. [UnityShader入门精要](UnityShader入门精要学习笔记/UnityShader入门精要学习笔记.md)
 2. [Houdini学习笔记](Houdini学习笔记/Houdini学习笔记.md)
 3. [GAMES101](GAMES101学习笔记/GAMES101学习笔记.md)
 4. [GAMES202](GAMES202学习笔记/GAMES202学习笔记.md)
+5. [Maya工具开发学习笔记](Maya工具开发学习笔记/Maya工具开发学习笔记.md)
 
 
 
