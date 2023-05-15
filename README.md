@@ -37,6 +37,7 @@
 
 1. [GAMES101](GAMES101学习笔记/GAMES101学习笔记.md)
 2. [GAMES202](GAMES202学习笔记/GAMES202学习笔记.md)
+3. [UnityShader入门精要](UnityShader入门精要学习笔记/UnityShader入门精要学习笔记.md)
 
 
 
