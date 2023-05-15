@@ -1,0 +1,2 @@
+# Technical_Artist_Technotes
+个人的技术美术相关知识的学习笔记库
