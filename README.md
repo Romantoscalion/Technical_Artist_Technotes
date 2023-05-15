@@ -41,7 +41,8 @@
 2. [Houdini学习笔记](Houdini学习笔记/Houdini学习笔记.md)
 3. [GAMES101](GAMES101学习笔记/GAMES101学习笔记.md)
 4. [GAMES202](GAMES202学习笔记/GAMES202学习笔记.md)
-5. [Maya工具开发学习笔记](Maya工具开发学习笔记/Maya工具开发学习笔记.md)
+5. [TA零散知识](TA零散知识/TA零散知识.md)
+6. [Maya工具开发学习笔记](Maya工具开发学习笔记/Maya工具开发学习笔记.md)
 
 
 
