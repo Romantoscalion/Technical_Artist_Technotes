@@ -1349,7 +1349,148 @@ LIB ： Liberal，静态链接库。其在程序编译的时候就会一起被�
 
 
 
+## C#拆分类的方式
+
+有时候编写的类里面属性和一些比较杂的方法太多了，不方便查看和编写，此时就可以使用：partial关键字来修饰这个类，被修饰的类会和与其重名的类合并为一个完整的类。
+
+一段看懂：
+
+在文件Person.cs中定义一个类Person：
+
+```c#
+public partial class Person
+{
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
+}
+```
+
+在文件PersonDetails.cs中定义同一个类Person的另一部分：
+
+```c#
+public partial class Person
+{
+    public int Age { get; set; }
+    public string Email { get; set; }
+}
+```
+
+优缺点：
+
+使用partial关键字的优点包括：
+
+1. 增加代码可读性和维护性，通过将一个类或方法拆分为多个partial类或partial方法，使得代码更易于理解和修改。
+2. 支持**多个开发者同时对同一个类或方法进行修改**，每个开发者可以在自己的partial类或partial方法中进行修改，避免了代码冲突。
+3. 可以将自动生成的代码和手写的代码分离，**方便代码生成工具和手写代码的管理**。
+
+
+
+使用partial关键字的缺点包括：
+
+1. 增加了代码的复杂性，需要开发者更加谨慎地进行设计和维护。
+2. 可能会导致代码逻辑不连贯，需要开发者进行额外的工作来确保partial类或partial方法在合并后的代码中具有正确的顺序。
+3. 可能会导致代码的**执行效率降低**，因为partial类或partial方法会增加额外的开销。
+
  
+
+---
+
+
+
+## 使用IDE的重构功能
+
+选中代码块后右键菜单中选重构，就能弹出重构菜单：
+
+![image-20230518145408106](Images/image-20230518145408106.png) 
+
+
+
+### #if
+
+[预处理器指令](##预处理器指令)
+
+
+
+### #region
+
+单词的意思是区域。
+
+可以像方法或者类那样，在IDE中折叠这一块的代码
+
+
+
+### #checked
+
+由Checked block指令生成，会包裹选中的代码。
+
+`checked{}` 语句块是 C# 中的一种语法结构，用于在代码块中启用**整数算术运算的溢出检查**。在 `checked{}` 语句块中进行的所有整数算术运算都会进行溢出检查。如果检测到溢出，将引发 `System.OverflowException` 异常。
+
+
+
+### 提取方法
+
+这个很好用。选中一个代码块，可以自动把它作为函数打包。
+
+
+
+---
+
+
+
+## 预处理器指令
+
+在编译时，编译器可以识别代码中的预处理器指令，然后对代码做出一些操作。
+
+常用的有：
+
+1. `#include`: 用于包含其他源文件或头文件。可以使用`#include`指令将一个源文件中定义的函数或变量包含到另一个源文件中。[关于Include 和 Import](##关于Include 和 Import)
+2. `#define`: 用于定义宏。可以使用`#define`指令定义一个标识符和其对应的值或代码片段，然后在代码中使用该标识符作为代替。
+3. `#ifdef`和`#ifndef`: 用于条件编译。`#ifdef`指令用于检查一个标识符是否已经定义，如果定义了则编译后面的代码，否则忽略。`#ifndef`指令则相反，用于检查一个标识符是否未定义，如果未定义则编译后面的代码。
+4. `#pragma`: 用于向编译器发送特定的命令或指令。`#pragma`指令通常用于控制编译器的行为，例如设置警告级别、关闭某些警告或优化代码。
+5. `#error`: 用于在编译时生成一个错误消息。可以使用`#error`指令在编译过程中生成一个错误消息，以提醒程序员必须解决的问题。
+
+以上预处理器操作，根据语言的不同，也会有写法上的不同，如C#中是#if。
+
+
+
+---
+
+
+
+## C# 查找、匹配、读取文件
+
+[Maya笔记——通配符](../Maya工具开发学习笔记/Maya工具开发学习笔记.md###通配符)
+
+制作工具时，往往需要在脚本中读取本地的资产。
+
+```c#
+cubemap = AssetDatabase.LoadAssetAtPath<Cubemap>("Assets/MyFolder/myCubemap.cubemap");
+```
+
+但是这不太支持通配符，所以只能先获取匹配上的路径列表，再对列表的内容进行访问：
+
+```c#
+// 查找以 "0_" 开头的文件
+string[] files = Directory.GetFiles(folderPath, "0_*");
+
+foreach (string file in files)
+{
+    // 加载文件
+    Object obj = AssetDatabase.LoadAssetAtPath(file, typeof(Cubemap));
+
+    // 将加载的对象转换为 Cubemap 类型
+    Cubemap cubemap = obj as Cubemap;
+
+    // 处理 Cubemap
+    // ...
+}
+```
+
+
+
+---
+
+
 
  
 
