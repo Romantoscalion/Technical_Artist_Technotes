@@ -1492,7 +1492,73 @@ foreach (string file in files)
 
 
 
- 
+## 利用Unity进行对于图片文件的读取、写入和导出
+
+工作中需要把CubeMap的一面导出为普通的图片格式，但是这方面我完全没有了解过。
+
+结合ChatGPT和Copilot，得到了下列的代码：
+
+```c#
+private void GetCubeMapSide(CubemapFace face){
+    int size = iterationCubeMap.width;
+    Texture2D tex = new Texture2D(size, size, TextureFormat.RGB24, false);
+    Color[] colors = iterationCubeMap.GetPixels(face);
+    tex.SetPixels(colors);
+    tex.Apply();
+    byte[] bytes = tex.EncodeToPNG();
+    string path = "Assets/0_在研/CubeMaps/1_" + face.ToString() + ".png";
+    File.WriteAllBytes(path, bytes);
+    AssetDatabase.Refresh();
+}
+```
+
+ 因为对于我来说是全新的领域，所以想要记一下。
+
+
+
+### Texture2D类
+
+其代表Unity内的纹理类型。上述代码通过长宽、编码格式和是否使用MipMap作为参数初始化了这个对象。
+
+
+
+### TextureFormat
+
+Format直译是格式，但是不太好理解。
+
+这里的RGB24指的是RGB3个通道，每个通道8位（bit）。
+
+在百人计划中，我们了解过这个编码格式：[53：纹理压缩](../百人计划学习笔记/百人计划学习笔记##53：纹理压缩)
+
+RGB24是非压缩格式，适合让CPU处理，而不适合让GPU进行读取。
+
+
+
+### tex.Apply()
+
+tex.Apply() 方法用于将设置了颜色的 Texture2D 对象提交到 GPU 进行渲染，这样可以确保修改后的纹理可以立即在场景中显示出来。如果不调用此方法，修改的纹理将不会被更新并显示在场景中。
+
+
+
+### tex.EncodeToxx()
+
+Texture2D类的方法，将Texture2D对象编码为对应格式所需要的byte数组
+
+![image-20230519174031149](Images/image-20230519174031149.png) 
+
+
+
+### File.WriteAllBytes(path, bytes)
+
+将字节数组内容写到指定路径的指定文件。
+
+
+
+---
+
+
+
+
 
  
 
