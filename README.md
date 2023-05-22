@@ -43,22 +43,20 @@
 
 建议拉取到本地查看，因为在线的阅读器好像没法定位到目录。
 
-按照我学习的顺序排列：
+按照**推荐度**排序（低推荐度说明目前**不完善**或者**格式错误严重**，需要等待**后续修复**更新）
 
-1. [UnityShader入门精要](UnityShader入门精要学习笔记/UnityShader入门精要学习笔记.md)
-2. [Houdini学习笔记](Houdini学习笔记/Houdini学习笔记.md)
-3. [GAMES101](GAMES101学习笔记/GAMES101学习笔记.md)
-4. [GAMES202](GAMES202学习笔记/GAMES202学习笔记.md)
-5. [百人计划学习笔记](百人计划学习笔记/百人计划学习笔记.md)
-6. [需要记忆](需要记忆/需要记忆.md)
-7. [TA零散知识](TA零散知识/TA零散知识.md)
-8. [关于SRP、URP](关于SRP、URP/关于SRP、URP.md)
-9. [Maya工具开发学习笔记](Maya工具开发学习笔记/Maya工具开发学习笔记.md)
-10. [Max工具开发学习笔记](Max工具开发学习笔记/Max工具开发学习笔记.md)
-
-
-
-
+1. [TA零散知识](TA零散知识/TA零散知识.md)
+2. [百人计划学习笔记](百人计划学习笔记/百人计划学习笔记.md)
+3. [Maya工具开发学习笔记](Maya工具开发学习笔记/Maya工具开发学习笔记.md)
+4. [Max工具开发学习笔记](Max工具开发学习笔记/Max工具开发学习笔记.md)
+5. [Houdini学习笔记](Houdini学习笔记/Houdini学习笔记.md)
+6. [GAMES202](GAMES202学习笔记/GAMES202学习笔记.md)
+7. [GAMES101](GAMES101学习笔记/GAMES101学习笔记.md)
+8. [UnityShader入门精要](UnityShader入门精要学习笔记/UnityShader入门精要学习笔记.md)
+9. [关于SRP、URP](关于SRP、URP/关于SRP、URP.md)
+10. [关于PBR](关于PBR/关于PBR.md)
+11. [需要记忆](需要记忆/需要记忆.md)
+12. [VFX Graph](VFX Graph/VFX Graph.md)
 
 
 
