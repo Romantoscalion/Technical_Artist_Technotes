@@ -1,49 +1,36 @@
 # Maya工具开发学习笔记
 
+由于工作需要实习工作需要，开始学习Maya工具开发
 
 
-# 前言
 
 Part1转载自我的有道云，代码块识别不出。。。
 
+修复中。。。
 
 
-# Part1
 
- 
 
-## 前言
-
-工具开发是TA职责的一环，慢慢学吧……
 
  
 
-## Python基本通识
-
- 
-
-### 前言
+# Python基本通识
 
 恨啊，当初没有好好学，现在看很多地方都需要Python。看上去比较好上手，慢慢不上不了解的地方吧。
 
  
 
-### form import、导入其他文件内的函数
+## form import、导入其他文件内的函数
 
-```
+```python
 # helper.py
-
- 
 
 def square(x):
 
   return x ** 2
 
  
-
-\# main.py
-
- 
+# main.py
 
 from helper import square
 
@@ -51,36 +38,41 @@ from helper import square
 
 result = square(5)
 
-print(result) # Output: 25
-
-可以作头文件等使用，很方便。
-
-import后面是可以加逗号然后并列添加的，就可以一次导入多条函数。
-
-如果想导入文件中的所有函数，使用通配符*，from helper import *
+print(result)
+# Output: 25
 ```
 
- 
+import后面是可以**加逗号然后并列**添加的，就可以一次导入多条函数。
 
-### 关于Python的导入缓存导致的模块热更新失效问题
+如果想导入文件中的**所有函数**，使用**通配符***，from helper import *
 
-由于Python自身的优化机制，在文件中导入其他模块时，Python会缓存导入的模块。这导致如果我更改了被引用模块，这个更改将不起效果，因为文件使用的是旧的缓存的模块。
+关于通配符，可以参考：[通配符](##通配符)。
+
+
+
+## 关于Python的导入缓存导致的模块热更新失效问题
+
+由于Python自身的优化机制，在文件中导入其他模块时，Python会**缓存导入的模块**。这导致如果我更改了被引用模块，这个更改将不起效果，因为文件使用的是旧的缓存的模块。
 
 为了解决这个问题，可以使用：
 
+```python
 import imp
 
 import Main
 
 imp.reload(Main)
+```
 
-这样的方式来强制重新导入文件。
+这样的方式来**强制重新导入文件。**
 
-虽然可能降低效率，但是能解决热更新的问题。在基本确定不更改后，可以删除重新导入命令。
+虽然可能**降低效率**，但是能**解决热更新的问题**。
+
+在基本确定不更改后，可以删除重新导入命令。
 
  
 
-### 元组和列表
+## 元组和列表
 
 之前一直没有很好的理解，只知道元组可以放任何类型。
 
@@ -88,113 +80,104 @@ GPT讲述：
 
 Python中的元组和列表都是容器类型的数据结构，用于存储多个元素，但它们有着不同的特点。
 
-\1.   元组（tuple）：
+**元组（tuple）：**
 
-l 元组是不可变的，即一旦创建就不能修改。
+- 元组是**不可变**的，即一旦创建就不能修改。
 
-l 元组使用小括号()来表示，元素之间用逗号分隔。
+- 元组使用小括号**()**来表示，元素之间用逗号分隔。
 
-l 元组可以包含任何类型的数据，包括其他元组。
+- 元组可以包含任何类型的数据，包括其他元组。
 
-l 元组支持索引和切片操作。
+- 元组支持索引和切片操作。
 
-\2.   列表（list）：
+**列表（list）：**
 
-l 列表是可变的，可以动态添加、删除、修改元素。
+- 列表是**可变的**，可以动态添加、删除、修改元素。
 
-l 列表使用方括号[]来表示，元素之间用逗号分隔。
 
-l 列表可以包含任何类型的数据，包括其他列表。
+   - 列表使用方括号**[]**来表示，元素之间用逗号分隔。
 
-l 列表支持索引和切片操作，同时还支持排序、插入、删除、统计等操作。
 
-共同点：
+   - 列表可以包含任何类型的数据，包括其他列表。
 
-l 都是容器类型的数据结构，用于存储多个元素。
 
-l 都可以包含任何类型的数据，包括其他元组或列表。
+   - 列表支持索引和切片操作，同时还支持排序、插入、删除、统计等操作。
 
-l 都支持索引和切片操作。
+**共同点：**
 
-不同点：
+- 都是容器类型的数据结构，用于存储多个元素。
 
-l 元组是不可变的，而列表是可变的。
+- 都可以包含任何类型的数据，包括其他元组或列表。
 
-l 元组使用小括号()来表示，列表使用方括号[]来表示。
+- 都支持索引和切片操作。
 
-l 元组不能添加、删除、修改元素，而列表可以。
 
-l 元组相对于列表来说更加轻量级，所以在需要不可变序列的情况下，使用元组会更加高效。
+**不同点：**
 
- 
+- 元组是不可变的，而列表是可变的。
 
-### 魔术方法、特殊方法
+- 元组使用小括号()来表示，列表使用方括号[]来表示。
+
+- 元组不能添加、删除、修改元素，而列表可以。
+
+- **元组相对于列表来说更加轻量级**，所以在需要不可变序列的情况下，使用**元组会更加高效**。
+
+
+
+
+## 魔术方法、特殊方法
 
 常见的被双下划线包住的方法就是魔术方法，它们很像Unity内置的各种回调，你只要写这个函数的内容，这个函数会自动在指定的条件下被调用。
 
 如：
 
-```
+```python
 class People(object):
 
-  \# 创建对象
+	# 创建对象
+	def __new__(cls, *args, **kwargs):
 
-  def __new__(cls, *args, **kwargs):
+    	print("触发了构造方法")
 
-​    print("触发了构造方法")
+    	ret = super().__new__(cls) # 调用父类的__new__()方法创建对象
 
-​    ret = super().__new__(cls) # 调用父类的__new__()方法创建对象
+    	return ret ## 将对象返
 
-​    return ret ## 将对象返
+ 	# 实例化对象W
+	def __init__(self, name, age):
 
-  \# 实例化对象
+   		self.name = name
 
-  def __init__(self, name, age):
+   		self.age = age
 
-​    self.name = name
+   		print("初始化方法")
 
-​    self.age = age
+ 	# 删除对象
 
-​    print("初始化方法")
+ 	#  del 对象名或者程序执行结束之后
 
-  \# 删除对象
+	def __del__(self):
 
-  \#  del 对象名或者程序执行结束之后
+    	print("析构方法，删除对象")
+	
+    # 特殊变量，__name__是这个模块的名字
 
-  def __del__(self):
+	if __name__ == '__main__':
 
-​    print("析构方法，删除对象")
-
- 
-
- 
-
-if __name__ == '__main__':
-
-  p1 = People('xiaoming', 16)
+  		p1 = People('xiaoming', 16)
 ```
 
  
 
-输出：
-
-触发了构造方法
-
-初始化方法
-
-析构方法，删除对象
-
- 
-
-### 保护变量和私有变量
+## 保护变量和私有变量
 
 默认的变量声明是公开的，类内类外都可以访问。
 
-单下划线开头的变量是保护的，类外可以访问，但不应该访问，因为之前的开发者不希望你访问，纯看自觉。
+**单下划线开头的变量是保护的，类外可以访问，但不应该访问**，因为之前的开发者不希望你访问，纯看自觉。
 
-双下划线开头的变量是私有的，类外可以访问，但是访问时需要做一步处理，同上，开发者不希望你访问。
+**双下划线开头的变量是私有的，类外可以访问，但是访问时需要做一步处理**，同上，开发者不希望你访问。
 
-```
+```python
 class test :
 
   _test = 1
@@ -211,60 +194,65 @@ def main() :
 
   print (te._test__main)
 
-\# 可以成功打印
+# 可以成功打印
 
-\# 对于双下划线开头变量，需要在访问时在变量名前加上“_所属类名”
+# 对于双下划线开头变量，需要在访问时在变量名前加上“_所属类名”
 ```
 
  
 
-### 函数返回类型声明
+## 函数返回类型声明
 
-Python不指定函数返回类型，想返回什么就返回什么，也可以不返回直接结束。
+**Python不指定函数返回类型**，想返回什么就返回什么，也可以不返回直接结束。
 
-在Python3.5之后，开发者可以在函数声明中加入返回类型注解，类似注释，有没有都不会影响代码的编译。
+在Python3.5之后，开发者可以在函数声明中加入**返回类型注解**，类似注释，有没有都**不会影响代码的编译**。
 
 编写注解后，能在调用该函数的地方看到返回类型的提示，仅此而已。
 
+```python
 def add(x: int, y: int) -> int:
 
-  return x + y
+  	return x + y
+```
 
  
 
-### 关于pass占位符
+## 关于pass占位符
 
 有时候一个函数就是不需要任何内容，但是它又必须被声明和定义，那里面写什么呢？
 
 Python又不认可空行，只留下空行的话解释器会报错，这时候写下占位符pass即可：
 
+```python
 if True:
 
-  pass
+ 	pass
 
-  print("Hello, world!")
+  	print("Hello, world!")
+```
 
 需要注意，如果写了pass，后面的代码就不会再运行了。
 
  
 
-### 关于参数顺序
+## 关于参数顺序
 
 如果你在调用函数时指定参数的名称，是可以随意打乱参数的顺序的，这叫做关键字参数。表现上很像Maya大部分cmds函数的flag形式。
 
+```python
 def my_func(a, b, c):
 
   print(a, b, c)
 
  
 
-\# 关键字参数
+# 关键字参数
 
 my_func(c=3, a=1, b=2) #输出 1 2 3
 
  
 
-\# 默认参数
+# 默认参数
 
 def my_func(a, b=2, c=3):
 
@@ -275,102 +263,101 @@ def my_func(a, b=2, c=3):
 my_func(1) # 输出 1 2 3
 
 my_func(1, c=4) # 输出 1 2 4
+```
 
- 
+ 详细请看下一条目，无名参数和有名参数.
 
-### 关于无名参数和有名参数
+
+
+## 关于无名参数和有名参数
 
 用cmds的API的时候，发现这个函数声明看不懂，于是问了GPT，才知道Python还有有名参数和无名参数这么一说。
 
-![截图.png](Images/clip_image002.gif)
+![截图.png](Images/clip_image002.gif) 
 
 *args是无名参数列表、**kwargs是有名参数字典（关键字参数）。
 
+```python
 def fun (*args, **kwargs) :
 
-  pass
+  	pass
 
  
-
 fun(1,2,3,a = 1, b = 2, c = 3)
+```
 
 如上函数声明和调用，前三个是无名参数，后三个是有名参数（关键字参数）。
 
 *和**是解包运算符，用于把列表和字典解包成参数列表，这样才能适配上各种情况下的调用。
 
-在上面这种情况下，args是一个列表，kwargs是一个字典，可以用于遍历。
+在上面这种情况下，**args是一个列表，kwargs是一个字典，可以用于遍历。**
 
 在定义中使用**kwargs之后，还是可以继续添加参数的：
 
+```python
 def fun (*args, **kwargs, name = "Init") :
-
-  pass
-
- 
+  	pass
 
 fun(1,2,3,a = 1, b = 2, c = 3, name = "111")
+```
 
-根据规范，调用函数时一般无名参数在前，关键字参数在后，交替出现可能会出现匹配不上的问题。
+**根据规范，调用函数时一般无名参数在前，关键字参数在后，交替出现可能会出现匹配不上的问题。**
 
  
 
-### 关于装饰器
+## 关于装饰器
 
 这是Python特有的功能，当一个函数上面有@……的标志，代表这个函数被装饰了，真实运行的函数不是这个函数，而是被装饰后的函数。如下范例：
 
+```python
+# 装饰器定义函数
 def my_decorator(func):
-
-  def wrapper():
-
-​    print("Before the function is called.")
-
-​    func()
-
-​    print("After the function is called.")
-
-  return wrapper
+    # 定义包裹函数
+  	def wrapper():
+        # 使用两条Print语句包裹原函数
+    	print("Before the function is called.")
+    	func()
+    	print("After the function is called.")
+	#将重新定义后的函数返回
+  	return wrapper
 
  
 
+# 呼叫装饰器，此函数不再按照原函数运行
 @my_decorator
-
 def say_hello():
-
   print("Hello!")
 
  
 
 say_hello()
+# 输出：
+# Before the function is called.
+# Hello!
+# After the function is called.
+```
 
-\# 输出：
-
-\# Before the function is called.
-
-\# Hello!
-
-\# After the function is called.
-
-这么做会降低代码的可读性，毕竟你把其他部分弄出去了，不是所见即所得。但是在一些特殊的情况下，如：不太方便修改源码，只能通过加码的方式修改功能时。
+这么做会**降低代码的可读性**，毕竟你把其他部分弄出去了，不是所见即所得。但是在一些特殊的情况下，如：不太方便修改源码、只能通过加码的方式修改功能时，还算能用。
 
  
 
-### 关于拉姆达表达式
+## 关于拉姆达表达式
 
 C#中拉姆达表达式是这样：
 
-var fun = (a,b) => {print(a,b);};
+`var fun = (a,b) => {print(a,b);};`
 
 fun是一个委托类型，它保存一个函数。后面的a => {print(a);}是一个拉姆达表达式，a和b是参数，后面是函数体。
 
 Python则这样写：
 
-fun = lambda a,b : print(a,b)
+`fun = lambda a,b : print(a,b)`
 
 Python中拉姆达表达式只能有1行，返回值的类型就是这个表达式的值。
 
  
 
-### 关于长名和短名
+## 关于长名和短名
 
 根据Python的优良传统，调用函数时，若使用关键字参数，常使用关键字的短名（1~3个字母）（用长名也不会出问题）。
 
@@ -378,25 +365,26 @@ Python中拉姆达表达式只能有1行，返回值的类型就是这个表达�
 
 **直接链接长短名：**
 
+```python
 def Say(**kwarg) : 
 
-  \# 先试着get这个s，如果没有就试着get这个str
+  	\# 先试着get这个s，如果没有就试着get这个str
 
-  str = kwarg.get('s', kwarg.get('str', None))
+  	str = kwarg.get('s', kwarg.get('str', None))
 
-  print (str)
+  	print (str)
 
  
-
 Say(str = "str")
 
 Say(s = "s")
 
-\# Output:
+# Output:
 
-\# str
+# str
 
-\# s
+# s
+```
 
 这个方法相对较快，但是可能会出现同时使用长短名的问题，限定方面会出现一点困难。
 
@@ -404,17 +392,18 @@ Say(s = "s")
 
 **使用装饰器实现：**
 
+```python
 def SayShortName(Say):
 
-  def wrapper(**kwarg):
+  	def wrapper(**kwarg):
 
-​    if 's' in kwarg:
+    	if 's' in kwarg:
 
-​      kwarg['str'] = kwarg.pop('s', None)
+      		kwarg['str'] = kwarg.pop('s', None)
 
-​    Say(**kwarg)
+   			Say(**kwarg)
 
-  return wrapper
+  	return wrapper
 
  
 
@@ -424,17 +413,18 @@ def Say(str) :
 
   print (str)
 
- 
+
 
 Say(str = "str")
 
 Say(s = "s")
 
-\# Output:
+# Output:
 
-\# str
+# str
 
-\# s
+# s
+```
 
 其实很好理解，就是使用装饰器修改一下原函数，并做一步判断：如果关键字参数字典中使用的是长名，就不动它，如果关键字字典中使用的是短名，就把短名拿到的值赋给长名的键，然后删除短名键值对避免多出一个参数（pop函数的功能就是删除并返回值），然后用处理过的参数去运行被装饰的函数就行了。
 
@@ -450,51 +440,46 @@ Say(s = "s")
 
  
 
-### 获取列表长度
+## 获取列表长度
 
-len(sl)
+`len(sl)`
 
 和面向对象的sl.len的方法不同，每次我都搞错……
 
  
 
-### 类型转换
+## 类型转换
 
 类似C#
 
-string_num = "123"
+`string_num = "123"`
 
-int_num = int(string_num)
+`int_num = int(string_num)`
 
  
 
-### Logging
+## Logging
 
-仅使用print和cmds的warning和error是低效且不规范的。
+**仅使用print和cmds的warning和error是低效且不规范的。**
 
-在SkinningCopyTo这个项目中，我定义了一个变量DEBUG，用于控制开发者模式下的Log和Debug输出，这导致每次Log都需要再写一行if，非常的麻烦。
+在一个工具项目中，我定义了一个变量DEBUG，用于控制开发者模式下的Log和Debug输出，这导致每次Log都需要再写一行if，非常的麻烦。
 
 询问GPT解决方案后，发现Python有一个叫做Logging的内置库。
 
 总结：
 
-![截图.png](Images/clip_image004.jpg)
+  <img src="Images/截图.png" alt="截图" style="zoom:150%;" /> 
 
  
 
 Handler可以玩得很花：
 
-\1.   StreamHandler：将日志消息输出到控制台
-
-\2.   FileHandler：将日志消息输出到文件
-
-\3.   RotatingFileHandler：将日志消息输出到指定的文件，可以限制文件大小，达到一定大小后自动切割文件
-
-\4.   TimedRotatingFileHandler：将日志消息输出到指定的文件，可以根据时间进行切割，比如每天或每小时切割一次
-
-\5.   SocketHandler：将日志消息发送到指定的网络地址和端口
-
-\6.   SMTPHandler：将日志消息发送到指定的邮箱地址
+1. StreamHandler：将日志消息输出到控制台
+2. FileHandler：将日志消息输出到文件
+3. RotatingFileHandler：将日志消息输出到指定的文件，可以限制文件大小，达到一定大小后自动切割文件
+4. TimedRotatingFileHandler：将日志消息输出到指定的文件，可以根据时间进行切割，比如每天或每小时切割一次
+5. SocketHandler：将日志消息发送到指定的网络地址和端口
+6. SMTPHandler：将日志消息发送到指定的邮箱地址
 
  
 
@@ -506,35 +491,36 @@ logging也可以用在Maya的脚本开发中，效果如下：
 
 并且，Maya会独立输出一行（在logging之后），标注输出的文件和输出内容。
 
-重复令人烦躁，可以通过调整Handler避免把信息输出到终端，因为终端的信息会同时被Maya和终端打印，造成重复。
+**重复令人烦躁，可以通过调整Handler避免把信息输出到终端，因为终端的信息会同时被Maya和终端打印，造成重复。**
 
  
 
 **要注意：**
 
-如果Log带中文，需要py文件首行注释文件编码方式，如：# encoding: gbk
+如果Log带**中文，需要py文件首行注释文件编码方式**，如：# encoding: gbk。
 
 在Maya使用时，由于缓存等持续运行机制，旧的Logger不会被自动删除，这导致同一个信息会被多次输出，为了解决这个问题，可能需要删除一下旧的Logger：
 
+```python
 logging.Logger.manager.loggerDict.pop(__name__, None)
-
 logger = logging.getLogger(__name__)
+```
 
  
 
-### 通配符
+## 通配符
 
-阉割版正则表达式，可以做简单的字符串匹配。
+阉割版正则表达式，可以做**简单的字符串匹配**。
 
 在常用的场合，作为一个条件被使用。
 
 比如：
 
- \# 通过名字筛选出所有的Source
+ 通过名字筛选出所有的Source
 
-source = cmds.ls("S_*", type = "transform")[0]
+`source = cmds.ls("S_*", type = "transform")[0]`
 
-表示用“S_*”为条件去筛选场景中的所有物体，“S_*”表示物体名必须以“S_”开头，后面是什么都无所谓。
+表示用`“S_*”`为条件去筛选场景中的所有物体，`“S_*”`表示物体名必须以“S_”开头，后面是什么都无所谓。
 
  
 
@@ -544,81 +530,71 @@ GPT说明的常用场景：
 
 glob模块的通配符来查找符合某个模式的文件名或路径名。例如，
 
-*.txt表示匹配所有以.txt结尾的文件名；
+***.txt表示匹配所有以.txt结尾的文件名；**
 
-?表示匹配一个字符；
+**?表示匹配一个字符；**
 
-[abc]表示匹配字符a、b或c中的任意一个。
+**[abc]表示匹配字符a、b或c中的任意一个。**
 
 通配符也可以用于数据处理中的筛选和过滤。
 
  
 
-### Try
+## Try
 
 与其他高级编程语言类似的，Python也有异常抛出机制：
 
-\# 通过名字筛选出所有的Target
-
+```python
+# 通过名字筛选出所有的Target
 try:
-
-  \# 可能会引发异常的代码
-
+  # 可能会引发异常的代码
   x = 1 / 0
-
 except ZeroDivisionError:
-
-  \# 处理 ZeroDivisionError 异常
-
+  # 处理 ZeroDivisionError 异常
   print("除数不能为零")
-
 finally:
-
-  \# 无论异常是否被引发，都需要执行的代码
-
+  # 无论异常是否被引发，都需要执行的代码
   print("程序结束")
+```
 
 如果想要捕获特定类型的错误：
 
-l SyntaxError：代码语法错误。
+- SyntaxError：代码语法错误。
 
-l NameError：尝试访问不存在的变量或函数。
+- NameError：尝试访问不存在的变量或函数。
 
-l TypeError：操作或函数应用于不适当的数据类型。
+- TypeError：操作或函数应用于不适当的数据类型。
 
-l ValueError：操作或函数应用于正确类型的数据，但该数据具有不合适的值。
+- ValueError：操作或函数应用于正确类型的数据，但该数据具有不合适的值。
 
-l ZeroDivisionError：试图在除数为零的情况下执行整数或浮点数除法。
+- ZeroDivisionError：试图在除数为零的情况下执行整数或浮点数除法。
 
-l IndexError：尝试访问列表、元组或字符串中不存在的索引。
+- IndexError：尝试访问列表、元组或字符串中不存在的索引。
 
-l KeyError：尝试访问字典中不存在的键。
+- KeyError：尝试访问字典中不存在的键。
 
-l AttributeError：尝试访问对象不存在的属性或方法。
+- AttributeError：尝试访问对象不存在的属性或方法。
 
-l ImportError：无法导入指定的模块或包。
+- ImportError：无法导入指定的模块或包。
 
-l FileNotFoundError：尝试打开不存在的文件。
+- FileNotFoundError：尝试打开不存在的文件。
 
- 
-
-如果不知道错误什么类型，反正都想捕获，那么except后直接写冒号即可。
 
  
 
-### 在一行中使用if语句
+如果**不知道错误什么类型**，反正都想捕获，那么**except后直接写冒号**即可。
 
-item = source if args[0] == "source" else target
+ 
+
+## 在一行中使用if语句
+
+`item = source if args[0] == "source" else target`
 
 类似C#中 A ： B ？ Bool的用法
 
  
 
- 
-
- 
-
-## Maya　Python脚本中的UI
+# Maya　Python脚本中的UI
 
 UI是工具重要的一环。
 
