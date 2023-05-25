@@ -784,15 +784,13 @@ def ChooseProjetPlane(se):
 
 ![截图.png](Images/clip_image010.gif) 
 
-上图这些就是。
-
 关于这三个模式，资料不多，我的了解很少，完全靠自己的理解总结，很可能出现错误。
 
-其实一个API可以做很多事情，如Window函数可以创建窗口、修改现有窗口的长宽、可以查询一个窗口的存在与否。根据目标行为的性质，可以判断出需要哪一个模式。有些API会有默认的模式。比如Window默认是创建模式，GetAttribute默认是查询模式。
+其实一个API可以做很多事情，如Window函数可以创建窗口、修改现有窗口的长宽、可以查询一个窗口的存在与否。根据目标行为的性质，可以判断出需要哪一个模式。**有些API会有默认的模式**。比如Window默认是创建模式，GetAttribute默认是查询模式。
 
 所处的模式不同，API表现出的功能也会不同。比如Window函数，若不对模式作修改，则默认会创建一个窗口对象，但若我修改标志e=1,即转到编辑模式，就可以对目标窗口进行更改。
 
-修改API的模式的方式也很简单，查询：q=1、编辑：e=1。至于C和M，实例中发现报错说没有这两个flag。目前还不太清楚是怎么回事。
+修改API的模式的方式也很简单，**查询：q=1、编辑：e=1**。**至于C和M，实例中发现报错说没有这两个flag。**目前还不太清楚是怎么回事。
 
  
 
@@ -802,343 +800,280 @@ def ChooseProjetPlane(se):
 
 # 脚本开发中的常用Maya的Python模块
 
- 
 
-### maya.cmds
 
-对Mel命令的封装，所有Mel命令能做到的事cmds都可以做到。
+## maya.cmds
 
-主打一个面向过程编程。
+对Mel命令的封装，所有**Mel命令**能做到的事cmds都可以做到。
 
-GPT示例代码：
+主打一个**面向过程**编程。
 
+```python
+#GPT示例代码：
 import maya.cmds as cmds
 
- 
-
-\# 创建一个立方体
-
+# 创建一个立方体
 cmds.polyCube()
 
- 
-
-\# 将立方体移动到特定坐标
-
+# 将立方体移动到特定坐标
 cmds.move(2, 3, 4)
 
- 
-
-\# 打印立方体的位置
-
+# 打印立方体的位置
 print(cmds.xform(q=True, t=True))
+```
 
  
 
-### pymel.core
+## pymel.core
 
-第三方开发但是现在已经招安，是cmds的面向对象版。
+第三方开发但是现在已经招安，是**cmds的面向对象版**。
 
 很有面向对象的味道，是我喜欢的类型。
 
 坏就坏在不是官方开发的所以没有官方文档，以下是开发者文档：[文档](https://help.autodesk.com/cloudhelp/2018/JPN/Maya-Tech-Docs/PyMel/index.html)（为什么官方说了不支持，结果文档的网址前缀还是AutoDesk啊！傲娇吗？？）
 
-GPT示例代码：
-
+```python
+# GPT示例代码：
 import pymel.core as pm
 
- 
-
-\# 创建场景
-
+# 创建场景
 pm.newFile(force=True)
 
- 
-
-\# 创建两个球体
-
+# 创建两个球体
 sphere1 = pm.polySphere()[0]
-
 sphere2 = pm.polySphere()[0]
 
- 
-
-\# 移动球体位置
-
+# 移动球体位置
 sphere1.translate.set(2, 0, 0)
-
 sphere2.translate.set(-2, 0, 0)
-
  
 
-\# 创建材质并应用于球体
-
+# 创建材质并应用于球体
 mat = pm.shadingNode('blinn', asShader=True)
-
 mat.color.set(1, 0, 0)
-
 pm.select(sphere1)
-
 pm.hyperShade(assign=mat)
-
 mat = pm.shadingNode('lambert', asShader=True)
-
 mat.color.set(0, 1, 0)
-
 pm.select(sphere2)
-
 pm.hyperShade(assign=mat)
 
- 
-
-\# 渲染场景
-
+# 渲染场景
 pm.render()
+```
 
- 
 
-### maya.OpenMaya
+
+## maya.OpenMaya
 
 更底层的类，可以做到目前没有被Maya定义在mel中的事。
 
 似乎走的也是面向对象的思路。
 
-GPT示例代码：
-
+```python
+#GPT示例代码：
 import maya.OpenMaya as om
 
- 
-
-\# 创建立方体
-
+# 创建立方体
 cube = om.MFnMesh()
-
 points = [(-1, -1, -1), (1, -1, -1), (1, 1, -1), (-1, 1, -1), (-1, -1, 1), (1, -1, 1), (1, 1, 1), (-1, 1, 1)]
-
 vertices = []
-
 for point in points:
-
-  vertices.append(cube.addVertex(om.MPoint(point)))
-
+	vertices.append(cube.addVertex(om.MPoint(point)))
 faces = [(0, 1, 2, 3), (4, 5, 6, 7), (0, 1, 5, 4), (1, 2, 6, 5), (2, 3, 7, 6), (3, 0, 4, 7)]
-
 for face in faces:
+	cube.addPolygon(vertices[face[0]], vertices[face[1]], vertices[face[2]], vertices[face[3]])
 
-  cube.addPolygon(vertices[face[0]], vertices[face[1]], vertices[face[2]], vertices[face[3]])
-
- 
-
-\# 移动立方体
-
+# 移动立方体
 cubeTransform = om.MFnTransform()
-
 cubeTransform.setTranslation(om.MVector(2, 2, 2), om.MSpace.kWorld)
+```
 
- 
 
-### maya.api.OpenMaya
+
+## maya.api.OpenMaya
 
 beta版的OpenMaya。
 
 可见是比较底层了，目前还看不太懂喵。
 
-GPT实例代码：
-
+```python
+# GPT实例代码：
 import maya.api.OpenMaya as om
 
- 
-
-\# 创建一个新的空transform节点
-
+# 创建一个新的空transform节点
 sel = om.MSelectionList()
-
 sel.add('pSphere1')
-
 dagPath = sel.getDagPath(0)
-
 fnTransform = om.MFnTransform(dagPath)
-
 newTransform = fnTransform.create()
 
- 
-
-\# 设置节点的属性值
-
+# 设置节点的属性值
 newTransformFn = om.MFnTransform(newTransform)
-
 newTransformFn.setTranslation(om.MVector(2.0, 0.0, 0.0), om.MSpace.kWorld)
 
- 
-
-\# 创建一个新的mesh节点并将其绑定到transform节点上
-
+# 创建一个新的mesh节点并将其绑定到transform节点上
 meshData = om.MFnMeshData().create()
-
 meshFn = om.MFnMesh()
-
 newMesh = meshFn.create(4, 4, [om.MFloatPoint(0, 0, 0), om.MFloatPoint(1, 0, 0), om.MFloatPoint(1, 1, 0), om.MFloatPoint(0, 1, 0)], [4, 4, 4, 4], meshData)
-
 meshTransformFn = om.MFnTransform(newTransform)
-
 meshTransformFn.addChild(newMesh)
 
- 
-
-\# 获取节点的属性值
-
+# 获取节点的属性值
 translation = newTransformFn.translation(om.MSpace.kWorld)
-
 print('Transform Translation: {}'.format(translation))
-
 numVertices = meshFn.numVertices()
-
 print('Mesh Num Vertices: {}'.format(numVertices))
+```
 
  
 
-### maya.mel
+## maya.mel
 
 maya.mel 是 Maya 中的一种模块，它是 Maya Embedded Language（MEL）的缩写。MEL 是一种脚本语言，用于自动化和简化 Maya 中的任务。通过使用 MEL 脚本，用户可以快速地创建自定义工具和脚本来自动化重复性的任务，提高工作效率。maya.mel 模块包含了许多 MEL 命令和函数，可以在 Python 脚本中使用。
 
 最常用的应该是这个吧：
 
- mel.eval("polyFlipUV -flipType 0 -local on;")
+`mel.eval("polyFlipUV -flipType 0 -local on;")`
 
 用于在Python中直接运行mel语句。
 
  
 
- 
+---
 
- 
 
-## 关于使用VsCode编写Maya的Python脚本的流程方案
 
- 
+# 关于使用VsCode编写Maya的Python脚本的流程方案
 
-### 遇到的困难和历程
+舒服的开发环境可以让人愿意写代码不是吗？
 
-Maya的脚本编辑器跟记事本有什么区别吗？没有，垃圾！
+
+
+## 遇到的困难和历程
+
+**Maya的脚本编辑器**跟记事本有什么区别吗？没有，**垃圾！**
 
 所以必须要使用其他IDE编写Maya的Python脚本才是一个合理且有效率的流程。
 
-首先的问题是库的链接。要让IDE能识别Maya的cmds等库，则需要让IDE链接到库。这一点比较顺利，在IDE的Pytrhon的拓展的Seting中，添加Maya安装路径下的开发工具库的路径即可。
+首先的问题是**库的链接**。要让IDE能识别Maya的cmds等库，则需要让IDE链接到库。这一点比较顺利，在IDE的Pytrhon的拓展的Seting中，添加Maya安装路径下的开发工具库的路径即可。
 
-然后迎来的问题是Send的时效性，Send命令可以直接在IDE中通过快捷命令让Maya运行该脚本，但是这个链接非常玄学，每隔一小段时间就会断链，然后需要重启Maya才能重新连上。断链的原因至今未知。
+然后迎来的问题是**Send的时效性**，Send命令可以直接在IDE中通过快捷命令让Maya运行该脚本，但是这个链接非常玄学，每隔一小段时间就会断链，然后需要重启Maya才能重新连上。断链的原因至今未知。
 
-随后的问题是中文编码问题，当我在IDE中编写中文注释、或者字符串中包含中文，在IDE中观察没有问题，但是在Maya中观察，文字出现乱码现象。对于这个问题，最终的解决方案是更改IDE中，对文件的编码模式，使用GBK模式保存Py文件后，在Maya中观察文本正常。
+随后的问题是**中文编码问题**，当我在IDE中编写中文注释、或者字符串中包含中文，在IDE中观察没有问题，但是在Maya中观察，文字出现乱码现象。对于这个问题，最终的解决方案是更改IDE中，对文件的编码模式，使用GBK模式保存Py文件后，在Maya中观察文本正常。
 
-然后遇到的问题是，跨文件引用的无法热更新的问题，这个问题最终通过重新引用模块解决。也就是在引用其他文件模块后，使用：
+然后遇到的问题是，**跨文件引用的无法热更新**的问题，这个问题最终通过重新引用模块解决。也就是在引用其他文件模块后，使用：
 
+```python
 import imp
-
 import Main
-
 imp.reload(Main)
+```
 
 这样的方式来解决。
 
-然后遇到的问题是，如果是跨文件引用，被引用的文件若包含中文，Maya报错。解决方案是在脚本的头部写上编码形式的注释，如下：
+然后遇到的问题是，如果是**跨文件引用，被引用的文件若包含中文，Maya报错**。解决方案是在脚本的头部写上编码形式的注释，如下：
 
-\# encoding: gbk
-
+```
+# encoding: gbk
 def main() :
+  	print("Main...你妈妈")
+```
 
-  print("Main...你妈妈")
+然后遇到的问题是，**如果文件中包含非阿斯卡字符，使用IDE的Send命令时，Maya报错**，但是直接在Maya中运行没问题。这是Maya拓展插件的问题。因此我倾向于直接放弃在IDE运行脚本。这么做的好处是可以不用管IDE和Maya的链接，而且可以兼容文件中有中文的情况；坏处是每次运行，在Maya的控制台都会输出一遍源代码，看着比较难受。
 
-然后遇到的问题是，如果文件中包含非阿斯卡字符，使用IDE的Send命令时，Maya报错，但是直接在Maya中运行没问题。这是Maya拓展插件的问题。因此我倾向于直接放弃在IDE运行脚本。这么做的好处是可以不用管IDE和Maya的链接，而且可以兼容文件中有中文的情况；坏处是每次运行，在Maya的控制台都会输出一遍源代码，看着比较难受。
-
-然后遇到的问题是，如果在Maya和IDE同时打开一个文件，那么在IDE保存时，Maya会弹窗，特别的麻烦。但是未在Maya打开的文件被修改时不会弹窗，因此需要一个不修改的触发脚本用于在Maya内运行。
+然后遇到的问题是，**如果在Maya和IDE同时打开一个文件，那么在IDE保存时，Maya会弹窗**，特别的麻烦。但是未在Maya打开的文件被修改时不会弹窗，因此需要一个不修改的触发脚本用于在Maya内运行。
 
  
 
-### 总结
+## 总结
 
 根据上面的情况和问题，我总结了一条可行的、相对便利的工作方式：
 
-首次：
+**首次：**
 
-\1.   安装VsCode的MayaCode、Python插件
+1. 安装VsCode的MayaCode、Python插件
 
-\2.   配置插件，找到电脑上的Python的位置，同时把Maya的开发者工具包库添加到Python的自动补全路径中
+2. 配置插件，找到电脑上的Python的位置，同时把Maya的开发者工具包库添加到Python的自动补全路径中
 
-\3.   测试，看能不能导入Maya的各种模块，再检查代码有没有补全
-
- 
-
-开发：
-
-\1.   新建一个py文件，作用是对接Maya，用于运行脚本：
-
-import imp
-
-import Main
-
-imp.reload(Main)
+3. 测试，看能不能导入Maya的各种模块，再检查代码有没有补全
 
  
 
-Main.main()
+**开发：**
 
-\# ====================
+1. 新建一个py文件，作用是对接Maya，用于运行脚本：
 
-\# Output:  
+   ```python
+   import imp
+   import Main
+   imp.reload(Main)
+    
+   Main.main()
+   
+   # ====================
+   # Output:  
+   ```
 
-\2.   新建其他py文件，用于编写主要工作逻辑，要注意encoding注释，同时需要一个Main模块，也要注意引用其他文件时的reload，注意在IDE修改文件编码模式为gbk。新建的模块不在Maya中打开，因为会导致烦人的修改确认弹窗。
 
-\3.   开发结束后删除Reload提高代码效率。
 
-总的来说就是下面这图：
+2. 新建其他py文件，用于编写主要工作逻辑，要**注意encoding注释**，同时需要一个Main模块，也要注意引用其他文件时的reload，注意在IDE修改文件编码模式为gbk。新建的模块不在Maya中打开，因为会导致烦人的修改确认弹窗。
 
-![截图.png](Images/clip_image012.gif)
+3. 开发结束后删除Reload提高代码效率。
+
+**总的来说就是下面这图：**
+
+![截图.png](Images/clip_image012.gif) 
 
 这样应该就能相对愉快地写Maya地Python脚本了。
 
  
 
- 
+---
 
- 
 
-## 在Mel中使用Python，在Python中使用Mel
+
+# 在Mel中使用Python，在Python中使用Mel
 
 有时候会遇到很蛋疼的情况，比如我在写Py，此时一个功能用Mel很好写，但用Py很难写，怎么办？
 
 其实可以在Mel中用Python，也可以在Python中用Mel：
 
-Py in Mel
+**Py in Mel**
 
-python( "import maya.cmds" )
+`python( "import maya.cmds" )`
 
-python( "maya.cmds.ls" )
+`python( "maya.cmds.ls" )`
 
-Mel in Py
+**Mel in Py**
 
-import maya.mel as mm 
+`import maya.mel as mm` 
 
-mm.eval("polySphere;")
-
- 
+`mm.eval("polySphere;")`
 
  
 
+---
+
  
 
-## 传递命令时，使用字符串或者函数对象
+# 传递命令时，使用字符串或者函数对象
 
-在做UI的回调绑定时，通常是先声明一个回调用函数，然后在创建UI组件时把回调用的函数作为参数传入。
+在做**UI的回调绑定时，通常是先声明一个回调用函数**，然后在创建UI组件时把回调用的函数作为参数传入。
 
 在阅读官方文档时，我发现了一个新的方法：
 
+```python
 window = cmds.window( title="Hello World", widthHeight=(200, 100) )
-
 cmds.columnLayout( adjustableColumn=True )
 
+# 直接使用字符串作为函数对象
 cmds.floatSlider(cc = "print '%(1)s'\nprint '第二行也可以吗'")
 
 cmds.showWindow( window )
+```
 
-原来字符串也可以被解释为函数对象么……Python真的太自由了。
+原来**字符串也可以被解释为函数对象**么……Python真的太自由了。
 
 字符串的内容就是指定的函数的内容，甚至可以多行。对于需要参数的地方，%(x)s就代表第x个参数。
 
@@ -1146,13 +1081,11 @@ cmds.showWindow( window )
 
  
 
- 
+---
 
  
 
-## 把插件的安装做成一键式
-
- 
+# 把插件的安装做成一键式
 
 [参考文章](https://zhuanlan.zhihu.com/p/82989116)
 
@@ -1164,11 +1097,11 @@ cmds.showWindow( window )
 
  
 
- 
+---
 
- 
 
-## 对于Maya节点的理解
+
+# 对于Maya节点的理解
 
 本质和Houdini很像了，只是Maya的节点相对更碎更底层。
 
@@ -1188,37 +1121,37 @@ Maya删除历史记录后，一些节点会被删除，但是它们所做的更�
 
  
 
- 
+---
 
- 
 
-## 节点的属性进行查询和修改
+
+# 节点的属性进行查询和修改
 
 在使用cmds命令时，有时可以通过cmds的对应API修改指定节点的属性。
 
-但是更加规范有效的对于现存节点的属性进行查询和修改的方式应该是：
+但是**更加规范有效**的对于现存节点的属性进行查询和修改的方式应该是：
 
-pCube1是场景中一个立方体的transform节点。
-
+```python
+# pCube1是场景中一个立方体的transform节点。
 cmd.setAttr("pCube1.translateX", 4)
-
 cmd.getAttr(“pCube1.translateX”)
+```
 
  
 
- 
+---
 
  
 
-## 查询节点类型
+# 查询节点类型
 
-cmds . objectType(“pSphere”)
-
- 
+`cmds . objectType(“pSphere”)`
 
  
 
- 
+---
+
+
 
 ## 关于ls
 
