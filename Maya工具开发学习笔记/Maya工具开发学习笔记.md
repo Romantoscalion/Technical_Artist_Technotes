@@ -1,12 +1,8 @@
 # Maya工具开发学习笔记
 
-由于工作需要实习工作需要，开始学习Maya工具开发
+由于工作需要实习工作需要，开始学习Maya工具开发。
 
-
-
-Part1转载自我的有道云，代码块识别不出。。。
-
-修复中。。。
+于2023.5.26日修复完毕，之后会正常地更新在这里。
 
 
 
@@ -1145,7 +1141,7 @@ cmd.getAttr(“pCube1.translateX”)
 
 # 查询节点类型
 
-`cmds . objectType(“pSphere”)`
+`cmds.objectType(“pSphere”)`
 
  
 
@@ -1153,35 +1149,33 @@ cmd.getAttr(“pCube1.translateX”)
 
 
 
-## 关于ls
+# 关于ls
 
-ls是cmds库中极其常用的一个API，它意为List，即场景中的节点列表。
+ls是cmds库中极其常用的一个API，它**意为List**，即场景中的**节点列表**。
 
 最常用的就是获取当前选择的节点，也就是：
 
-cmds.ls(sl = 1)
+`cmds.ls(sl = 1)`
 
 即把selection的flag设置为True，此时会返回所选择的节点的名称。
 
  
 
- 
+---
 
  
 
-## 清除当前的选择
+# 清除当前的选择
 
- \# 清除选择的物体
-
- cmds.select(cl=True)
+ `cmds.select(cl=True)`
 
  
 
- 
+---
 
- 
 
-## Maya2018按F或A后导致视口什么都没有的Bug
+
+# Maya2018按F或A后导致视口什么都没有的Bug
 
 真不理解这么大的公司怎么会出这么低级的Bug……
 
@@ -1199,55 +1193,7 @@ cmds.ls(sl = 1)
 
  
 
- 
-
- 
-
-## Maya重名导入问题
-
-[参考](https://blog.csdn.net/chengyushen5090/article/details/100996213)
-
-导入时改一下设置
-
-![截图.png](Images/clip_image014.gif)
-
- 
-
- 
-
- 
-
-## 大纲视图（树状层级）中，父子关系、路径的查询
-
-[listRelatives](https://help.autodesk.com/cloudhelp/2018/CHS/Maya-Tech-Docs/CommandsPython/listRelatives.html)
-
-通过cmds.listRelatives()可以做到丰富的查询业务。
-
-在项目使用中，我使用该API通过根骨骼选中所有的骨骼Joint节点
-
-self.bone = cmds.listRelatives(self.rootBone, ad=True, type="joint")
-
-self.bone.append(self.rootBone)
-
-不仅如此，任何涉及父子、大纲视图路径的查询的业务都能使用该API
-
-比如想要通过一个后代节点找到根父物体：
-
-import maya.cmds as cmds
-
- 
-
-def findRootParent(node):
-
-  parents = cmds.listRelatives(node, allParents=True, fullPath=True)
-
-  if parents:
-
-​    return parents[-1] # 返回最后一个父节点，即根父节点
-
-  else:
-
-​    return node # 如果没有父节点，返回该节点本身
+2023.5.26 我再次遇到了这个Bug，这次使用这个方法并没有修好（创建新的场景回复正常，但是旧的场景无法被修复），我原先的Maya场景文件坏档了，视口中渲不出东西来。所以，做好备份吧。。。
 
  
 
@@ -1255,30 +1201,54 @@ def findRootParent(node):
 
 
 
- 
+# Maya重名导入问题
+
+[参考](https://blog.csdn.net/chengyushen5090/article/details/100996213)
+
+有时需要导入两个FBX，它们有一些节点的名字是相同的，这会导致后被导入的FBX的重名部分无法被导入。
+
+为了解决这个问题，可以导入时改一下设置，这么做会在每个导入的节点前加上文件名的前缀。
+
+<img src="Images/clip_image014.gif" alt="截图.png" style="zoom:150%;" /> 
 
  
 
- 
+---
 
  
 
- 
+# 大纲视图（树状层级）中，父子关系、路径的查询
 
- 
+[listRelatives](https://help.autodesk.com/cloudhelp/2018/CHS/Maya-Tech-Docs/CommandsPython/listRelatives.html)
 
- 
+通过cmds.listRelatives()可以做到丰富的查询业务。
 
- 
+使用该API**通过根骨骼选中所有的骨骼Joint节点**
 
- 
+```python
+self.bone = cmds.listRelatives(self.rootBone, ad=True, type="joint")
+self.bone.append(self.rootBone)
+```
 
- 
+不仅如此，任何涉及父子、大纲视图路径的查询的业务都能使用该API
 
- 
+比如想要通过一个后代节点找到根父物体：
 
- 
+```python
+import maya.cmds as cmds
 
- 
+def findRootParent(node):
+  	parents = cmds.listRelatives(node, allParents=True, fullPath=True)
 
- 
+	if parents:
+		return parents[-1] # 返回最后一个父节点，即根父节点
+  	else:
+    	return node # 如果没有父节点，返回该节点本身
+```
+
+
+
+---
+
+
+
