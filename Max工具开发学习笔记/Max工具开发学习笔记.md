@@ -2,6 +2,12 @@
 
 前面一些转载在我个人的有道云，因为平台的差异导致一些格式混乱，可能会影响体验。以后会慢慢修复。
 
+修复中。。。
+
+
+
+---
+
 
 
 # 前言
@@ -22,45 +28,45 @@
 
  
 
+---
+
  
 
 # 环境配置——VS Code
 
-相对于Maya而言，Max的环境配置简单很多。
+相对于Maya而言，Max的环境配置**简单**很多。
 
-\1.   安装拓展：
+1. **安装拓展：**
 
-![截图.png](Images/clip_image002.gif) 
+​	![截图.png](Images/clip_image002.gif) 
 
-\2.   下载链接器
+2. **下载链接器**
 
-[MXSPyCOM](https://github.com/techartorg/MXSPyCOM)
+​	[MXSPyCOM](https://github.com/techartorg/MXSPyCOM)
 
-链接器的作用是使VSCode可以通过task命令直接让3DMax运行脚本，是比较方便的存在。
+​	链接器的作用是**使VSCode可以通过task命令直接让3DMax运行脚本**，是比较方便的存在。
 
-\3.   按照说明配置task
+3. **按照说明配置task**
 
-文本直接从官方的wiki中复制，对于不同的IDE，有不同的方法。（我可去你的吧，后来发现其他IDE根本不支持写Maxscript）
+​	文本直接从官方的wiki中复制，~~对于不同的IDE，有不同的方法。~~（我可去你的吧，后来发现其他IDE根本不支持写Maxscript）
 
- 
+​	![截图.png](Images/clip_image004.gif) 
 
-![截图.png](Images/clip_image004.gif) 
+4. 把本地服务器连接脚本放入Max启动文件夹
 
-\4.   把本地服务器连接脚本放入Max启动文件夹
+​		这个文件包含在下载的MXSPyCOM中
 
-这个文件包含在下载的MXSPyCOM中
-
-![截图.png](Images/clip_image006.gif) 
+​		![截图.png](Images/clip_image006.gif) 
 
  
 
-*注意：插件说明里的语法高亮非常局限！像预览界面那样的语法高亮是要自己配置的：
+*注意：插件说明里的**语法高亮非常局限**！像预览界面那样的语法高亮是要自己配置的：
 
 [配置方法参考](https://stackoverflow.com/questions/53735278/how-to-modify-the-editor-text-color-in-visual-studio-code/56171988#56171988)
 
 官方只在Git里给了一个范例的配置文件，做得还不是很好，害我一直以为没起作用。。。
 
-这个拓展的语法识别非常垃圾，经常变量名、类名、函数名识别不准或者干脆识别不出来。
+这个拓展的语法识别非常垃圾，经常**变量名、类名、函数名识别不准或者干脆识别不出来**。
 
 然而在其他写码平台没办法写MaxScript，难搞。
 
@@ -68,17 +74,11 @@
 
  
 
- 
+---
 
- 
 
-# 一些杂说
 
-在制作SCT的过程中，累计了一些比较统一的、项目性质的经验，希望可以记一下。
-
- 
-
-## 使用节点式思维
+# 使用节点式思维
 
 起初我认为制作这个工具的任务非常困难。一方面我根本不了解Maxscript，另一方面这个工具的逻辑其实还是很复杂的。
 
@@ -112,129 +112,98 @@
 
  
 
-### 总结的方案
+## 总结的方案
 
 三个文件：
 
-OP.ms —— 保存节点函数以及定义所需要的数据结构体
+**OP.ms —— 保存节点函数以及定义所需要的数据结构体**
 
-Core.ms —— 保存链接OP的逻辑
+**Core.ms —— 保存链接OP的逻辑**
 
-UI.ms —— 保存UI组件的定义、UI值绑定和回调的绑定
+**UI.ms —— 保存UI组件的定义、UI值绑定和回调的绑定**
 
-MXS中不可以嵌套Include（其他语言也不可以，因为include的本质是不对代码做任何处理，在编译时直接把include的文件复制到include语句的位置）（顺带一提，想了解一下Include和Import的知识，详见TA零散知识Part3）
+MXS中不可以嵌套Include（其他语言也不可以，因为include的本质是不对代码做任何处理，在编译时直接把include的文件复制到include语句的位置）（顺带一提，想了解一下Include和Import的知识，[关于Include 和 Import](../TA零散知识/TA零散知识.md##关于Include 和 Import)）
 
 而这套流程可以适应这种情况，按照UI——Core——OP 的层级来include即可，上一级包含下一级。不需要重复引用，即UI include Core即可，不需要再 Include OP， 因为OP已经被 Core Included。
 
  
 
-## 基本思路
-
-编写模型相关工具时，一般工作流程都是：
-
-**读取所需数据 —— 修改并保存读取的数据 —— 把修改后的数据写入模型**
-
- 
-
- 
+---
 
  
 
 # Max Script基础
 
+
+
 ##  类比、特征、小总结和踩过的坑
 
-\1.   没有class、只有struct
+1.   没有class、只有struct
 
-\2.   声明的函数名和变量名不能和内置的同名，即使不小心同名了也没有提示的。这会引发疑难杂症，NT Maxscript。
+2. 声明的函数名和变量名不能和内置的同名，**即使不小心同名了也没有提示的。**这会引发疑难杂症，NT Maxscript。
 
-\3.   双减号注释不能在脚本第一行行头
+3. 双减号注释不能在脚本第一行行头
 
-\4.   不是严格缩进语言
+4. 不是严格缩进语言
 
-\5.   没有elseif
+5. 没有elseif
 
  
 
 ## 一段看懂Max Script流程代码
 
--- 这是注释，以双破折号开头
+Max Script是**动态类型语言**、具有和Python差不多的强类型性（指强类型性不强）
 
-/* 这也是注释，可以跨越多行 */
+关于动态类型语言和强类型性，查阅：[TA零散知识](../TA零散知识/TA零散知识.md#静态（类型）语言和动态（类型）语言、强类型性和弱类型性)
 
- 
+```vb
+/* 这是注释，可以跨越多行 */
+-- 这也是注释，以双破折号开头。这种注释不能在文件的第一行
+
 
 -- 声明变量
-
 myInt = 10
-
 myFloat = 3.14159
-
 myString = "Hello World"
-
 myBool = true
-
- 
-
 -- 虽然定义很自由，但是还是有内在的类型的，比如：
-
 -- 1/2 得到的是0，因为他们都是int型，如果想得到0.5，和C语言一样，需要：1.0*1/2，做一个类型转换
 
- 
 
 -- 输出变量值
-
 print myInt
-
 print myFloat
-
 print myString
-
 print myBool
-
  
 
 -- 条件语句
-
 if myInt > 5 then
-
   print "myInt is greater than 5"
-
 else
-
   print "myInt is less than or equal to 5"
 
- 
 
 -- 循环语句
-
 for i = 1 to 10 do
-
   print i
 
- 
 
 -- 函数定义(支持默认参数)
-
 -- 定义函数关键字用fn也可以
-
 function myFunction myArg1 myArg2 =
-
 (
-
   sum = myArg1 + myArg2
-
   return sum
-
 )
 
- 
 
 -- 调用函数。如果是无参函数，必须带括号（）
-
 myResult = myFunction 2 3
-
 print myResult
+```
+
+
 
 ## 面向对象语法基础
 
