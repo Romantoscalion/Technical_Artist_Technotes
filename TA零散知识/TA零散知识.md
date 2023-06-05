@@ -162,6 +162,8 @@ GAMES202中也有关于SSAO的记录，但是因为笔记目前还没修复，�
 
 ~~这不是开发的知识吗？~~
 
+差不多得了，这都不懂还能当TA？😅
+
 ### 是什么
 
 是一种资产的类型，类似于配置文件，但是它不仅可以用来保存数据，也可以用来实现函数。它的函数可以在自己写的、针对于它的、Editor的派生类来调用和控制。
@@ -170,21 +172,30 @@ GAMES202中也有关于SSAO的记录，但是因为笔记目前还没修复，�
 
 **用来保存类似“Static”的共用的、不变的数据。**保存于此类资产的数据，不会随着游戏的关闭、重开而改变。比如可以作为配置文件保存敌人的各项数值，在敌人初始化的时候，使用这个资产里的数据，随后把这个控制资源给策划，让策划去调数值。这样不仅可以集中控制，而且可以节省内存，因为实例化后的各物体共用这一块资产内的数据。
 
-**用于资产实现型工具制作。**这一条其实是我在研究插件“Pro Pixelizer”时顺便学习的，作者在插件的子工具中，使用了这种“资产实现型工具”。这种工具的使用流程是：创建工具资产 -》 操作资产 -》 实现工具功能。而一般的工具是：打开工具面板 -》操作工具面板 -》 实现工具功能。“资产实现型工具”创建资产时，创建的就是Scriptable Object的派生类的对象，而作为工具，仅有保存数据的功能时不够的，需要在Scriptable Object的派生类中实现方法。那如何调用这里面的方法？这需要Editor的派生类的支持，开发者需要自己写一个专用于这种资产的Editor的派生类，然后通过Editor的派生类定义GUI、绑定方法，如此即可。
+**用于资产实现型工具制作。**这一条其实是我在研究插件“Pro Pixelizer”时顺便学习的，作者在插件的子工具中，使用了这种“资产实现型工具”。这种工具的使用流程是：创建工具资产 → 操作资产 →  实现工具功能。而一般的工具是：打开工具面板→操作工具面板 → 实现工具功能。“资产实现型工具”创建资产时，创建的就是Scriptable Object的派生类的对象，而作为工具，仅有保存数据的功能时不够的，需要在Scriptable Object的派生类中实现方法。那如何调用这里面的方法？这需要Editor的派生类的支持，开发者需要自己写一个专用于这种资产的Editor的派生类，然后通过Editor的派生类定义GUI、绑定方法，如此即可。
 
 
 
 ---
 
+
+
 ## 关于“资产实现型工具”
 
 这其实是我自定的名字，我也不知道别人叫这种工具叫什么。
 
-这种工具的使用流程是：创建工具资产 -》 在检查器中操作资产 -》 实现工具功能。而一般的工具是：打开工具面板 -》操作工具面板 -》 实现工具功能。上面稍微提了一下“资产实现型工具”，我现在要说一些细则。
+根据GPT的总结，这种工具似乎可以称作：
 
-1. 一般Scriptable Object不实现什么方法，但是**“资产实现型工具”的Scriptable Object需要实现大量的方法**，虽然也可以在Editor里实现工具方法，但那会导致代码有点肿，和普通工具一样了，GUI代码和功能实现代码放在一块。
+> 在Unity中，基于ScriptableObject类来制作工具的方法被称为“可重用性系统”（Reusable System），也被称为“数据驱动系统”（Data-Driven System）。
+>
 
-2. Custom Editor需要申明，这个编辑器针对于哪一种资产。如下代码块
+
+
+这种工具的使用流程是：创建工具资产→ 在检查器中操作资产 →  实现工具功能。而一般的工具是：打开工具面板 →操作工具面板 → 实现工具功能。上面稍微提了一下“资产实现型工具”，我现在要说一些细则。
+
+1. 一般Scriptable Object不实现什么方法，但是**“资产实现型工具”的Scriptable Object需要实现大量的方法**。虽然也可以在Scriptable Object里实现工具方法，但那会导致代码有点肿，和普通工具一样了，GUI代码和功能实现代码放在一块。
+
+2. Custom Editor需要申明，这个编辑器针对于哪一种资产。如下代码块：
 
    ```c#
    //在Editor类申明前，申明它针对于哪一种Scriptable Object，这里SteppedAnimation是一种Scriptable Object
@@ -204,7 +215,17 @@ GAMES202中也有关于SSAO的记录，但是因为笔记目前还没修复，�
 
 这种类型的工具相比于具有独立面板的工具，可以把功能实现代码和GUI代码分开，其他积极意义，目前没想明白。
 
-如果将来想要开发“资产实现型工具”，这里写的东西很可能不够用，我把我学习的工具源码保存于此处：[资产实现型工具](E:\我的往期办公文件\Unity资源\学习\供日后参考\资产实现型工具)（Ctrl + 左键单击访问）
+如果将来想要开发“资产实现型工具”，这里写的东西很可能不够用，我把我学习的工具源码保存于此处：[资产实现型工具](../供日后参考/资产实现型工具)（Ctrl + 左键单击访问）
+
+
+
+**轻量级的工具也非常适合**使用Scriptable Object进行开发。
+
+实习中开发了一个简易的Unity中的烘培工具，使用资产实现型的思路进行开发，**所有代码都在一个Scriptable Object的派生类中**，**不用额外去写GUI代码**，直接使用序列化默认的UI，很省事。
+
+Odin中有非常多适合ScriptableObject进行工具开发的属性标签，如：
+
+Button、OnValueChanged等等。
 
 
 
@@ -1530,7 +1551,9 @@ public partial class Person
 
 
 
-## C# 查找、匹配、读取文件
+# C# 静态查找、匹配、读取文件——UnityEditor
+
+需要注意，这里的方法使用了AssetDatabase，其属于UnityEditor命名空间下的类，这个类只会在Editor模式下起作用。
 
 [Maya笔记——通配符](../Maya工具开发学习笔记/Maya工具开发学习笔记.md###通配符)
 
@@ -1559,15 +1582,23 @@ foreach (string file in files)
 }
 ```
 
+简易的匹配操作可以使用通配符，而如果通配符无法完成任务，则可能需要使用正则表达式：[正则表达式](#正则表达式)
+
 
 
 ---
 
 
 
-## 利用Unity进行对于图片文件的读取、写入和导出
+# 利用Unity进行对于图片文件的读取、写入和导出
 
 工作中需要把CubeMap的一面导出为普通的图片格式，但是这方面我完全没有了解过。
+
+这其中也包含了修改文件的工作流：
+
+**从文件中读取信息 → 处理读取出的数据 → 将处理后的数据重新写入文件**
+
+
 
 结合ChatGPT和Copilot，得到了下列的代码：
 
@@ -1578,6 +1609,8 @@ private void GetCubeMapSide(CubemapFace face){
     Color[] colors = iterationCubeMap.GetPixels(face);
     tex.SetPixels(colors);
     tex.Apply();
+    
+    //编码导出主要是下面的部分
     byte[] bytes = tex.EncodeToPNG();
     string path = "Assets/0_在研/CubeMaps/1_" + face.ToString() + ".png";
     File.WriteAllBytes(path, bytes);
@@ -1589,13 +1622,13 @@ private void GetCubeMapSide(CubemapFace face){
 
 
 
-### Texture2D类
+## Texture2D类
 
 其代表Unity内的纹理类型。上述代码通过长宽、编码格式和是否使用MipMap作为参数初始化了这个对象。
 
 
 
-### TextureFormat
+## TextureFormat
 
 Format直译是格式，但是不太好理解。
 
@@ -1607,13 +1640,13 @@ RGB24是非压缩格式，适合让CPU处理，而不适合让GPU进行读取。
 
 
 
-### tex.Apply()
+## tex.Apply()
 
 tex.Apply() 方法用于将设置了颜色的 Texture2D 对象提交到 GPU 进行渲染，这样可以确保修改后的纹理可以立即在场景中显示出来。如果不调用此方法，修改的纹理将不会被更新并显示在场景中。
 
 
 
-### tex.EncodeToxx()
+## tex.EncodeToxx()
 
 Texture2D类的方法，将Texture2D对象编码为对应格式所需要的byte数组
 
@@ -1621,7 +1654,7 @@ Texture2D类的方法，将Texture2D对象编码为对应格式所需要的byte�
 
 
 
-### File.WriteAllBytes(path, bytes)
+## File.WriteAllBytes(path, bytes)
 
 将字节数组内容写到指定路径的指定文件。
 
@@ -1735,9 +1768,436 @@ Texture2D类的方法，将Texture2D对象编码为对应格式所需要的byte�
 
 
 
+# 使用路径
+
+有时候编写工具需要大量使用路径，这时候活用字符串的API、通配符和正则表达式等，可以大幅优化和简化路径的使用流程。
+
+之后会在这个板块不断更新关于路径的内容。
 
 
 
+## 相对路径
+
+Unity中本身就使用了相对路径，一般有Asset、Resource等的锚点供开发者使用。
+
+但是，在大型项目中文件夹的前缀往往很长，这时候每次搞路径都很痛苦，所以可以这样：
+
+定义一个路径前缀：
+
+`private string pathPrefix = "Assets/Scene/***_scene/***_bake/*****/";`
+
+也可以不手写路径前缀，而是直接通过这个对象本身的位置作为前缀：
+
+`pathPrefix = AssetDatabase.GetAssetPath(this);`
+
+在之后使用路径的时候，就可以非常愉快地写了：
+
+`probeCubemap =  AssetDatabase.LoadAssetAtPath<Cubemap>(pathPrefix + "CubeMaps/****.exr");`
+
+整体思路很像大多数DCC的“项目”这个概念。
+
+
+
+## 使用通配符或者正则表达式匹配
+
+先复习一下什么是通配符：[Maya笔记——通配符](../Maya工具开发学习笔记/Maya工具开发学习笔记.md###通配符)
+
+在开发中，有时候想匹配很多文件，或者说想要更名自由一点，即使名字有不同也能正确地匹配上，这时候就需要进行**匹配操作。**
+
+简易的匹配操作可以使用通配符进行匹配，如果匹配规则比较复杂，则可能需要使用[正则表达式](#正则表达式)。使用方法如：[C# 查找、匹配、读取文件](#C# 查找、匹配、读取文件)
+
+
+
+---
+
+
+
+# 正则表达式
+
+正则表达式是一种强大的匹配机制，其比[通配符](../Maya工具开发学习笔记/Maya工具开发学习笔记.md###通配符)更加复杂，但也能处理更加复杂的情况。
+
+
+
+**以下是一些C#中常用的正则表达式相关语句：**
+
+创建正则表达式对象：
+
+```
+Regex regex = new Regex(pattern);
+```
+
+检查字符串是否匹配正则表达式：
+
+```
+bool isMatch = regex.IsMatch(input);
+```
+
+获取第一个匹配项：
+
+```
+Match match = regex.Match(input);
+```
+
+获取所有匹配项：
+
+```
+MatchCollection matches = regex.Matches(input);
+```
+
+替换匹配项：
+
+```
+string result = regex.Replace(input, replacement);
+```
+
+获取匹配项的位置和长度：
+
+```
+int index = match.Index;
+int length = match.Length;
+```
+
+获取匹配项的值：
+
+```
+string value = match.Value;
+```
+
+在正则表达式中使用字符类：
+
+```
+string pattern = "[aeiou]"; // 匹配任何一个元音字母
+```
+
+在正则表达式中使用量词：
+
+```
+string pattern = "a{2,4}"; // 匹配2到4个连续的字母a
+```
+
+在正则表达式中使用分组：
+
+```
+string pattern = "(ab)+"; // 匹配一个或多个连续的ab
+```
+
+
+
+**关于正则表达式的编写：**
+
+![常用语法](Images/常用语法.png) 
+
+
+
+**关于正则表达式的验证和测试：**
+
+https://regex101.com/r/lzwFoS/1
+
+
+
+**我使用正则表达式的实例：**
+
+[FBX动画自动切分工具](../供日后参考/正则表达式)
+
+
+
+**参考视频：**
+
+[10分钟搞懂正则表达式](https://www.bilibili.com/video/BV1da4y1p7iZ/?spm_id_from=333.337.search-card.all.click&vd_source=9a5fef48671479d11a7dd5cdf12ca388)
+
+
+
+---
+
+
+
+# Resources类，动态加载和管理资源
+
+不同于AssetDatabase，Resources是属于UnityEngine下的类，其可以被Build。
+
+Resources常用于GamePlay中对资产的动态加载、卸载、异步加载等。和静态的工具加载资产完全是两回事。
+
+> 以下是一些常用的Resources类相关的API：
+>
+> 1. Resources.Load：用于从Resources文件夹中加载资源，可以加载预制体、材质、纹理、音频等。
+> 2. Resources.LoadAsync：异步加载资源，可以避免在加载资源时卡住游戏。
+> 3. Resources.UnloadUnusedAssets：用于卸载没有被引用的资源，可以释放内存空间。
+> 4. Resources.FindObjectsOfTypeAll：查找场景中所有的对象，并返回一个包含所有对象的数组。
+> 5. Resources.GetBuiltinResource：获取Unity内置资源，如字体、图片等。
+> 6. Resources.LoadAll：一次性加载指定文件夹下的所有资源，返回一个包含所有资源的数组。
+>
+> 需要注意的是，由于Resources文件夹中的资源会被打包到游戏中，因此需要谨慎使用，避免资源过多导致游戏体积过大。同时，建议使用Asset Bundle来管理游戏资源，因为它具有更好的扩展性和灵活性。
+
+
+
+---
+
+
+
+# 拉姆达表达式
+
+拉姆达表达式常用于**创建匿名函数对象**。
+
+拉姆达表达式在某些事件的添加、简短函数定义等情况下用处很大，可以使代码简洁易读。
+
+比如在Dotween中为tweening动画中**添加结束事件**：
+
+```
+void Start()
+{
+    transform.DOMoveX(10, 1).OnComplete(
+    	() => Debug.Log("Tweening animation completed.")
+    );
+}
+```
+
+
+
+也可以用作**简短函数的定义**，比如只有一行的函数：
+
+ `private void ChangeMatRatio() => ballInScene.GetComponent<MeshRenderer>().sharedMaterial.SetFloat("_RefractRatio", mat_ratio);`
+
+
+
+**拉姆达表达式的组成：**
+
+> Lambda表达式由以下几部分组成：
+>
+> ```
+> (parameters) => expression
+> ```
+>
+> 其中，每个部分的含义如下：
+>
+> - `parameters`：表示Lambda表达式的参数列表，可以是一个或多个参数，如果没有参数，可以省略括号。参数的类型可以显式指定，也可以由编译器自动推断。
+> - `=>`：称为Lambda运算符，表示“goes to”，它将参数列表和表达式分开。
+> - `expression`：表示Lambda表达式的主体，可以是单个语句或一系列语句，可以使用花括号括起来来表示多个语句。
+>
+> Lambda表达式通常用于创建委托对象，可以将其视为一个匿名方法。在C#中，Lambda表达式可以用于各种情况，例如LINQ查询、事件处理程序和异步编程等。
+
+
+
+---
+
+
+
+# 事件系统
+
+高级编程语言中常用事件系统，接下来我们以C#为例。
+
+**什么是事件系统？**
+
+从本质来说，事件是一系列具有相同参数和返回值类型的函数集合。
+
+（事件中的函数基本是不返回值的，如果硬要返回一些什么东西，考虑使用out关键字或者其他方法）
+
+一旦触发事件，事件会以接收到的参数执行每一个其内的函数。
+
+事件内的函数可以动态地加减。
+
+
+
+**事件系统的应用场合**
+
+> 以下是一些事件系统的应用场合：
+>
+> 1. GUI编程：在图形用户界面编程中，事件系统被用来处理用户输入和其他系统事件，例如鼠标点击、键盘输入、窗口关闭等等。
+> 2. 游戏编程：在游戏编程中，事件系统被用来处理各种游戏事件，例如角色移动、碰撞检测、攻击事件等等。
+> 3. 网络编程：在网络编程中，事件系统被用来处理各种网络事件，例如连接、断开、收到数据包等等。
+> 4. 服务器编程：在服务器编程中，事件系统被用来处理各种服务器事件，例如客户端连接、请求处理、错误处理等等。
+> 5. 框架编程：在各种框架编程中，事件系统被用来处理各种框架事件，例如应用程序启动、关闭、组件加载、卸载等等。
+>
+> 总之，事件系统可以应用于任何需要处理事件的场合，它可以帮助程序员更好地组织代码，提高代码的复用性和可维护性。
+
+事件内的函数往往是“OnXXXX”的形式，表示当XXX时，运行。
+
+
+
+**事件系统的简单实例：**
+
+```c#
+using UnityEngine;
+using System;
+
+public class Player : MonoBehaviour
+{
+    // 定义一个自定义委托类型，用于处理玩家死亡事件。
+    // 所谓的委托类型，类似于一个“函数模板”，使用这个模板的函数必须拥有于模板相同的返回值和参数列表
+    public delegate void PlayerDeathHandler(Player player, int score);
+
+    // 定义一个事件，用于通知其他脚本玩家已经死亡
+    public event PlayerDeathHandler OnPlayerDeath;
+    
+    // 定义一个匿名函数，并将其赋值给一个PlayerDeathHandler委托类型的函数对象。
+    public PlayerDeathHandler deathFunc = (player, score) => {}
+
+    private void Update()
+    {
+        // 如果玩家死亡，触发事件通知其他脚本
+        if (isDead)
+        {
+            // 将方法注册到事件
+            OnPlayerDeath += deathFunc;
+            // 将玩家和分数作为事件参数传递给已注册的委托
+            OnPlayerDeath?.Invoke(this, score);
+            // 这里的？是null条件运算符，只有当OnPlayerDeath事件内有委托的时候才会Invoke，否则不Invoke。这样可以避免一些错误
+        }
+    }
+}
+```
+
+注意，添加进event对象的函数对象是会重复的，意味着重复添加一个函数进入event，那么这个函数会在一次Invoke中被执行多遍。
+
+
+
+**使用Action和Func类型**
+
+看了上面的示例，是不是觉得自己定义委托类型还挺麻烦的？
+
+为了解决这些麻烦，Unity预置了一些委托类型，**Action和Func是两类常用的预置委托模板。**
+
+> 在Unity中，Action类是一个预定义的委托类型，用于表示一个**不返回值的方法**。它可以用于将方法作为参数传递给其他方法，或者在事件处理中注册方法。Action类可以有**最多四个参数**，如果需要更多的参数，则可以使用带有泛型参数的Action类。例如，**Action<int>表示一个带有一个整数参数的方法**，而**Action<int, float, string, bool>表示一个带有四个参数的方法**，分别为整数、浮点数、字符串和布尔值。
+
+> Func类与Action类非常相似，但它可以表示带有返回值的方法，并且在定义时需要指定返回值类型。例如，**Func<int>表示一个返回整数类型的方法**，而**Func<int, float, string, bool>表示一个带有三个参数并返回布尔值类型**的方法。
+
+这样我们就可以使用Action去定义委托类型的对象，使其加入事件了。
+
+
+
+---
+
+
+
+# 翻转纹理
+
+看似简单的功能，没有GPT和Copilot我还真写（抄）不出来捏：
+
+其中colors是从图片读取出来的信息： `Color[] colors = cm.GetPixels(face); //纹理(模型等基本同理)修改思路`
+
+```c#
+// 左右翻转
+for (int i = 0; i < size / 2; i++)
+{
+    for (int j = 0; j < size; j++)
+    {
+        Color temp = colors[i * size + j];
+        colors[i * size + j] = colors[(size - 1 - i) * size + j];
+        colors[(size - 1 - i) * size + j] = temp;
+    }
+}
+// 上下翻转
+for (int i = 0; i < size; i++)
+{
+    for (int j = 0; j < size / 2; j++)
+    {
+        Color temp = colors[i * size + j];
+        colors[i * size + j] = colors[i * size + size - 1 - j];
+        colors[i * size + size - 1 - j] = temp;
+    }
+}
+```
+
+
+
+---
+
+
+
+# 关于ImportSetting、资产和Meta文件（元数据）
+
+导入项目的所有资产（甚至是文件夹）都有一个自己专属的Meta文件，这个文件叫做元数据，用于告诉Unity如何解释这个资产。
+
+![image-20230605170023436](Images/image-20230605170023436.png) 
+
+一般来说，用户在检查器上的修改不会修改到资产的源文件上，而是修改到元数据上，让Unity对这个资产文件的理解发生改变。
+
+注意，这个资产的名字后就带了“Import Setting”，它的本质就是元数据，其实我们在直接修改的只有元数据。
+
+![image-20230605170133536](Images/image-20230605170133536.png) 
+
+最后在打包时，Unity也根据这些资产的元数据去处理这些资产，处理完后再打入包体中。
+
+有些资产是不显示所谓的Import Settings，比如材质（mat）文件就不显示，大概是因为不需要显示。（虽然它有meta文件）
+
+![image-20230605170444056](Images/image-20230605170444056.png) 
+
+
+
+有时我们会希望通过代码修改资产的Importsetting，这时需要通过各种Importor类来实现，如：
+
+```c#
+TextureImporter importer = AssetImporter.GetAtPath(path) as TextureImporter;
+importer.isReadable = true;
+importer.sRGBTexture = false;
+// 重新导入以刷新资产
+AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
+```
+
+
+
+**区分资产读取和ImportSetting控制**
+
+如果想读取一个目录下的资产，我们会使用：
+
+ `iterationCubeMap = AssetDatabase.LoadAssetAtPath<Cubemap>(path);`
+
+我们将会得到一个很灵活的Cubemap对象。
+
+
+
+但如果是想修改它的ImportSetting，我们需要使用：
+
+`AssetImporter.GetAtPath(path) as TextureImporter;`
+
+我们将得到一个对应类型的Importer对象，而不是资产类型。
+
+
+
+这二者完全不互通，无法通过资产获取它的Import，也无法通过Importer获取资产。
+
+
+
+---
+
+
+
+# 关于Blit
+
+不知道何时受什么影响，我一直以为URP中不支持Graphc.Blit。
+
+但后来发现其实也是支持的，只是需要一点点的特殊处理，顺其自然写就行了。
+
+顺便贴一下Shader入门精要的经典代码：Blit循环（Build-in）
+
+```c#
+RenderTexture buffer0 = RenderTexture.GetTemporary(rtW, rtH, 0);
+buffer0.filterMode = FilterMode.Bilinear;
+
+Graphics.Blit(source, buffer0);
+
+for (int i = 0; i < times; i++) {
+    blitMaterial.SetFloat("_BlurSize", 1.0f + i * blurSpread);
+
+    RenderTexture buffer1 = RenderTexture.GetTemporary(rtW, rtH, 0);
+
+    // Render the vertical pass
+    Graphics.Blit(buffer0, buffer1, blitMaterial, 0);
+
+    RenderTexture.ReleaseTemporary(buffer0);
+    buffer0 = buffer1;
+    buffer1 = RenderTexture.GetTemporary(rtW, rtH, 0);
+
+    // Render the horizontal pass
+    Graphics.Blit(buffer0, buffer1, blitMaterial, 1);
+
+    RenderTexture.ReleaseTemporary(buffer0);
+    buffer0 = buffer1;
+}
+```
+
+
+
+---
 
 
 
