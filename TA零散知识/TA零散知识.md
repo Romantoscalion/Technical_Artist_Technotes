@@ -2329,17 +2329,104 @@ for (int i = 0; i < times; i++) {
 
 
 
+# 关于Shader变体
+
+书到用时方恨少！
+
+> 在Unity中，Shader变体是**根据不同的平台、渲染管线、材质属性和宏定义等因素生成的一组Shader程序**。这些变体将在**运行时自动编译并使用**，以确保在**不同的环境中具有最佳的性能和质量**。Shader变体的生成是通过Unity的**Shader编译器和预处理器进行**的，可以通过**手动设置Shader的编译选项和宏定义**来控制变体的生成。
+
+按我的理解来说，Shader变体就是在Shder代码中添加类似C#的预处理命令，在编译Shder的时候如果读到这些预处理命令，就会编译出两个Shader文件，分别对应着这个开关的两种结果。
+
+如果一个Shader中有N个if预处理，那么这个Shader最少会产生2^N个Shader变体。
+
+变体技术以前常用在做渲染API和设备的区分，但是现在也有很多新的不太正确的用途。比如制作所谓的“超级Shader”（Shader内含大量常用功能，通过宏控制其开关）。
 
 
 
+## 如何让Shader产生变体？
+
+> 在Unity中，可以通过在Shader文件中添**加#pragma指令来修改编译选项**。以下是一些常用的编译选项：
+>
+> 1. \#pragma vertex函数名：指定顶点着色器函数。
+> 2. \#pragma fragment函数名：指定像素着色器函数。
+> 3. \#pragma target指令：指定着色器的目标平台和渲染管线。例如，#pragma target 3.0表示使用DirectX 9渲染管线。
+> 4. \#pragma multi_compile指令：指定要编译的宏定义列表，用于生成不同的Shader变体。例如，#pragma multi_compile _DEBUG _RELEASE表示生成两个变体，一个用于调试，一个用于发布。
+> 5. \#pragma shader_feature指令：指定要编译的Shader功能列表，用于生成不同的Shader变体。例如，#pragma shader_feature _ALPHATEST_ON表示生成支持Alpha测试的Shader变体。
 
 
 
+在编译命令中，比较常用的应该是这个：
+
+> 当使用 **#pragma shader_feature 指令**时，Unity 会为每个指定的特性生成一个 shader 变体。如果特定特性在 Material 中启用，则使用支持该特性的 shader 变体。
+>
+> 以下是一个 #pragma shader_feature 指令的示例：
+>
+> ```
+> #pragma shader_feature _ALPHATEST_ON
+> #pragma shader_feature _SPECULARHIGHLIGHTS_OFF
+> ```
+>
+> 这个示例中，#pragma shader_feature 指令指定了两个特性：_ALPHATEST_ON 和 _SPECULARHIGHLIGHTS_OFF。如果这两个特性在 Material 中启用，则 Unity 会生成支持这两个特性的 shader 变体。
+>
+> 可以在 Shader 中使用这些特性来编写条件代码。例如：
+>
+> ```
+> #if _ALPHATEST_ON
+>     clip(_AlphaClip);
+> #endif
+> 
+> #if _SPECULARHIGHLIGHTS_OFF
+>     half3 spec = 0;
+> #else
+>     half3 spec = _SpecColor.rgb * _Specular * pow(saturate(dot(reflect(-_LightDir, _WorldNormal), _WorldViewDir)), _Shininess);
+> #endif
+> ```
+>
+> 在这个示例中，如果 _ALPHATEST_ON 特性启用，则执行 clip(_AlphaClip); 来实现 alpha testing。如果 _SPECULARHIGHLIGHTS_OFF 特性启用，则将 spec 变量设置为 0，否则使用标准的 Phong 镜面反射模型来计算 spec 变量。
+>
+> 在这种方式下，使用 #pragma shader_feature 指令可以有效地减少 shader 变体的数量，从而提高性能。
 
 
 
+在ASE中，可以使**用Static Switch节点做到这件事**：
+
+![image-20230719190234409](Images/image-20230719190234409.png) 
 
 
+
+## Shader变体是如何工作的？
+
+我们知道，Unity项目其实是源码级别的东西，它需要经过编译后才能运行。
+
+Shader则是**在编译的过程中生成不同的变体**的。我们在Shader中使用编译命令生成变体，它就会在项目打包的时候根据各个编译时常量来分化出很多变体，并检出需要的变体打入包体中。
+
+这就是为什么Runtime中如果使用Shader变体，常常会看到蓝色的部分，这部分就是Shader变体的部分，在Runtime模式下变体还没来得及被编译，所以暂时显示为蓝色。而一旦出包，Shader变体的编译工作在项目打包过程中就已经全部完成，就不会再有蓝色的部分被显示出来了。
+
+
+
+## 使用变体的优缺点
+
+
+
+> 在Unity中，使用Shader变体的优点和缺点如下：
+>
+> 优点：
+>
+> 1. 性能优化：Shader变体允许根据不同的渲染需求生成多个变体，以适应不同的硬件和平台。这可以最大限度地减少不必要的计算和内存开销，提高渲染性能。
+> 2. 灵活性：Shader变体使开发者能够根据需要定制和优化渲染管线。通过调整变体的参数和功能，可以实现各种视觉效果和渲染技术。
+> 3. 跨平台兼容性：Shader变体可以根据目标平台进行编译和优化，以确保在不同的设备和操作系统上都能正确运行和呈现一致的渲染效果。
+>
+> 缺点：
+>
+> 1. 内存占用：每个Shader变体都需要占用一定的内存空间。如果变体过多或者组合复杂，可能会导致内存占用增加，尤其是在移动设备等资源受限的平台上。
+> 2. 编译时间：生成和编译Shader变体可能需要一定的时间，特别是在首次构建项目或者更改Shader时。对于大型项目或频繁迭代的开发过程，这可能会增加开发时间。
+> 3. 维护复杂性：使用Shader变体时，需要管理和维护多个变体的参数和功能。如果变体过多或者代码结构不清晰，可能会增加开发者的工作量和复杂性。
+>
+> 综上所述，Shader变体在性能优化和灵活性方面具有优势，但也需要权衡内存占用、编译时间和维护复杂性等因素。
+
+
+
+---
 
 
 
