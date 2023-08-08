@@ -2430,6 +2430,54 @@ Shader则是**在编译的过程中生成不同的变体**的。我们在Shader�
 
 
 
+# 关于PerRendererData
+
+即“**基于每个渲染器数据**”。
+
+有一些**特殊的Shade**r如粒子Shader、UIShader和2D Shader，它们的**一些属性并不从材质面板获取**。
+
+比如2D Shader的主帖图属性（**_MainTex**），它一般不直接从材质面板赋予，而是**从Sprite Renderer中指定，随后会被传入Shader中**。
+
+> 在“材料检查器”中，此属性的值将**从Renderer的MaterialPropertyBlock中查询**，而**不是从材料中查询**。该值也将显示为只读。这对应于着色器代码中属性前面的“[PerRendererData]”属性。
+
+![image-20230808203620239](Images/image-20230808203620239.png) 
+
+如上图，这里**没有标志为[PreRenderData]**，所以_MainTex属性被显示并且可以修改。
+
+如果标记、则_MainTex属性不再在面板可见，GPT回答有以下好处。
+
+> 使用[PerRendererData]属性可以让着色器中的属性在渲染器的MaterialPropertyBlock中被查询，而不是从材质中查询。这可以提高效率并减少内存使用，因为多个渲染器可以共享同一个材质，但使用不同的MaterialPropertyBlock来覆盖材质中的属性值。此外，[PerRendererData]属性还可以使属性只读，以防止在运行时被修改。
+
+
+
+---
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
