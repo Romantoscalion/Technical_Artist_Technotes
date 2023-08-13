@@ -2639,6 +2639,198 @@ Stencil
 
 
 
+# 使用Odin和CustomEditor使DOTween动画可以在Edit模式下预览
+
+
+
+## **遇到的问题和使用场景：**
+
+近期我常需要制作**GUI动效**，**Tween动画**是一个很好的选择。
+
+**DOTweenAnimation组件可以在Edit模式下直接预览**，但是DOTweenAnimation组件**支持的Tween类型太少**了，只有一些Transrom类的Tween。
+
+开发者自己在**C#中编写的Tween是无法直接在Edit模式下播放**的，这导致我们想要看效果时，不仅要等待一个代码编译的时间，还得等待一个进入play mode的时间，**效率实在是有点低**。
+
+作为技术美术，**提升效率是我们的本职**，于是花了点时间想了一个办法，**使Tween动画可以直接在Edit模式下预览**了。
+
+最终效果如下：
+
+![修复](Images/修复.gif) 
+
+
+
+## 思路
+
+首先，编写一个**基类**，**保存需要预览的Tween列表**。
+
+```c#
+using System.Collections.Generic;
+using UnityEngine;
+using DG.Tweening;
+
+public class EditModeTweenableMono : MonoBehaviour
+{   
+    /// <summary>
+    /// 不要手动修改这个列表,它是用于在编辑器模式下,播放动画的
+    /// </summary>
+    [HideInInspector]
+    public List<Tween> m_debugTweenList = new();
+
+    /// <summary>
+    /// 在编辑器模式下,将传入的动画添加进播放列表,并在编辑器中播放
+    /// </summary>
+    /// <param name="tween">将要播放的动画</param>
+    protected void AddTweenForDebug(Tween tween) {
+        if (Application.isEditor && !Application.isPlaying)
+            m_debugTweenList.Add(tween);
+    }
+}
+```
+
+因为无法从Mono类中无法获取Editor中的信息，所以只能把需要传递的信息存在Mono中，然后让Custom Editor去读取了。
+
+
+
+随后，我们需要编写一个**对于这个基类及其派生类都生效的Custom Editor**，因为**只有Editor中的类可以调用Edit模式下预览Tween的关键方法**： `DOTweenEditorPreview.PrepareTweenForPreview(tween);`
+
+```c#
+# if UNITY_EDITOR
+using System.Collections.Generic;
+using UnityEngine;
+using DG.Tweening;
+using UnityEditor;
+using DG.DOTweenEditor;
+using Sirenix.OdinInspector.Editor;
+
+[CustomEditor(typeof(EditModeTweenableMono),true)]
+public class EditModeTweenableMonoInspector : OdinEditor 
+{
+    // 获取debugTweenList
+    private EditModeTweenableMono EditModeTweenableMono => (EditModeTweenableMono)target;
+    private List<Tween> tweenList => EditModeTweenableMono.m_debugTweenList;
+
+    
+    public override void OnInspectorGUI() {
+        base.OnInspectorGUI();
+        // 监测debugTweenList是否被填入了动画
+        if (tweenList.Count != 0) 
+            // 如果有动画,则播放它们
+            PlayTweenList();
+        
+        // 停止播放的按钮,会使状态回到动画之前的初始状态
+        if(!Application.isPlaying)
+            if(GUILayout.Button("停止预览动画")) 
+                DOTweenEditorPreview.Stop(true);
+    }
+
+    private void PlayTweenList() {
+        foreach (var tween in tweenList) {
+            DOTweenEditorPreview.PrepareTweenForPreview(tween);
+            DOTweenEditorPreview.Start();
+        }
+        // 开始播放后,清空动画列表,防止重复播放
+        tweenList.Clear();
+    }
+
+}
+#endif
+```
+
+这样就大功告成了！
+
+代码注释很清楚，这里就不多做赘述。
+
+
+
+使用时，我们只需要让需要在Edit模式下预览Tween的类**继承之前写的那个基类**，然后在**Tween动画实例化之后将其加入基类的列表中**，再配合Odin的Button等属性，就可以愉快地在Edit模式下预览C#编写的Tween动画啦！！
+
+```c#
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+using DG.Tweening;
+using Sirenix.OdinInspector;
+
+
+namespace Modules.Scenes.Room.UI {
+/// <summary>
+/// 用于控制结算页面中,显示Boss的进度的UI组件
+/// </summary>
+public class RoomBossGradeWaveController : EditModeTweenableMono
+{
+    [FoldoutGroup("绑定"), LabelText("分数波材质")]
+    public Material waveMaterial;
+
+    [Button("分数浮动至")]
+    public void GradeGoesTo(float grade) {
+        Tween waveTween = waveMaterial.DOFloat(grade, "_Thick", 0.5f);
+        waveTween.SetLoops(-1, LoopType.Yoyo);
+        // 将实例化的Tween动画加入预览列表
+        AddTweenForDebug(waveTween);
+    }
+
+}
+
+}
+```
+
+
+
+## 思考的过程和遇到的问题
+
+起初我有点迷茫，不知道从哪里开始做这件事。
+
+我忽然想到DOTween有一个DOTweenAnimation的组件，它是可以在Edit模式下预览Tween动画的，于是我去翻了DOTweenAnimation的代码。
+
+DOTweenAnimation那花哨的界面，没有Custom Editor是不可能的，于是我翻到了它的Custom Editor
+
+![image-20230813185816448](Images/image-20230813185816448.png) 
+
+再翻这个CustomEditor，发现预览部分的界面代码被写在一个叫DOTweenPreviewManager的类的PreviewviewGUI的函数中，这里的参数是这个CustomEditor所获取到的DOTweenAnimation的实例。
+
+![image-20230813185931835](Images/image-20230813185931835.png) 
+
+终于找到了Play Button的代码！
+
+![image-20230813190130435](Images/image-20230813190130435.png) 
+
+如上，按下Play按钮后，执行两个步骤，其一：
+
+![image-20230813150124286](Images/image-20230813150124286.png) 
+
+无非是在进入PlayMode的时候、停止所有的预览
+
+第二个是核心：
+
+![image-20230813150156600](Images/image-20230813150156600.png) 
+
+核心是从src得到一个tween对象，这对于我们自定义的tween来说非常方便，不需要从DOTweenAnimation组件获取 
+
+最后是调用DOTweenEditorPreview.PrepareTweenForPreview，即可在Edit模式下播放这个Tween
+
+以上，清晰明了。我们的自定义功能比这简单很多。
+
+
+
+搞清楚了关键的API后，我想用interface来做到这件事，写一个interface，让需要做EditModeTweenable的类实现这个接口，就能很方便地做到这件事了。
+
+随后查了一些资料，发现Custom Editor只对Monobehavior起作用，而interface又无法继承自类，所以这个想法就泡汤了。
+
+没关系，使用继承也能实现这个功能，但是会损失一点灵活性，毕竟C#每个类只能继承自一个类嘛。。。
+
+
+
+---
+
+
+
+
+
+
+
+
+
 
 
 
