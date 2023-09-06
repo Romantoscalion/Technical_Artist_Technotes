@@ -3036,11 +3036,140 @@ private void OnValidate() {
 
 
 
+# 关于Job System
+
+
+
+## **什么是？**
+
+Job System是Unity引擎中的一种并**行处理解决方案**，它允许开发者**在多个CPU核心上同时执行任务**，从而提高游戏性能。Job System使用作业（Jobs）和作业组（Job System Groups）来实现任务并行化，同时还提供了安全的内存管理和数据并行处理的支持。与传统的单线程与协程相比，Job System能够更高效地利用CPU资源，**特别是在处理大量数据时表现更为出色。**
+
+
+
+## **简单的使用示例**
+
+```c#
+using UnityEngine;
+using Unity.Jobs;
+using Unity.Collections;
+
+// 通过IJob接口定义JOb内容
+public class MyJob : IJob
+{
+    // NativeArray是Unity中的一种原生数组类型，用于在Unity的Job System中进行高效的数据处理。与普通的数组不同，NativeArray使用了一种更为底层的内存分	  // 配方式，可以让数据更快地在多线程之间传递和处理。同时，NativeArray还提供了安全的内存管理机制，避免了在多线程处理中出现的数据竞争和内存访问冲突的问		// 题。NativeArray通常需要在使用完毕后手动释放内存，以避免内存泄漏。
+    public NativeArray<float> result;
+
+    // 通过Job对象的Schedule方法调用
+    public void Execute()
+    {
+        // 将数组中每个元素乘以PI
+        for (int i = 0; i < result.Length; i++)
+        {
+            result[i] = i * Mathf.PI;
+        }
+    }
+}
+
+public class JobSystemExample : MonoBehaviour
+{
+    void Start()
+    {
+        // 需要传递的类型(介质参数)也是严格的NativeArray类型
+        // 参数Allocator.Persistent用于指定NativeArray的内存分配方式。在Unity中，有多种内存分配方式可供选择，包括Allocator.Temp、Allocator.TempJob和Allocator.Persistent等。其中，Allocator.Persistent是一种常驻内存的分配方式，它会在NativeArray对象创建后一直存在，直到我们显式地调用Dispose方法来释放它。使用Allocator.Persistent可以确保NativeArray的数据在多个帧之间都能够被保留，而不会因为分配的内存空间被释放而造成数据丢失。但是需要注意的是，使用Allocator.Persistent需要谨慎，因为它会占用一定的内存空间，如果我们没有手动释放它，就会造成内存泄漏和程序崩溃等问题。因此，一般情况下我们只在必要时才会使用Allocator.Persistent，而在其他情况下则会使用Allocator.Temp或Allocator.TempJob等一次性的内存分配方式。
+        NativeArray<float> result = new NativeArray<float>(1000000, Allocator.TempJob);
+		
+        // 实例化Job对象
+        MyJob job = new MyJob();
+        // 将this.result赋值给job
+        job.result = result;
+		
+         // JobHandle是Unity中的一种数据类型，用于跟踪和管理Job System中提交的作业（Jobs）的状态。每当我们通过Job System提交一个作业时，都会返回一个JobHandle对象，该对象可以用于等待作业完成、检查作业是否已经完成、以及管理多个作业之间的依赖关系。JobHandle对象可以被传递给其他作业，从而构建出更为复杂的作业管道。在实际开发中，JobHandle通常用于协调多个作业之间的关系，以确保它们能够在正确的顺序和时间内运行。
+        // 使用Job.Schedule();来开始执行Job
+        JobHandle handle = job.Schedule();
+		
+        // 通过handle来监听Job的完成状态
+        // 如果调用handle.Complete()时Job仍然在执行中，主线程会被阻塞。JobHandle.Complete()方法会等待Job执行完成后才会返回，因此如果Job的执行时间很长，调用该方法会导致主线程被阻塞，从而影响游戏的帧率和用户体验。为了避免这种情况，可以考虑使用异步方式等待Job执行完成，例如使用JobHandle.IsCompleted或JobHandle.Complete()的可等待方法（awaitable method）等待Job执行完成，或者使用Job System提供的其他方法来异步等待Job完成，例如JobHandle.CombineDependencies()、JobHandle.ScheduleBatchedJobs()等。这样可以避免在主线程中阻塞等待Job执行完成，从而提高游戏的运行效率和用户体验。
+        handle.Complete();
+		
+        // 销毁result数组避免占用内存。NativeArray定义为Allocator.Persistent者，尤其需要注意手动销毁
+        result.Dispose();
+    }
+}
+```
+
+
+
+## **在哪些场合比较实用？**
+
+1. **大规模并行化：**Job System可以在多个CPU核心上同时执行任务，从而加速游戏中的计算和渲染过程。
+2. **大批量数据处理：**Job System可以高效地处理大量数据，例如在场景中对物体进行更新、碰撞检测等操作。
+3. **异步处理：**Job System可以在后台执行任务，不会阻塞主线程，从而提高游戏的响应速度和流畅度。
+4. **数据局部性：**Job System可以利用数据局部性，避免频繁的内存访问，从而提高运行效率。
+
+总的来说，Job System适用于需要高效地处理**大规模数据、并行化处理和异步处理**任务的场合。
+
+
+
+## **JobSystem的优缺点**
+
+优点：
+
+1. **提高性能：**JobSystem允许使用多线程进行并行计算，利用**多核CPU的优势**，提高游戏的性能。
+2. **简化代码：**JobSystem可以简化代码，**省去手动管理线程等繁琐的操作**，让开发者更专注于游戏逻辑的实现。
+3. **支持数据流水线：**JobSystem支持数据流水线，将计算任务划分为多个阶段，可以提高计算效率，降低延迟。
+4. **良好的内存管理：**JobSystem在内存管理方面做得很好，可以**减少内存分配和释放的次数**，避免因频繁的内存分配和释放而带来的性能影响。
+
+缺点：
+
+1. **学习曲线较陡峭：**JobSystem需要开发者掌握一定的多线程编程知识，对于初学者来说，可能需要花费更多的时间学习和理解。
+2. **需要手动管理依赖关系：**JobSystem中需要手动管理任务之间的依赖关系，**如果不正确地管理，可能会导致程序崩溃或逻辑错误。**
+3. **不支持所有的API：**JobSystem**不支持所有的Unity API**，一些需要在主线程中执行的操作，需要使用其他方式来实现。
+
+
+
+## **除了NativeArray，还支持这些数据类型**
+
+1. NativeSlice：可以视为NativeArray的一个视图，用于对数组的部分进行读写访问。
+2. NativeList：类似于List<T>，是一个动态数组，可以在运行时动态添加或删除元素。
+3. NativeHashMap：类似于Dictionary<TKey, TValue>，是一个哈希表，可以在运行时动态添加或删除键值对。
+4. NativeQueue：类似于Queue<T>，是一个先进先出的队列，可以在运行时动态添加或删除元素。
+5. NativeStack：类似于Stack<T>，是一个后进先出的栈，可以在运行时动态添加或删除元素。
+
+**这些数据类型都是使用原生内存管理机制，不需要垃圾回收，且在多线程环境下具有较好的性能表现。**
+
+
+
+### **开发者也可以自己在Job结构体的属性中，添加自定义的Struct对象**
+
+在Unity的JobSystem中，使用自定义结构体（Struct）也是被允许的，而且有时甚至可以提高性能。但是，需要注意以下几点：
+
+1. 结构体中的**字段应该是原生数据类型（如int、float等）或其他原生数据类型（如NativeArray、NativeList等）**，以确保线程安全和最佳性能。
+2. 结构体中的**字段不应该是引用类型（如类、数组等）**，因为引用类型会涉及到内存管理和垃圾回收，而这些操作会降低性能并导致线程不安全。
+3. 结构体的**大小应该尽可能小**，以减少内存占用和缓存未命中率，以提高性能。
+4. 在多线程环境下使用自定义结构体时，**需要使用JobParallelFor或JobParallelForTransform等基于作业的API**，以确保线程安全和最佳性能。
+
+总之，使用自定义结构体可以在某些情况下提高性能，但需要遵循一些规则以确保线程安全和最佳性能。
 
 
 
 
 
+## JobHandler中的实用函数和属性
+
+在Unity中，JobHandle对象是用于管理作业（Job）的句柄，它包含了作业的信息以及作业之间的依赖关系。以下是JobHandle对象中常用的函数和属性：
+
+1. Complete()：等待JobHandle所表示的作业完成。如果作业已经完成，该函数会立即返回；否则，会一直等待直到作业完成。
+2. IsCompleted：一个只读属性，表示JobHandle所表示的作业是否已经完成。
+3. Combine()：将多个JobHandle对象合并为一个JobHandle对象，用于表示多个作业的依赖关系。
+4. ToAsyncHandle()：将JobHandle对象转换为AsyncGPUReadbackRequest对象，用于在GPU执行完成之后异步读取GPU的结果。
+5. Dispose()：释放JobHandle对象占用的资源。
+6. IsValid：一个只读属性，表示JobHandle对象是否有效。如果JobHandle对象已经被释放，那么该属性会返回false。
+
+这些函数和属性可以帮助我们管理作业之间的依赖关系，等待作业完成，以及释放相关资源，是使用JobSystem的必备工具。
+
+
+
+---
 
 
 
