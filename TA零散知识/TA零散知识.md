@@ -709,19 +709,21 @@ Render Command（渲染命令）和 Draw Call（绘制调用）是 Unity 中两�
 
 
 
-## 关于材质实例
+# 关于材质实例
 
-如果有一个材质要用于不同的模型，而我又希望他们的参数不要同步的时候，就需要材质实例这个东西。也就是通过给与不同的模型以不同的材质实例来达到目的。
+如果有**一个材质要用于不同的模型**，而我又希望他们的**参数不要同步**的时候，就需要材质实例这个东西。也就是通过**给与不同的模型以不同的材质实例**来达到目的。
 
 如下的melee，我希望其中一个头骨在dissolved的时候不要影响另一个，就需要材质实例
 
 ![image-20230131225637772](Images/image-20230131225637772.png) 
 
-使用材质实例时，检查器中的材质面板会显示Instance：
+**使用材质实例时，检查器中的材质面板会显示Instance：**
 
 ![image-20230131225708991](Images/image-20230131225708991.png) 
 
-### 分清楚Material和ShaderMaterial
+
+
+## 分清楚Material和ShaderMaterial
 
 二者都是Renderer组件的属性之一，二者的类型都是Material。
 
@@ -729,7 +731,7 @@ Render Command（渲染命令）和 Draw Call（绘制调用）是 Unity 中两�
 
 默认状态下，如果在代码层面不做任何修改，物体使用ShaderMaterial进行渲染，也就是说没有这个Instance。此时如果直接通过材质面板修改参数、或者修改ShaderMateria的属性，就会导致所有使用改材质的物体都被影响。
 
-如果通过代码修改Material内的属性，则会自动创建一个材质实例，替换原来的材质，本次修改仅对该物体有效，对其他的同材质物体无效。
+如果**通过代码修改Material内的属性，则会自动创建一个材质实例，替换原来的材质**，本次修改仅对该物体有效，对其他的同材质物体无效。
 
 如果想在初始化的时候就区别开所有的材质实例，可以在Start函数中随意调用一下Material属性，只要调用就会自动生成材质实例，如下一些都是可行方式：
 
@@ -738,7 +740,35 @@ Render Command（渲染命令）和 Draw Call（绘制调用）是 Unity 中两�
 - var temp_or_member_var = meshRenderer.materials[i] （多材质时）
 - Function(mershRenderer.material)
 
-### 内存泄漏问题
+
+
+## 极具优势、不打断合批
+
+对于同一个材质的不同的材质实例，可能拥有不同的属性，一般而言，不同的材质属性会导致合批被打断。
+
+但是**如果把不同的属性写入Shader的CBUFFER中，就不会打断合批、即使它们是不同的材质实例**。
+
+ShaderGraph中，会默认把颜色、Float等属性写入CBUFFER中：
+
+![image-20230906103522210](TA零散知识Images/image-20230906103522210.png) 
+
+
+
+**验证结果：**
+
+**成功被合批。**
+
+![image-20230906103649208](TA零散知识Images/image-20230906103649208.png) 
+
+关于CBUFFER：[跳转](#关于CBUFFER)
+
+
+
+---
+
+
+
+## 内存泄漏问题
 
 材质实例虽好，但是必须手动删除，否则一直存在于内存中。
 
@@ -2959,13 +2989,50 @@ DOTweenAnimation那花哨的界面，没有Custom Editor是不可能的，于是
 
 
 
+# 关于MPB——Material Property Block
+
+**是什么？**
+
+Material Property Block（材质属性块）是Unity中的一个**数据结构**，用于在渲染过程中**向材质实例提供额外的属性数据**。它可以包含**一组键值对**，每个键值对对应于材质实例中的一个**属性**。在渲染时，可以**将多个对象的MPB实例传递给渲染器**，以**避免为每个对象创建新的材质数据副本**，从而提高渲染性能。同时，使用MPB还可以**更容易地实现材质属性的动态变化，因为它可以在渲染过程中动态修改材质属性**。 
 
 
 
+**用法**
+
+和Material类类似地、可以直接使用**Block对象的SetFloat等**方法。
+
+Block对象可以直接**从Renderer组件里获取，改完后再塞回去**。
+
+```c#
+private void OnValidate() {
+        var renderer = GetComponent<Renderer>();
+        var material = renderer.sharedMaterial;
+        var block = new MaterialPropertyBlock();
+        renderer.GetPropertyBlock(block);
+        block.SetColor("_Color",color);
+        renderer.SetPropertyBlock(block);
+}
+```
 
 
 
+**核心的优点**
 
+可以**避免生成很多材质实例**，材质实例还是太多了还是蛮占内存的，尤其是属性比较多的材质。
+
+[跳转](#关于材质实例)
+
+
+
+**核心缺点**
+
+经过验证、不同的MPB会**导致合批被打断**。
+
+![image-20230906102005415](TA零散知识Images/image-20230906102005415.png) 
+
+
+
+---
 
 
 
