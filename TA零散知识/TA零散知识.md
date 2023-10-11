@@ -1737,7 +1737,7 @@ LIB ： Liberal，静态链接库。其在程序编译的时候就会一起被�
 
 
 
-## C#拆分类的方式
+# C#拆分类的方式
 
 有时候编写的类里面属性和一些比较杂的方法太多了，不方便查看和编写，此时就可以使用：partial关键字来修饰这个类，被修饰的类会和与其重名的类合并为一个完整的类。
 
@@ -3230,9 +3230,518 @@ public class JobSystemExample : MonoBehaviour
 
 
 
+# 使用Odin Editor Window进行工具开发
+**传统的Editor Window**将GUI和逻辑几乎完全区分开来，虽然这是**比较科学**的方式，但是**编写GUI的过程比较坐牢**。而使用**Odin Editor Window**，可以在**定义属性或字段的时候，就顺便把GUI写好，而且比自己写在OnGUI里面要好看很多**。
+
+
+这样的做法有点像之前提到的[资产实现型工具](#关于资产实现型工具)，不同点在于，使用**Odin Editor Window的工具，可以访问到Editor，而ScriptableObject的工具则不能**。
+
+
+使用Odin Editor Window制作工具也有局限性：
+1. **可读性差**，想找到某个功能的实现，需要在属性中找。
+2. **灵活性较差**。依赖于Odin插件，如果没装插件就没法运行。
+3. **GUI复杂逻辑编写难度大**。当GUI之间有强而复杂的关联的时候，使用Attribute的方式编写GUI会比较困难。一方面是Attribute的功能有限，另一方面是Attribute的使用方式不够灵活，很多时候需要使用字符串传递信息，这会导致一些问题。
+
+
+Odin Editor Window继承自Editor Window，自然可以使用Editor Window的所有功能，但是**二者的GUI不能穿插**。意味着Editor Window和Odin Editor Window的GUI只能作为两块区域存在，不能交叉存在。
+
+
+综上，**编写中小型工具的时候，使用Odin Editor Window是一个不错的选择，但是对于大型工具，还是建议使用传统的Editor Window、或者二者叠加使用**。
 
 
 
+---
 
 
+
+# 关于Property（属性）和Field（字段）
+
+**属性和字段可以被统称为变量。**
+
+在C#中，Property和Field都是用来存储数据的。
+
+相同点：
+
+1. Property和Field**都可以用来存储数据**。
+2. Property和Field**都可以有访问修饰符**。
+
+不同点：
+
+1. **Field是一个变量，而Property是一个方法**。
+2. Field可以直接访问并修改它的值，而**Property则需要通过getter和setter方法来访问和修改它的值**。
+3. Field通常用于存储私有数据，而Property通常用于公开数据。
+4. Field可以被初始化，而Property不能被直接初始化。
+5. Property可以提供只读或只写的访问权限，而Field只能提供读写的访问权限。
+6. **Property可以对数据进行计算或验证**，而Field则不能。
+
+总的来说，**Field用于存储数据，而Property用于控制对数据的访问和修改。**在编写类的时候，需要根据具体的情况来选择使用Field还是Property。
+
+```c#
+public class Person
+{
+    private string name; // private field
+
+    public string Name // public property
+    {
+        get { return name; }
+        set { name = value; }
+    }
+}
+```
+
+
+
+对于一些【监视窗口】、或者只读属性，可以**更便捷地定义其Property**：
+
+`private bool myBool => _bool == true;`
+
+这样定义的属性是只读的。
+
+类似地，对于一些**只想简单返回某个表达式的结果的函数，可以这么定义**：
+
+ `private Color GetColor() => Color.red;` 省去了括号和return关键字。
+
+
+
+---
+
+
+
+# 关于SAT（Summed Area Tables）
+
+以前的记录：
+
+![image-20231011111947256](./Images/image-20231011111947256.png) 
+
+它是一种**预先计算出像素区域和**的数据结构，可以**快速地计算出任何矩形区域内像素的和**。Summed Area Tables广泛应用于计算机视觉领域的特征提取、图像分割、边缘检测、运动检测等算法中。
+
+对于二维的SAT，它一般是一个二维数组，`SAT[i][j]` 代表的是第i行第j列与（0，0）（上图是左上角）作为对角线，围成的矩形的区域的数值的总和。
+
+生产SAT的算法很简单，对于二维SAT，把每一行独立地做一遍前缀和、再把每一列用每一行SAT的数组做一遍前缀和即可。
+
+使用SAT也很简单，上图已经非常清晰明了。
+
+
+
+其他算法中也可以使用SAT，它是一种预计算的、空间换时间的方法。
+
+比如现在有一条曲线，其Resample后，只能得知每一段的长度，现需要将这条线映射到0~1（如UV），需要得知每一个点是0~1中的哪一个，就可以生成一个一维的SAT，在需要的时候可以快速查找，而不再需要在需要的时候、反复地去累加求值。
+
+
+
+---
+
+
+
+# 使用拓展方法
+
+拓展方法是一种允许开发人员**向现有的类添加新的方法**，而无需创建新的子类或修改原始类的方法的语言功能。拓展方法**实际上是一种静态方法**，它使用“this”关键字作为其第一个参数，并且**可以像实例方法一样在对象上调用**。通过使用拓展方法，可以提高代码的可读性和可维护性，同时也可以避免在原始类中添加过多的方法。
+
+一段看懂：
+
+```c#
+// 反转Mesh法线拓展方法
+public static void ReverseNormals(this Mesh mesh)
+{
+    var normals = new List<Vector3>();
+
+    for (int i = 0; i < mesh.normals.Length; i++)
+        normals.Add(-mesh.normals[i]);
+
+    mesh.normals = normals.ToArray();
+}
+
+// 可以直接在对象上调用拓展方法
+mesh.ReverseNormals();
+```
+
+
+
+---
+
+
+
+# 使用拓展方法——给类添加附加属性
+
+[参考](https://www.bilibili.com/video/BV1gV4y1P7aP/?spm_id_from=333.999.0.0&vd_source=9a5fef48671479d11a7dd5cdf12ca388)
+
+有时在某个功能模块中，如果**某个不能改的类拥有某个属性的话，会很方便**，可以省去再外套一层结构体或者类的麻烦。
+
+可以借拓展方法为不属于自己的类添加附加属性。
+
+一段看懂：
+
+```c#
+// 定义拓展属性的Data类，里面包含想要添加的字段
+public class Vector3ArrayExtentionProperty
+{ public float EXField; }
+
+// 将拓展属性和需要被拓展的类绑定起来，数据类型是ConditionalWeakTable。类似哈希表，它的优势是自动回收占优。
+// Key是需要附加属性的类， value是需要附加的属性的类型，这里包了一层Data类（Vector3ArrayExtentionProperty）
+private static readonly ConditionalWeakTable<Vector3[], Vector3ArrayExtentionProperty>  Data = 
+    new ConditionalWeakTable<Vector3[], Vector3ArrayExtentionProperty>();// 键值对，一个Vector3[]对象对应一个拓展属性Data对象
+
+// 当需要读写调用
+public static float GetEXField(this Vector3[] vector3array) 
+=> Data.GetOrCreateValue(vector3array).EXField;
+
+public static void SetEXField(this Vector3[] vector3array, float EXvalue)
+=>  Data.GetOrCreateValue(vector3array).EXField = EXvalue;
+
+// 读写时：
+Vector3[] v3a = new Vector[10];
+v3a.SetExField(1.0f);
+Consoel.PrintLine( v3a.GetEXField() ;) // OUTPUT: 1
+```
+
+虽然不能直接通过字段名称访问新添加的字段，但这样在大多数情况下也算够用了。
+
+
+
+---
+
+
+
+# 关于C＃反射（System.Reflection）
+
+反射是C#中的一种机制，它**允许程序在运行时获取和操作程序集、类型、方法和属性等元数据信息**。反射可以让程序**动态地创建对象、调用方法、获取和设置属性值等操作**，这样就可以在运行时灵活地控制程序的行为。反射的核心是System.Reflection命名空间中的类和接口，如Type、MethodInfo、PropertyInfo等。
+
+
+
+**常规操作**
+
+**获取程序集中所有类型的信息**
+
+动态读取程序集，访问、修改和执行其中的字段、方法。
+
+```c#
+// 加载程序集
+Assembly assembly = Assembly.Load("MyAssembly");
+
+// 获取程序集中所有类型
+Type[] types = assembly.GetTypes();
+
+// 输出类型信息
+foreach (Type type in types)
+{
+    Console.WriteLine("Type name: " + type.FullName);
+    Console.WriteLine("Type namespace: " + type.Namespace);
+    Console.WriteLine("Type base type: " + type.BaseType);
+    Console.WriteLine("Type implemented interfaces: " + string.Join(",", type.GetInterfaces()));
+    Console.WriteLine("Type properties: " + string.Join(",", type.GetProperties().Select(prop => prop.Name)));
+    Console.WriteLine("Type methods: " + string.Join(",", type.GetMethods().Select(method => method.Name)));
+}
+```
+
+
+
+**非常规操作**
+
+**破坏封装性、稳定性。**
+
+**非法访问和修改dll中的内容，有法律风险**（是不是可以用来做外挂？）。
+
+通过反射读取私有变量、执行私有方法：
+
+```c#
+using System;
+using System.Reflection;
+
+public class MyClass
+{
+    private int myPrivateVariable = 42;
+
+    private void MyPrivateMethod()
+    {
+        Console.WriteLine("Hello from MyPrivateMethod!");
+    }
+}
+
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        MyClass obj = new MyClass();
+
+        // 获取类型信息
+        Type type = obj.GetType();
+
+        // 获取私有变量
+        FieldInfo field = type.GetField("myPrivateVariable", BindingFlags.NonPublic | BindingFlags.Instance);
+        int value = (int) field.GetValue(obj);
+        Console.WriteLine("The value of myPrivateVariable is: " + value);
+
+        // 调用私有方法
+        MethodInfo method = type.GetMethod("MyPrivateMethod", BindingFlags.NonPublic | BindingFlags.Instance);
+        method.Invoke(obj, null);
+
+        Console.ReadLine();
+    }
+}
+```
+
+
+
+---
+
+
+
+# 关于程序集Assembly
+
+[参考](https://www.cnblogs.com/luna-hehe/p/10143748.html)
+
+![image-20231011145334550](./Images/image-20231011145334550.png) 
+
+
+
+在C#中，程序集可以定义为一组**相关的代码、资源和元数据的集合**，它们一起构成了一个可部署的单元。**程序集通常包含一个或多个类、接口、结构体和枚举等类型的定义（*：注意，只有定义）**，以及这些类型所需的其他资源，如图像、声音、文本文件等。程序集还包含元数据，如程序集名称、版本号、作者信息等，这些信息可以用于程序集的识别和版本控制。
+
+程序集**可以是独立的，也可以是依赖于其他程序集的**。独立的程序集可以被直接部署和执行，而依赖于其他程序集的程序集则需要依赖的程序集在运行时才能正确工作。**程序集可以被编译为静态链接库（.lib文件）或动态链接库（.dll文件），也可以作为一个单独的可执行文件（.exe文件）进行编译**。
+
+
+
+在C#中，DLL文件和程序集不是完全相同的概念。 DLL文件是一种动态链接库，用于在运行时提供程序所需的函数和数据。而程序集是一组相关的代码、资源和元数据，可以包含一个或多个DLL文件，以及其他类型的文件。程序集可以是静态链接库（.lib文件）或动态链接库（.dll文件），但也可以是对其他程序集的引用或嵌套的程序集。**因此，DLL文件是程序集的一部分，但程序集不一定是DLL文件。**
+
+
+
+在**一个C#解决方案中，可以包含多个C#项目**，每个项目都会生成自己独立的程序集（.dll文件或.exe文件），程序集中可能包含多个类、接口、结构体等。这些程序集之间可以相互引用，以便在代码中使用对方的类型和方法。
+
+
+
+## Unity中的程序集
+
+[参考](https://docs.unity3d.com/cn/2021.3/Manual/ScriptCompilationAssemblyDefinitionFiles.html)、[参考2](https://zhuanlan.zhihu.com/p/547508501)
+
+Unity中有一些自带的程序集：
+
+[官方参考文档](https://docs.unity3d.com/cn/2021.3/Manual/ScriptCompileOrderFolders.html)
+
+![image-20231011151153239](./Images/image-20231011151153239.png) 
+
+程序集是比C＃代码**更好复用**的东西（尤其是DLL）。
+
+如在Git挖到了一段好用的代码，但他是C＋＋写的，怎么用到项目里呢？
+
+就可以把这个C＋＋项目编译成DLL，然后导入到项目中，再给这个DLL添加一个程序集引用，就可以读取里面的类、方法和字段等，也可以使用里面的函数。
+
+
+
+默认情况下自己写的C＃代码都会打到Assembly-CSharp的dll中：
+
+![image-20231011151846035](./Images/image-20231011151846035.png) 
+
+但代码多了的话，这个程序集会编译好长时间，所以可以手动分割程序集。
+
+只需在想要划分新程序集的文件夹下面新建一个程序集的定义资产，这个文件夹及其所有子文件夹中的代码文件都会被打包到这个新的程序集里面。
+
+然后因为划分了程序集嘛，它默认是没有程序集引用的，以为着如果要访问一些具有自己程序集的类等，需要在程序集定义里面引用一下那个程序集，这样在使用using的时候才不会报错。
+
+![image-20231011152003388](./Images/image-20231011152003388.png) 
+
+以前有一个经典的错误就是我在Editor文件夹以外的地方（这些地方的代码一般会打到Assembly-CSharp中），使用了一些Editor的类库，然后就一直报using 的类找不到，非常恼火。
+
+这是因为Assembly-CSharp是不引用Assembly-CSharp-Editor的，我们在Assembly-CSharp中写的代码自然无法访问到Assembly-CSharp-Editor中的内容。
+
+
+
+## pdb文件
+
+Build C#项目的时候，Build出的dll或者exe文件往往会携带一个pdb文件。
+
+pdb文件是程序数据库文件（Program Database），它包含了与编译后的dll或exe文件对应的调试信息，包括源代码文件名、行号、变量名等等。在调试时，可以使用pdb文件来还原程序的调试信息，方便开发者进行调试和排错。因此，建议在发布程序时同时保留pdb文件，以便在需要时进行调试。
+
+dll或exe可以脱离pdb文件运行。pdb文件只包含调试信息，不包含程序运行所需的代码和数据，因此程序可以在没有pdb文件的情况下运行。但是，如果程序出现了问题需要进行调试时，没有pdb文件将会使调试变得困难。在调试时，调试器需要pdb文件来识别程序中的符号信息，如变量名、函数名等等，以便能够正确地显示源代码和帮助调试者找到问题所在。所以，建议在发布程序时同时保留pdb文件，以便在需要时进行调试。
+
+![image-20231011153322436](./Images/image-20231011153322436.png) 
+
+
+
+---
+
+
+
+# Linq表达式
+
+LINQ（Language Integrated Query）表达式是一种用于.NET平台（基本上C#）上的编程语言，它允许开发人员在**编写代码时使用一种类似于SQL的语言来查询和操作数据对象**。LINQ表达式可以用于访问各种数据源，如数据库、XML文档、对象集合等。通过LINQ表达式，开发人员可以使用一种统一的语法来查询和操作不同类型的数据源，这**使得代码更加简洁、易于维护和重用**。
+
+
+
+以下是一些在C#中使用LINQ表达式的示例代码：
+
+**需要`using System.Linq;`**
+
+1.从集合中筛选出所有大于10的数字并返回新的集合：
+
+```c#
+List<int> numbers = new List<int> { 5, 10, 15, 20, 25 };
+var result = numbers.Where(n => n > 10).ToList();
+```
+
+2.从字符串数组中选择长度大于5的字符串并按字母顺序排序：
+
+```c#
+string[] names = { "Alice", "Bob", "Charlie", "David", "Ethan" };
+var result = names.Where(n => n.Length > 5).OrderBy(n => n).ToList();
+```
+
+3.从对象集合中选择所有年龄大于18岁的人的姓名和年龄：
+
+```c#
+List<Person> people = new List<Person> {
+    new Person { Name = "Alice", Age = 25 },
+    new Person { Name = "Bob", Age = 17 },
+    new Person { Name = "Charlie", Age = 30 },
+    new Person { Name = "David", Age = 19 },
+    new Person { Name = "Ethan", Age = 22 }
+};
+var result = people.Where(p => p.Age > 18).Select(p => new { p.Name, p.Age }).ToList();
+```
+
+4.从XML文件中选择所有具有特定属性值的元素：
+
+```c#
+XDocument doc = XDocument.Load("data.xml");
+var result = doc.Descendants("book").Where(b => (string)b.Attribute("category") == "fiction").ToList();
+```
+
+这些示例只是LINQ表达式的几个例子，LINQ表达式可以用于各种不同类型的数据源和查询需求。
+
+
+
+---
+
+
+
+# 关于序列化和反序列化
+
+[参考](https://zhuanlan.zhihu.com/p/76247383)
+
+在游戏开发中，序列化是指将**对象或数据结构转化为可存储或可传输、可读取的格式，以便在不同环境之间进行通信、保存或加载**。序列化**通常涉及将数据编码为二进制或文本格式（据我所知Unity中的序列化多是文本）**，以便在文件中存储或通过网络传输。在游戏中，序列化常用于保存和加载游戏状态、网络通信、创建关卡和资源打包等方面。
+
+在Unity中，序列化有很多应用场景，以下是其中的一些：
+
+1. 保存和加载游戏状态：将游戏状态序列化为文件，以便在下次启动时加载，包括玩家位置、状态、当前进度等信息。
+2. 网络通信：将游戏对象的信息序列化为二进制或文本格式，以便在客户端和服务器之间进行通信。
+3. 创建关卡：将关卡数据序列化为文件，以便在游戏中动态加载并创建游戏场景。
+4. 资源打包：将游戏资源序列化为二进制或文本格式，以便在游戏中动态加载并使用。
+5. 自定义编辑器：在Unity编辑器中，可以利用序列化机制来自定义编辑器界面，以便更方便地编辑和保存游戏对象的属性和状态。
+6. 配置文件：将游戏配置信息序列化为文件，以便在游戏中读取和使用，包括音效、画面等设置。
+7. 数据持久化：将游戏数据序列化为文件，以便在游戏中进行数据的持久化，包括玩家成就、排行榜等信息。
+
+
+
+而反序列化基本就是从文件读取数据、然后根据反序列化方法将数据赋予给运行中的程序的对象中的字段。
+
+
+
+预制体是典型的序列化的成果，一个预制体为例：
+
+```
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &6539136517235615888
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4797420823336448398}
+  - component: {fileID: 752019380323276241}
+  - component: {fileID: 56831297478262229}
+  m_Layer: 0
+  m_Name: "\u6D4B\u8BD5"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4797420823336448398
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6539136517235615888}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!33 &752019380323276241
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6539136517235615888}
+  m_Mesh: {fileID: 4300000, guid: 97f32f399cc65304abf91554101864e6, type: 2}
+--- !u!23 &56831297478262229
+
+//More.....
+```
+
+这是预制体通过文本编辑器打开后的内容，可见其其实是文本内容，记录了这个预制体上挂的组件，以及这些组件的参数。
+
+默认情况下，MonoBehavior是自动设定为可序列化的，意味着里面的**公开字段**会被像上面这样被写到文本文件里面（如果私有字段标记为序列化，那么私有字段也会像这样被写下来）。
+
+场景文件也是序列化的典型，和预制体大同小异。
+
+
+
+## 工具制作中的序列化
+
+工具并不是那么需要记录和读取的东西，它更倾向于一次性的运行，所以它默认是不可序列化的。
+
+确实。
+
+但是**不可序列化会导致一个问题：Undo没法用了。**
+
+因为Undo系统需要从序列化后的堆栈里面去拿到修改的记录，所以如果你不序列化，Undo系统是没法拿到之前的值的，自然没法做Undo了。
+
+
+
+## 不可序列化的类型
+
+泛型、字典、高维数组、委托等。
+
+有时对于这些类型，会有强烈的序列化的需求。
+
+可以通过一些Track来对这些类型做序列化（伪）。
+
+详见参考。
+
+
+
+## 序列化自己的类
+
+工具类继承自Editor Window，默认不序列化的。
+
+一般自己直接写的class（不继承）也不会被序列化。
+
+可以标记Attribute：`[Serializable]` 来强行序列化这些类。
+
+只有可以被序列化的类型会被序列化，比如常规的基本数据类型，UnityEngine.Object等
+
+
+
+## 自定义如何序列化与反序列化
+
+关于自定义序列化和反序列化方法：
+
+> 再说说多态，在一个`List<BaseClass>`中，列表项实际指向的对象`BaseClass`的派生类，但Unity序列化时，是不会识别出来的，只会序列化基类的信息。
+>
+> 对于以上这些以及更加变态的情况，Unity干脆提供了一个接口随便你捣鼓：`ISerializationCallbackReceiver`。
+>
+> **通过实现该接口的两个方法`OnBeforeSerialize` 和 `OnAfterDeserialize`，使得原本不能被引擎正确序列化的类可以按照程序员的要求被加工成引擎能够序列化的类型。**Unity官方的这个例子实现了对Dictionary的加工使其能够序列化。
+
+详见参考。
+
+
+
+---
 
