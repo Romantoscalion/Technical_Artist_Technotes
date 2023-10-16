@@ -1281,7 +1281,7 @@ void myDisplay(void) {
 4. 其他基本常规要素，如模型、图形API（用于将图元打包成数据发送给GPU）、着色器等
 
 
- 
+
 
 ---
 
@@ -3782,6 +3782,92 @@ MeshFilter:
 > **通过实现该接口的两个方法`OnBeforeSerialize` 和 `OnAfterDeserialize`，使得原本不能被引擎正确序列化的类可以按照程序员的要求被加工成引擎能够序列化的类型。**Unity官方的这个例子实现了对Dictionary的加工使其能够序列化。
 
 详见参考。
+
+
+
+---
+
+
+
+# 在MarkDown中使用LaTeX渲染公式
+
+直接用字符串写算式可读性很差，发现MarkDown是兼容LaTeX的，可以学一手：
+
+```
+1. 上下标：
+   - 上标：使用^符号，例如$x^2$表示x的平方。
+   - 下标：使用_符号，例如$a_0$表示a的下标为0。
+2. 分式：使用\frac{}{}命令，例如$\frac{a}{b}$表示a除以b的分式。
+3. 根号：使用\sqrt命令，例如$\sqrt{2}$表示2的平方根。
+4. 求和、积分：使用\sum和\int命令，例如$\sum_{i=1}^n i$表示1到n的所有整数之和，$\int_{a}^{b} f(x) dx$表示函数f(x)在a到b之间的积分。
+5. 矩阵：使用\begin{matrix}和\end{matrix}命令，例如$\begin{matrix} 1 & 2 \ 3 & 4 \end{matrix}$表示一个2行2列的矩阵。
+6. 向量：使用\vec命令，例如$\vec{v}$表示向量v。
+7. 上、下箭头：使用\overset和\underset命令，例如$\overset{\rightarrow}{AB}$表示向量AB，$\underset{n\to\infty}{\lim}a_n$表示n趋近于无穷时a_n的极限值。
+```
+
+上下标：
+$$
+X^2-----X_0
+$$
+分式、除法
+$$
+\frac{a}{b}
+$$
+开方
+$$
+\sqrt{2}
+$$
+积分
+$$
+\int_{1}^{100} k*Xds
+$$
+求和、累加
+$$
+\sum_{i = 1}^{100} i
+$$
+矩阵
+$$
+\begin{matrix} 1 & 2 \\ 3 & 4 \end{matrix}
+$$
+
+
+向量
+$$
+\vec{a}
+$$
+上下箭头
+$$
+\overset{\rightarrow} {AB} ----- \underset{n\to\infty}{\lim}a_n
+$$
+
+
+---
+
+
+
+# 可能遇到的浮点精度问题以及对策
+
+以前一直觉得浮点精度问题根本不会影响到我，但这次实打实吃亏了，Debug了好久。
+
+情景：
+
+**我想得知一个动画此时处于第几帧**，可以通过：`frame = time * frameRate`、即时间乘以帧率来得到。
+
+但是由于浮点数的精度损失，以30帧的动画为例，它在第63帧的地方会出问题 。
+
+比如此时处于2.1秒，帧率为30、
+
+$frame = 2.1 * 30$ ，frame = 63是数学上成立的，但是程序没法判断它达到了63帧， 其无限接近63，但是没有到63，导致此时frame的得值为62，这是错误的值，导致了我的程序出现了死循环的情况。
+
+这种情况可以用一个Mathf的API来进行判断：
+
+```c#
+float result = time * frameRate;
+//  通过API进行判断，如果result已经非常接近与其最近的整数了，则就取其最近的整数，不取它本来的值
+if (Mathf.Approximately(result, Mathf.Round(result)) )
+    result.Mathf.Round(result);
+int frame = (int) result;
+```
 
 
 
