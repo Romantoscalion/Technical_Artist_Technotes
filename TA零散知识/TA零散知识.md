@@ -3873,3 +3873,64 @@ int frame = (int) result;
 
 ---
 
+
+
+# Animation  Curve和Undo
+
+Animation Curve是Unity中的一个类型。
+
+![image-20231018201758213](./Images/image-20231018201758213.png) 
+
+在Monobehavior和Editor Window的开发中，这个曲线很常用，但是它有一个问题，就是**默认状态下无法Undo。**
+
+**Undo对于编辑曲线来说，是刚需。**
+
+可以这样来做到这件事：
+
+```c#
+// 用Odin的Attribute检测曲线在面板的值变
+[OnValueChanged(nameof(OnCurveChanged))]
+public AnimationCurve animationCurve;
+
+// 值变时使用Undo系统记录修改前的曲线，并将其注册到Undo堆栈
+private void OnCurveChanged() => Undo.RegisterCompleteObjectUndo(this, "OnCurveChanged");
+```
+
+
+
+为什么要记这个？
+
+因为在Google去搜，所有人都会让你用这个：`Undo.RecordObject(anObjTransform, "move");`
+
+然而这个API屁用没有（至少在Animation Curve中无效）。
+
+
+
+---
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
