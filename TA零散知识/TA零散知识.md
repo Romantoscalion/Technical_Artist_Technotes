@@ -3910,13 +3910,276 @@ private void OnCurveChanged() => Undo.RegisterCompleteObjectUndo(this, "OnCurveC
 
 
 
+# 使用SavePanel制作导出功能 
+
+以前我的工具的导出功能居然都是让用户自己写好路径和名称、再用字符串拼接然后用AssetDataBase的API导出的。
+
+**这非常不优雅 。**
+
+其实可以使用这个 :
+
+```c#
+string path = EditorUtility.SaveFilePanel
+(
+    "导出为" + extention, // 保存窗口标题 
+    exportPath, // 默认导出位置
+    exportName, // 默认导出名称
+    extention // 文件拓展名
+);
+```
+
+这个API会在触发时弹出一个保存文件的对话框：
+
+<img src="./Images/image-20231026111648424.png" alt="image-20231026111648424" style="zoom:50%;" />  
+
+这样的导出非常**符合用户习惯**，而且**不用自己考虑重名和 覆盖的问题。**
+
+最后用户决定的**路径和文件名会作为字符串返回**，非常好用。
 
 
 
+---
 
 
 
+# 反转Mesh法线的正确姿势
 
+我之前一直认为一个三角面的正反仅由它的法线决定。
+
+我认为，对于三角形内的任意一点，由重心坐标对三角形三点的法线方向插值。
+
+得到的方向如果和观察方向夹角不大于90度，即可视为正面。
+
+但这是不对的。
+
+**在Unity中，一个面是正面还是反面，是由三角形的三个顶点的顺序决定的。**
+
+在渲染三角形时，渲染器会根据三角形的顶点顺序来确定其正面和背面。具体而言，渲染器会使用右手法则来判断三角形的正反面。
+
+右手法则是这样一个规则：当将右手的拇指指向三角形的顶点0，将食指指向顶点1，将中指指向顶点2时，手心所指向的方向即为三角形的正面。
+
+例如，如果您按顺序定义三角形顶点，如下所示：
+
+```
+0 -> 1 -> 2
+```
+
+那么三角形的正面将面向您的屏幕。如果您按相反的顺序定义三角形顶点，如下所示：
+
+```
+2 -> 1 -> 0
+```
+
+那么三角形的正面将面向屏幕外部。如果您想要确保所有三角形都面向屏幕内部，您可以通过调整三角形顶点的顺序来实现这一点。
+
+
+
+那法线呢？
+
+经过测试，**法线仅影响光照的计算，而并不影响正反面的判断。**
+
+**所以正确的反转Mesh法线的姿势是：**
+
+**需要同时反转法线和三角面，才能得到正确的效果。**
+
+```c#
+// 获取网格组件
+Mesh mesh = GetComponent<MeshFilter>().mesh;
+// 获取网格的所有法线
+Vector3[] normals = mesh.normals;
+// 反转所有法线
+for (int i = 0; i < normals.Length; i++)
+{
+    normals[i] = -normals[i];
+}
+// 重新设置网格的所有法线
+mesh.normals = normals;
+// 反转网格的所有三角形
+int[] triangles = mesh.triangles;
+for (int i = 0; i < triangles.Length; i += 3)
+{
+    int temp = triangles[i];
+    triangles[i] = triangles[i + 2];
+    triangles[i + 2] = temp;
+}
+// 重新设置网格的所有三角形
+mesh.triangles = triangles;
+```
+
+
+
+---
+
+
+
+# 导出一个Mesh的正确姿势
+
+如果想要**导出一个Mesh**，我会想当然地写下：
+
+`AssetDatabase.CreateAsset(meshFilter.mesh, path);`
+
+但是编译器会报错，因为**非runtime是不允许访问mesh**的，这会导致mesh Instance的混乱（和材质实例类似的）
+
+那好，我们**用sharedmesh**：
+
+`AssetDatabase.CreateAsset(meshFilter.sharedmesh, path);`
+
+好像没什么问题、、
+
+但是多试试就测出问题了；
+
+1. 如果这个sharedmesh已经被引用，之后**对导出文件的修改会导致引用处也被修改**。
+
+   比如在导出这个Mesh之前，我已经把它放到了场景中，看看效果对不对。
+
+   此时可以通过上面这个方法导出这个Mesh，但是此时场景中的预览物体的sharedmesh也将变成刚才导出的这个。
+
+   这意味着如果你把导出的mesh删了，预览这边的mesh也没了。
+
+2. **无法实现覆盖导出。**
+
+   很多时候导出功能会被反复使用，因为工作往往不是能一蹴而就的，需要反复迭代。
+
+   所以我们一定会需要覆盖导出。
+
+   如果使用上面这种方法导出一个Mesh，将在覆盖导出时报错。
+
+   因为如果发生重名的情况，需要先删除原来的Mesh，再保存新的Mesh。
+
+   而如果删除了原来的Mesh，你的Mesh引用本身就没了，到头来导出的就是一坨空气，或者会发生Editor报错。
+
+
+
+那咋办？
+
+很自然会想到创建一个Mesh 的副本，只要**导出副本**就好了：
+
+`mesh2Export =  meshFilter.sharedmesh;`
+
+`AssetDatabase.CreateAsset(mesh2Export , path);`
+
+**但是不行 ，因为`meshFilter.sharedmesh`是一个引用**，mesh2Export 被赋予的是引用，意味着修改还是会到meshFilter.sharedmesh上去。
+
+
+
+想想**别的Copy的方法**呢？
+
+`Copy(A,B)`, `new Mesh (meshFilter.sharedmesh);`, `copiedMesh.CopyFrom(originalMesh);(这个是他妈GPT捏造的)` 等我**认知中的方法都不行**。
+
+
+
+**最后终于是千呼万唤始出来了：**
+
+```c#
+Mesh mesh2Export = Instantiate(meshFilter.sharedMesh);
+AssetDatabase.CreateAsset(mesh2Export, path);
+```
+
+
+
+**挺反直觉的，所以记一下。**
+
+
+
+---
+
+
+
+# 修改枚举的显示内容
+
+以前我主张直接用中文定义枚举。
+
+这他妈居然是合法的表达。
+
+![image-20231026195922605](./Images/image-20231026195922605.png) 
+
+
+
+后来发现使用比较新版本的Odin，可以**用LableText去标记枚举内的元素**，也可以达到修改枚举显示的目的
+
+![image-20231026200253426](./Images/image-20231026200253426.png) 
+
+![image-20231026200242338](./Images/image-20231026200242338.png) 
+
+
+
+---
+
+
+
+# 修改Editor Window的名称
+
+Editor Window集成了一个变量：`titleContent`
+
+给这个变量赋值的话，就可以修改这个窗口的标题，比如这样；
+
+`titleContent = new GUIContent("天生万物以养人");`
+
+
+
+---
+
+
+
+# Editor Window和对话框
+
+对于简单的对话框需求：
+
+这种：
+
+![image-20231026201711941](./Images/image-20231026201711941.png) 
+
+```c#
+[Button("Test")]
+public void TestB() =>  EditorUtility.DisplayDialog
+(
+    "提示",
+    "你要继续吗\n",
+    "好",
+    "别 "
+);
+```
+
+`EditorUtility.DisplayDialog`会返回一个bool，代表用户的走向是true还是false。如果用户直接把窗口关了，也返回false。
+
+
+
+有时后我们非常迫切地希望有三个选择，比如：
+
+你喜欢大的、小的，还是不大不小的？
+
+ ![image-20231026202334399](./Images/image-20231026202334399.png) 
+
+这时候有两个选择；
+
+**自己写一个额外的Editor Window，然后自己维护一套Dialog逻辑**
+
+非常麻烦，写代码写的正欢，哪有心思突然去写一个不太相关的Dialog逻辑？
+
+**或者，可以试试这个**
+
+```c#
+[Button("Test")]
+public void TestB() =>  Debug.Log( EditorUtility.DisplayDialogComplex
+    (
+        "提示",
+        "你要大的,小的,还是不大不小的?\n",
+        "大的", //OP0——OK
+        "小的", //OP1——Cencel
+        "不大不小的" //OP2——alt
+    )
+);
+```
+
+这个API会返回一个int值，代表用户的选择。
+
+但是它有个不合理的地方，**如果用户直接把窗口关了，会返回1**。
+
+有的时候这会成为一个很棘手的问题，需要注意。
+
+
+
+---
 
 
 
