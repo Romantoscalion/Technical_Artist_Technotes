@@ -3273,6 +3273,9 @@ public class JobSystemExample : MonoBehaviour
 
 
 # 使用Odin Editor Window进行工具开发
+
+使用Odin Editor Window最重大的优势是**可以给暴露的字段或者属性添加Odin的Attribute**，**普通的Editor Window无法使用**，这是很蛋疼的一点。
+
 **传统的Editor Window**将GUI和逻辑几乎完全区分开来，虽然这是**比较科学**的方式，但是**编写GUI的过程比较坐牢**。而使用**Odin Editor Window**，可以在**定义属性或字段的时候，就顺便把GUI写好，而且比自己写在OnGUI里面要好看很多**。
 
 
@@ -3299,6 +3302,14 @@ Odin Editor Window继承自Editor Window，自然可以使用Editor Window的所
 # 关于Property（属性）和Field（字段）
 
 **属性和字段可以被统称为变量。**
+
+在C#，有着以下规范：
+
+一般将**字段声明为私有**，如果需要对外，则**使用公开的属性将其暴露**，不直接暴露。
+
+**即使在同一个程序中，也不应该直接访问字段，而是通过属性来间接访问字段。**
+
+把字段声明为public是Unity带来的坏文明。
 
 在C#中，Property和Field都是用来存储数据的。
 
@@ -4183,17 +4194,61 @@ public void TestB() =>  Debug.Log( EditorUtility.DisplayDialogComplex
 
 
 
+# #define 和 const
+
+C#中的#define和C中的完全不一样。
+
+**C中的define是定义文本替换用的**，如下：
+
+`#define PI 3.14159265358979323846`
+
+这样代码中的PI符号全都会被替换成后面那串圆周率数字。
 
 
 
+C#中的#define是一个[预处理器指令](#预处理器指令)，需要和#if的预处理器命令配合使用。
+
+使用起来和Shader中的关键字有点像。——[关于Shader变体](#关于Shader变体)
+
+在Shader关键字中，我们通过#program命令定义关键字，然后Unity会把关键字的开关暴露在材质面板，Shader编译器再根据关键字的开关情况，对代码进行切割、分块组合和编译。
+
+在C#脚本中，我们可以**直接使用#define命令定义一个关键字，然后在脚本的#if预处理器指令中使用它**：
+
+```c#
+#define DEBUG
+    
+#if DEBUG
+    //...
+#else
+    //...
+#endif
+```
+
+但是这个关键字的开关**不会被暴露在脚本面板**，毕竟组件和面板本身就是脚本编译的结果嘛。
+
+那么去哪里启用关键字呢？
+
+在PlayerSetting里面：
+
+![image-20231031203233487](./Images/image-20231031203233487.png) 
+
+**在这里注册过的关键字就会被启用，没有的就不会启用。** 
 
 
 
+那么原来C中的define的功能要如何实现呢？
+
+可以通过const关键字来更安全、更符合逻辑地实现 ：
+
+`private const string ButtonName = "开始测试";'`
+
+**const变量一旦声明就不可再被赋值，在整个程序的生命周期中都不可再变化，能够取代C中的define功能。**
+
+使用const可以避免硬编码，可维护性更高，也具备更高的性能。如果确定一个变量在运行期间不会被修改，那么大可定义为const，比如角色的名字、血量上限、UI的文字等等。
+
+const变量一般以大写字母开头，同时以驼峰法分隔单词。
 
 
 
-
-
-
-
+---
 
