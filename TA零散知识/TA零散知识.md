@@ -4224,15 +4224,15 @@ C#中的#define是一个[预处理器指令](#预处理器指令)，需要和#if
 #endif
 ```
 
-但是这个关键字的开关**不会被暴露在脚本面板**，毕竟组件和面板本身就是脚本编译的结果嘛。
+在上面的例子中，只要我们在全局任何地方定义了DEBUG这个关键字  `#define DEBUG`，预处理命令 #if就会走向True的那一块。
 
-那么去哪里启用关键字呢？
+而如果我们全局都没有定义DEBUG这个关键字，则会走向else那一块。
 
-在PlayerSetting里面：
+另外，除了在脚本中定义关键字，在Unity中也可以通过Player Setting去定义关键字：
 
 ![image-20231031203233487](./Images/image-20231031203233487.png) 
 
-**在这里注册过的关键字就会被启用，没有的就不会启用。** 
+在这里注册过的关键字也会被启用。 
 
 
 
@@ -4635,6 +4635,100 @@ public enum Colors
 ---
 
 
+
+# foreach迭代中修改List（Collection）
+
+记这一点属于是有点缺乏编程常识了。
+
+
+
+C#中，在迭代器进行迭代的过程中，不能修改集合的结构。
+
+也就是说，在foreach循环中迭代List等数据结构时，没办法对List本身进行增删改的操作。
+
+
+
+但有时候就是会有这么蛋疼的需求，比如说：
+
+我有一组炸弹ABCDE，当前面的爆炸的时候，后面的都会爆炸，但是前面的不爆炸。
+
+例：C炸了，DE跟着炸，AB完好，所以C炸后，列表变成AB。
+
+如果用List存这一组炸弹，那么迭代List去删除列表中的炸弹的时候，会报错：Collection was modified; enumeration operation may not execute
+
+
+
+这时候只能稍作妥协，写点不那么优雅的代码，比如：
+
+```c#
+List<int> numbers = new List<int> { 1, 2, 3, 4, 5 };
+List<int> itemsToRemove = new List<int>();
+
+// 创建一个List,保存将要删除的元素
+foreach (int number in numbers)
+{
+    if (number % 2 == 0)
+    {
+        itemsToRemove.Add(number);
+    }
+}
+
+// 遍历将要删除的List,从源List中找到要删除的这个Item,然后将它删除
+foreach (int item in itemsToRemove)
+{
+    numbers.Remove(item);
+}
+```
+
+这么做的话，需要迭代两次，而且需要新的空间去保存将要删除的元素，实在是有点不优雅。
+
+
+
+不过我觉得要是你挺勇的，也可以这样：
+
+```c#
+foreach (int number in numbers.ToArray())
+	if (number % 2 == 0) numbers.Remove(number);
+```
+
+可以看到，确实是起作用了的。
+
+![image-20231205195548041](./Images/image-20231205195548041.png) 
+
+瞬间清爽，但是有风险，一方面原List内元素可能在迭代期间改变，这样你ToArray得到的值就是过时的缓存。
+
+另一方面，List转数组也需要时间和空间，性能上可能拉了一点。
+
+看情况来决定用哪一种吧。
+
+
+
+那有的同学可能会说，既然foreach要么性能拉，要么看着难受，为什么不用for循环呢？
+
+for循环确实可以规避这个问题，但是我们在做增删操作的时候，需要自己另外维护循环的索引值，这可能是很复杂的工作。
+
+我们需要遍历且增删改一个集合的时候，往往只是聚焦于一个很小的需求，还要自己维护索引值什么的，太累了吧？！
+
+
+
+另外 ，不只是List，只是List比较常用。C#中这类数据结构称为：Collection 
+
+大概有下面这些：
+
+1. List<T>：动态数组，可以自动扩展以容纳新元素。
+2. Dictionary<TKey, TValue>：键值对的集合，使用键来快速查找值。
+3. Queue<T>：先进先出的集合。
+4. Stack<T>：后进先出的集合。
+5. HashSet<T>：不包含重复元素的集合。
+6. LinkedList<T>：双向链表。
+7. ObservableCollection<T>：可用于数据绑定的动态集合，支持通知更改。
+8. SortedSet<T>：有序的集合，不包含重复元素。
+
+ChatGPT说的，不知道准不准嗷。
+
+
+
+---
 
 
 
