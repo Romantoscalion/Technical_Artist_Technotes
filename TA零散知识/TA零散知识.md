@@ -4703,6 +4703,56 @@ foreach (int number in numbers.ToArray())
 
 
 
+经过评论区大佬的指点后，了解到原来还有其他更好用的方法！
+
+**使用Linq查询**
+
+Linq查询是一种能在C#中写出很像SQL查询的语句，表达式会返回一个IEnumerable对象。
+
+这里我们把Linq查询表达式返回的IEnumerable<int>转换成List后，直接赋值给原list，也达到了目的。
+
+```csharp
+list = (from item in list where item % 2 != 0 select item).ToList();
+```
+
+
+
+**使用IEnumerable<T> IEnumerable<T>.Where<T>(Func<T, bool> predicate)**
+
+从函数声明中可以看出，这个函数也返回一个IEnumerable对象，和上面那种一样。
+
+它使用一个具有一个指定类型的参数（这个例子中是int）、且返回bool值的委托作为参数。
+
+传入的委托用于判断是否要选取这个元素。
+
+在下面这行代码中，我们通过一个Lambda表达式定义了一个匿名函数，它具有一个参数item，它返回item是否能被2整除的结果，若能被2整除，返回false，否则返回true。所遍历的IEnumerable对象中，每一个元素都将通过这个委托判断是否要被选取。
+
+最终，把选取的结果（一个IEnumerable对象）转换为List后，直接赋值给原list对象，也可以达到目的。
+
+```csharp
+ list = list.Where(item => item % 2 != 0).ToList();
+```
+
+
+
+**使用int List<int>.RemoveAll(Predicate<T> match)**
+
+这个函数接受一个Predicate<T>类型的委托作为参数，返回一个int值。返回值为所移除的对象的数量。
+
+委托将用于判断是否要删除这个元素。
+
+Predicate类型的委托需要一个泛型的参数，同时固定返回一个bool值，在集合的查询中非常常用。
+
+下面的代码中，我们通过lambda表达式定义了一个Predicate<int>类型的委托，以item为参数，返回item是否能被2整除，能则返回true，否则false。每一个元素都将通过这个委托来判断要不要Remove。
+
+最终，列表中2和4被Remove掉，也达到了目的。
+
+```csharp
+list.RemoveAll(item => item % 2 == 0);
+```
+
+
+
 那有的同学可能会说，既然foreach要么性能拉，要么看着难受，为什么不用for循环呢？
 
 for循环确实可以规避这个问题，但是我们在做增删操作的时候，需要自己另外维护循环的索引值，这可能是很复杂的工作。
