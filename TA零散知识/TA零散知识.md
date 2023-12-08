@@ -4782,3 +4782,42 @@ ChatGPT说的，不知道准不准嗷。
 
 
 
+# Unity中整合多个Odin Attribute为一个的方法
+
+有些脚本中会有大量的字段或者属性，如果一个一个地为他们配置Odin Attribute，会有很多重复工作，像这样：
+
+```c#
+[BoxGroup("DebugInfo")][ReadOnly][ShowIf("DebugMode")][ShowInInspector]
+private int m_int;
+[BoxGroup("DebugInfo")][ReadOnly][ShowIf("DebugMode")][ShowInInspector]
+private string m_string;
+```
+
+
+
+那么我自然是想将这些共用的部分整合起来、做到只通过一个Attribute，就能达到这些目的的效果的。
+
+此时我们可以这样做：
+
+```c#
+[MyDebug]
+private int m_int;
+[MyDebug]
+private string m_string;
+
+
+[IncludeMyAttributes]
+[BoxGroup("DebugInfo")][ReadOnly][ShowIf("DebugMode")][ShowInInspector]
+private class MyDebug : Attribute {}
+```
+
+
+
+非常地好用，但是也有一些限制，那就是有少部分的Attribute无法整合进来，比如说SerializeField 和 Space等。
+
+更多的就官方的视频和文档就好了：[油管](https://www.youtube.com/watch?v=RPvb8BT0Cxc&t=114s)
+
+
+
+---
+
