@@ -4821,3 +4821,61 @@ private class MyDebug : Attribute {}
 
 ---
 
+
+
+# 如果已有打开的、则不创建
+
+自定义Editor Window工具时，避免多次打开同一个类型的窗口。
+
+```c#
+// 如果已有打开的，则直接返回
+if ( HasOpenInstances<MyEditorWindow>() )  return;
+```
+
+
+
+---
+
+
+
+# 旋转MeshUV的方法
+
+其实都知道是普通的变换，但是真要自己从头写还是会很烦，所以记录一下：
+
+```c#
+var uvs = new List<Vector2>();
+Vector2 center = new Vector2(0.5f, 0.5f);
+
+
+for (int i = 0; i < mesh.uv.Length; i++)
+{
+    var uv = mesh.uv[i];
+    // UV坐标移动到原点，即减去旋转中心的坐标
+    var x = uv.x - center.x;
+    var y = uv.y - center.y;
+    // 旋转后坐标
+    // x =  x * cos(a) + y * sin(a)
+    // y = -x * sin(a) + y * cos(a)
+    var sin = Mathf.Sin(angle * Mathf.Deg2Rad);
+    var cos = Mathf.Cos(angle * Mathf.Deg2Rad);
+    var newX = x * cos + y * sin;
+    var newY = -x * sin + y * cos;
+    
+    uvs.Add(new Vector2(newX + 0.5f, newY + 0.5f));
+}
+
+mesh.uv = uvs.ToArray();
+```
+
+
+
+ 绷不住了，我试了一下自己推导证明，发现推不出来。高中生都不如，我是废物。🤡
+
+看看别人的推导吧——[知乎](https://zhuanlan.zhihu.com/p/545799935)
+
+
+
+---
+
+
+
