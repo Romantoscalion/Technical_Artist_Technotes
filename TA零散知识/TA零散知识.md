@@ -4,10 +4,6 @@
 
 早期的笔记（比较靠前）看上去比较稚嫩，很多类似常识的东西都记下来了。。。
 
-修复中。。。
-
-2023.6.9 Part1修复完毕
-
 
 
 ---
@@ -2689,6 +2685,92 @@ Shader则是**在编译的过程中生成不同的变体**的。我们在Shader�
 
 
 
+## 让关键字显示在材质面板
+
+不给材质指定Custom GUI（Editor）的话，Unity会给Shader一个默认的GUI。
+
+默认的GUI会把Property显示出来，支持float、range、color等形式的显示。
+
+对于一个Shader Property，我们通常先在Shader Lab的Property块中声明，然后在Pass中再声明一个同名变量，即可完成链接，修改GUI中的Property时，会影响到渲染时候的参数。
+
+但是对于一个keyword，要让它显示在材质面板并且顺利链接到GUI，需要颇多的“讲究”。
+
+
+
+对于Shader Feature，常将其以Toggle的形式暴露在Editor中，控制一个功能块的开启或关闭。
+
+Property中的声明：
+
+`[Toggle] _TESTKEYWORD ("TESTKEYWORD", Float) = 0.0`
+
+- Toggle是必不可少的，Toggle中可以加参数，如Toggle(TEST_MODE)，这样可以自定义Defin出来的关键字，而不是通过Property名加_ON组合。
+- Property名前面的下划线不是必须的，但是加下划线更加符合规范
+- 必须全大写
+- 关键字Property的名称字符串内容可以随意
+- 类型必须是Float
+
+
+
+Pass中的#Pragma命令：
+
+`#pragma  shader_feature _TESTKEYWORD_ON`
+
+- 相比Property名，必须多一个_ON的后缀
+
+
+
+使用的时候：
+
+`#ifdef _TESTKEYWORD_ON`
+
+`#endif`
+
+
+
+对于multi compile，常将其以enum的形式暴露在Editor中，控制走向若干支中的一支。
+
+Property中声明：
+
+`[KeywordEnum(DEBUG,RELEASE)] _PRE ("TESTMULTICOMPILE", Float) = 0.0`
+
+- KeywordEnum是必不可少的，以各个分支的后半部分为参数，这里参数前面不可以加下划线
+- Property名前面的下划线不是必须的，但是加下划线更加符合规范
+- 必须全大写
+- 关键字Property的名称字符串内容可以随意
+- 类型必须是Float
+
+
+
+Pass中的#Pragma命令：
+
+`#pragma  multi_compile _PRE_DEBUG _PRE_RELEASE`
+
+- 以Property名作为前缀，定义若干支，注意前缀和名称之间必须要有下划线
+
+
+
+使用的时候：
+
+`#ifdef _PRE_DEBUG `
+
+`#endif`
+
+
+
+说白了，整个工作流程大概如下图：
+
+![image-20231227202757174](./Images/image-20231227202757174.png) 
+
+
+
+在处理材质上的关键字的问题的时候，检查器的Debug Mode会很有用。
+
+它会清楚地把GUI产生的关键字列表显示出来，方便我们判断问题所在。
+
+![image-20231227202925090](./Images/image-20231227202925090.png) 
+
+
+
 ---
 
 
@@ -4876,6 +4958,138 @@ mesh.uv = uvs.ToArray();
 
 
 ---
+
+
+
+# 在Scene视口画点东西
+
+很多时候，如果能用Mono组件、或者Editor Window工具在Scene视口绘制一些调试信息，会极大地方便制作和查错。
+
+如果能绘制一些把手用于控制物体，怎么也比去调xyz等数值来得舒服直观。
+
+
+
+## 绘制的入口
+
+首先我们需要知道想在Scene中绘制元素、入口在哪里。
+
+可以在MonoBehaviour类的OnDrawgizmos和Editor的OnSceneGUI中绘制。
+
+![image-20231228202600431](./Images/image-20231228202600431.png) 
+
+
+
+### MonoBehaviour.OnDrawGizmos()
+
+是MonoBehaviour类的回调，可以像update、start那样直接定义使用。
+
+OnDrawGizmos是不管你有没有选中，都会执行、OnDrawGizmosSelected是选中才执行
+
+```c#
+ private void OnDrawGizmos() {
+        Gizmos.color = Color.red;
+        Gizmos.DrawRay(transform.position, Vector3.up);  
+    }
+
+    private void OnDrawGizmosSelected() {
+        Handles.color = Color.green;
+        Handles.DrawWireDisc(transform.position, Vector3.up, 2);
+    }
+```
+
+![image-20231228202721831](./Images/image-20231228202721831.png) 
+
+
+
+### Editor.OnSceneGUI()
+
+Editor可以通过派生来自定义组件的Inspector等界面的表现。通过它的OnSceneGUI回调，我们也可以在SceneView中绘制。
+
+需要注意 OnSceneGUI 的发生必须要当前至少有一个检查器（Inspecotr）以Editor的目标组件为显示对象才行。
+
+```c#
+[CustomEditor(typeof(TestComponent))]
+class MyCustomEditor : Editor
+{
+    private void OnSceneGUI() {
+        TestComponent test = target as TestComponent;
+        Handles.color = Color.red;
+        Handles.DrawWireDisc(test.transform.position, Vector3.up, 2);
+    }
+}
+```
+
+![image-20231228195530229](./Images/image-20231228195530229.png) 
+
+
+
+## 用什么画
+
+从上面两个简单的例子可以看到，通过Gizmos类和Handles类，就可以在SceneView中绘制。
+
+需要注意，在上述两个入口之外的地方使用Gizmos类和Handler类的话，是很有可能绘制不出来东西的。
+
+
+
+### Gizmos
+
+Gizmos类常用于绘制简单的调试信息，如直线、圆形等二维图元、图片、Mesh或线框等，通常不具备可交互的功能，仅提供调试信息用。
+
+[参考](https://zhuanlan.zhihu.com/p/515008289)
+
+但是需要注意，Gizmos类只可以在OnDrawGizmos()或者OnDrawGizmosSelected()中才可以使用。
+
+而Handlers类没有这个限制。
+
+
+
+### Handlers
+
+相比Gizmos，Handlers多了一些可以交互的功能。用户可以创建像Transform那样的手柄用于指定三维空间中的一个点、或是创建一个像碰撞体那样的可交互的线框、亦或是直接在Scene View中创建按钮。
+
+[参考](https://zhuanlan.zhihu.com/p/515544387)
+
+
+
+## 参考
+
+[Handlers官方文档](https://docs.unity3d.com/ScriptReference/Handles.html)
+
+[用Handlers类在Scene绘制界面UI](https://docs.unity3d.com/ScriptReference/Handles.BeginGUI.html)
+
+[知乎-编辑器拓展功能详解](https://zhuanlan.zhihu.com/p/503154643)
+
+[Git项目-编辑器案例合集](https://github.com/XINCGer/UnityToolchainsTrick)
+
+[CSDN-编辑器API速览](https://blog.csdn.net/linxinfa/article/details/89334603)
+
+[油管-编辑器开发导入](https://www.youtube.com/watch?v=ABuXRbJDdXs)
+
+[使用HandleUtillty](https://docs.unity3d.com/ScriptReference/HandleUtility.html)
+
+
+
+---
+
+
+
+# 关于Utillty、静态工具类
+
+// TODO:
+
+
+
+---
+
+
+
+# 关于Editor Preference
+
+//TODO:
+
+
+
+
 
 
 
