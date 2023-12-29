@@ -5075,7 +5075,17 @@ Gizmos类常用于绘制简单的调试信息，如直线、圆形等二维图�
 
 # 关于Utillty、静态工具类
 
-// TODO:
+不管是参与工业项目的开发，还是使用第三方的插件，总能看到一些XXXUtillty类。这其实是一种经验性的技巧。
+
+![image-20231229101830275](./Images/image-20231229101830275.png) 
+
+它其实就是某个模块的静态工具类。
+
+有时在模块A中我想对模块B操作，但是模块B封装非常严密，没办法直接调用模块B中的接口。
+
+此时可以尝试找找模块B的Utillty类，看看有没有静态方法可以做到这件事。
+
+我们自己在设计程序的时候，也可以去开发这种Utillty类，把一些比较杂散但是又必要且通用的方法封装到静态工具类中，可以减少硬编码和耦合。
 
 
 
@@ -5085,7 +5095,85 @@ Gizmos类常用于绘制简单的调试信息，如直线、圆形等二维图�
 
 # 关于Editor Preference
 
-//TODO:
+制作工具的时候，有时候会有这样迫切的希望：
+
+如果能将用户的设置直接保存在本地就好了，这样每次启动我都直接从配置文件读取设置，而不是进行初始化，这样就能长周期地保存配置了，不用每次重开Unity都要重新配置一遍。
+
+最直接的思路是自己再设计一个Scriptable Object，用于存储和读取配置文件。
+
+但其实还有一种方法，那就是使用EditorPrefs类。
+
+[官方文档参考](https://docs.unity3d.com/ScriptReference/EditorPrefs.html)
+
+```c#
+[Button]
+void EditorPrefsTest()
+{
+    int t = EditorPrefs.GetInt("MyTest", 0);
+    EditorPrefs.SetInt("MyTest", t + 1);
+    Debug.Log("MyTest: " + EditorPrefs.GetInt("MyTest", 0));
+}
+```
+
+如上的代码，在点击检查器中的按钮时，会给MyTest的值加一，并且不论是重启Unity还是重启电脑，这些数据都会被保留。
+
+和官方文档说的一样，使用EditorPrefs保存的值会被放在这个注册表键下：
+
+![image-20231229104527019](./Images/image-20231229104527019.png) 
+
+为了防止重名造成的冲突，键后面还加上了一串哈希值（应该是）。
+
+使用EditorPrefs可以对这个注册表中的键值对进行增删改查，可以相对轻松地长久化地在UnityEditor本机保存数据。
+
+
+
+## Delete All大重置
+
+之所以会查到这个类，是因为我碰到了一个疑难杂症：
+
+我正在制作一个GUI，加了一个按钮控制所有Fold Out Group的折叠。测试的时候，一点击按钮，整个组件面板都折叠了起来，并且无法再展开，无论我禁用组件、Revert代码、重启Editor还是重启电脑，都没能修好这个问题，并且查不到对Editor Preference的修改，一时间无从下手。
+
+然后去看了Fold Out Group的代码，发现它把折叠与否这个键值对通过EditorPrefs存在注册表里。
+
+那就好说了，当时也没想那么多直接用Delete All了，其实应该只要改掉造成问题的这个键就可以。
+
+使用Delete All后，所有的Preference（首选项）都会被删除，相当于你的Editor编辑器整个恢复默认设置了。
+
+Delete All后，我的检查器恢复正常。
+
+
+
+贴一下官方给的大重置用的示例工具代码：
+
+```c#
+// Clear all the editor prefs keys.
+//
+// Warning: this will also remove editor preferences as the opened projects, etc.
+
+using UnityEngine;
+using UnityEditor;
+
+public class DeleteAllExample : ScriptableObject
+{
+    [MenuItem("Examples/EditorPrefs/Clear all Editor Preferences")]
+    static void deleteAllExample()
+    {
+        if (EditorUtility.DisplayDialog("Delete all editor preferences.",
+            "Are you sure you want to delete all the editor preferences? " +
+            "This action cannot be undone.", "Yes", "No"))
+        {
+            Debug.Log("yes");
+            EditorPrefs.DeleteAll();
+        }
+    }
+}
+```
+
+
+
+---
+
+
 
 
 
