@@ -3237,7 +3237,7 @@ using Unity.Collections;
 // 通过IJob接口定义JOb内容
 public class MyJob : IJob
 {
-    // NativeArray是Unity中的一种原生数组类型，用于在Unity的Job System中进行高效的数据处理。与普通的数组不同，NativeArray使用了一种更为底层的内存分	  // 配方式，可以让数据更快地在多线程之间传递和处理。同时，NativeArray还提供了安全的内存管理机制，避免了在多线程处理中出现的数据竞争和内存访问冲突的问		// 题。NativeArray通常需要在使用完毕后手动释放内存，以避免内存泄漏。
+    // NativeArray是Unity中的一种原生数组类型，用于在Unity的Job System中进行高效的数据处理。与普通的数组不同，NativeArray使用了一种更为底层的内存分配方式，可以让数据更快地在多线程之间传递和处理。同时，NativeArray还提供了安全的内存管理机制，避免了在多线程处理中出现的数据竞争和内存访问冲突的问题。NativeArray通常需要在使用完毕后手动释放内存，以避免内存泄漏。
     public NativeArray<float> result;
 
     // 通过Job对象的Schedule方法调用
@@ -5175,9 +5175,235 @@ public class DeleteAllExample : ScriptableObject
 
 
 
+# Burst编译
+
+在Unity中，Job系统的实现是Burst编译优化。Burst是Unity的一套性能优化的解决方案。
+
+参考：
+
+[关于Job System](#关于Job System)
+
+[Burst官方文档](https://docs.unity3d.com/Packages/com.unity.burst@0.2/manual/index.html)
+
+<img src="./Images/image-20240103195026345.png" alt="image-20240103195026345" style="zoom:80%;" />  
+
+Burst是一个编译器，它使用`LLVM`将`IL/.NET字节码`转换为高度优化的`本机代码（native code）`。
+
+- **IL码/.NET字节码：**普通使用dotnet框架的程序，其编译结果是exe或者dll文件。然而其内部并不是CPU可以直接读取和运行的程序，而是IL码。IL码（Intermediate Language / 中间语言）是dotnet框架中的中间语言。在需要运行时，通过CLR（Common Language Runtime / 无合适译名）进行即时编译（JIT / just in time）为本机代码，才能在特定平台上执行，如下图：
+
+  ![image-20240103200853649](./Images/image-20240103200853649.png) 
+
+  dotnet框架之所以采用这样的形式，是因为：
+
+  .NET框架设计成使用IL和CLR有几个优点：
+
+  1. **跨平台性**: IL是与平台无关的中间语言，这意味着.NET程序可以在任何安装了相应CLR的平台上运行。这为跨平台开发提供了便利。
+  2. **语言互操作性**: 不同的.NET语言（如C#, VB.NET, F#等）都编译成相同的IL，这意味着它们可以互操作，使得开发人员可以根据项目需求选择最适合的语言。
+  3. **安全性**: CLR执行IL代码时会进行严格的类型检查和访问权限验证，这有助于提高程序的安全性。
+  4. **即时编译优化**: CLR在运行时将IL代码编译成本地代码，这允许进行平台特定的优化，从而提高程序的性能。
+  5. **版本控制和部署**: IL可以在部署时进行JIT编译，这意味着可以根据目标系统的架构和特性进行编译，以达到最佳性能。
+
+  除此之外，常说的C# Inject Fix 热更也是依赖于IL码的技术。
+
+- **LLVM：**是一个开源工具库，这是它的源码：[GitHub](https://github.com/llvm/llvm-project)。它是一个可以高度优化代码的工具（编译器？）。
+
+- **native code**：本机代码（native code）是指针对特定处理器架构和操作系统的机器代码，它可以直接在特定硬件上运行而无需进一步的转译或解释。本机代码是通过编译源代码而生成的，与源代码无关，因此它通常执行速度较快。比如直接使用C语言编写源码，其编译出的exe文件内部就是本机代码。
 
 
 
+## 在Unity中使用
+
+在Unity中使用Burst，需要enable启用编译设置。
+
+![image-20240105201840019](./Images/image-20240105201840019.png) 
+
+然后，在Job上标记，这个Job使用Burst编译：
+
+```c#
+// 使用Attribute进行标记
+[BurstCompile]
+struct MyJob : IJob
+{
+    public int a;
+    public int b;
+    public int c;
+    public void Execute()
+    {
+        var d = a + b + c;
+        Debug.Log("this is JOb "); 
+    }
+}
+```
+
+BurstCompile Attribute是可以进行配置的，用于控制编译中的一些可配置项，详细的参考[官方文档](https://docs.unity3d.com/Packages/com.unity.burst@1.8/manual/compilation-burstcompile.html)。
+
+
+
+通过Open Inspector选项可以打开Burst的面板，可以看到C#编译出的IL码和经过LLVM编译后的本机代码。
+
+虽然它比较难读，但是有时候可以反映出一些问题。比如如果你的Job没有通过Burst编译，则在检查器中你的Job名会变成灰色的；如果你的代码中有Burst编译不支持的函数或者语法，也会在这里写出来。
+
+Job支持的类和语法并不多，而IDE是只判断C#语法的，没办法识别出来哪些Burst能用哪些不能用，所以开发的时候，最好每隔一小段时间就试着编译一下，看下Burst编译器会不会报错，否则可能遇到写了一大堆写到最后发现编译不出来，只能大改的尴尬局面。
+
+![image-20240105203412941](./Images/image-20240105203412941.png) 
+
+
+
+
+
+## 在Profiler中验证Burst的结果
+
+
+
+
+
+## 并行地使用Job System
+
+
+
+
+
+---
+
+
+
+# C# 返回多个对象和元组
+
+以前提到过使用out 关键字可以做到让C#函数返回多个值，如下示例代码：
+
+```c#
+static int ReturnAddOutMultiply(int x, int y, out int result)
+{
+    result = x * y;
+    return x+y
+}
+```
+
+最近看到项目里另外一种做法，查了一下发现是使用C#的元组做到多个返回值这件事：
+
+```c#
+static (int, string) GetValues()
+{
+    int number = 10;
+    string text = "Hello, World!";
+    return (number, text);
+}
+// 读取的方式也会发生一点改变
+var result = GetValues();
+Console.WriteLine($"Number: {result.Item1}, Text: {result.Item2}");
+```
+
+
+
+## 元组
+
+类似于一种轻量级的匿名的数据结构。[微软C#开发文档](https://learn.microsoft.com/zh-cn/dotnet/csharp/language-reference/builtin-types/value-tuples)
+
+//TODO: 元组应用场合
+
+
+
+---
+
+
+
+# C# "? :" 、"?."、"??" 和"??=" 
+
+偶然接触了这些运算符，带问号的基本都和判空有关。
+
+**?: 三元条件运算符(ternary conditional operator)**
+
+用于简化ifelse的两支判断, 同时是一个表达式, 在很多情况下比直接使用ifelse更具优势。
+
+```c#
+int y = (x > 5) ? 100 : 200;
+// 如果 x 大于 5，则 y 的值为 100，否则为 200
+```
+
+**?.空值传播运算符（null-conditional operator）**
+
+它允许在对象为null时避免引发NullReferenceException异常，直接返回null。
+
+```c#
+// 使用空值传播运算符
+string cityName = person?.Address?.City;
+```
+
+**??空合并运算符(null-coalescing operator)**
+
+左侧的操作数是否为null，如果是null，则返回右侧的操作数，否则返回左侧的操作数
+
+```c#
+// 使用空合并运算符
+string result = nullableString ?? "默认字符串";
+```
+
+**??=空合并赋值运算符(null-coalescing assignment operator)**
+
+将右侧的值赋给左侧的变量，但仅当左侧的变量为null时。如果左侧的变量不为null，则不执行赋值操作。
+
+```c#
+nullableNumber ??= defaultValue;
+```
+
+
+
+---
+
+
+
+# C# new、GC和性能问题
+
+
+
+---
+
+
+
+# C#，别名、引用和指针
+
+
+
+
+
+---
+
+
+
+# C# 参数列表， params 关键字 和args
+
+
+
+
+
+---
+
+
+
+# 每帧强制更新MonoGUI的方式
+
+一般来说，MonoBehavior类的InspectorGUI通过OnGUI回调刷新。
+
+但是，这个OnGUI只在GUI事件出发的时候发生，比如点击按钮、拖拽物体、调整窗口大小等操作，会触发OnGUI方法。
+
+有时候，我们在检查器暴露了一些调试性质的变量，希望实时看到它在游戏中的变化。由于GUI的刷新机制问题，即使这个值在脚本中发生了变化，它也不会立马体现到GUI上，而是在下次GUI事件发生的时候才会被更新。
+
+那有没有什么简单的方法，每帧更新GUI呢？
+
+有的，可以这样：
+
+```c#
+void Update() {
+    // 强制刷新Inspector GUI
+    EditorUtility.SetDirty(this);
+}
+```
+
+不过需要注意，这是Editor的API，需要用预处理器指令包裹，否则打包出错。
+
+
+
+---
 
 
 
