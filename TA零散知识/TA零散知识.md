@@ -5177,7 +5177,7 @@ public class DeleteAllExample : ScriptableObject
 
 # Burst编译
 
-在Unity中，Job系统的实现是Burst编译优化。Burst是Unity的一套性能优化的解决方案。
+在Unity中，Burst编译可以优化Job System的效率。Burst是Unity的一套性能优化方案。
 
 参考：
 
@@ -5205,9 +5205,9 @@ Burst是一个编译器，它使用`LLVM`将`IL/.NET字节码`转换为高度优
 
   除此之外，常说的C# Inject Fix 热更也是依赖于IL码的技术。
 
-- **LLVM：**是一个开源工具库，这是它的源码：[GitHub](https://github.com/llvm/llvm-project)。它是一个可以高度优化代码的工具（编译器？）。
+- **LLVM：**是一个开源工具库，这是它的源码：[GitHub](https://github.com/llvm/llvm-project)。它是一个可以从多方面高度优化代码的工具（编译器）。
 
-- **native code**：本机代码（native code）是指针对特定处理器架构和操作系统的机器代码，它可以直接在特定硬件上运行而无需进一步的转译或解释。本机代码是通过编译源代码而生成的，与源代码无关，因此它通常执行速度较快。比如直接使用C语言编写源码，其编译出的exe文件内部就是本机代码。
+- **native code**：本机代码（native code）是指针对特定处理器架构和操作系统的机器代码，它可以直接在特定硬件上运行而无需进一步的转译或解释。本机代码是通过编译源代码而生成的，因此它通常执行速度较快。比如直接使用C语言编写源码，其编译出的exe文件内部就是本机代码。
 
 
 
@@ -5249,9 +5249,25 @@ Job支持的类和语法并不多，而IDE是只判断C#语法的，没办法识
 
 
 
-
-
 ## 在Profiler中验证Burst的结果
+
+使用Job能提升游戏性能，是因为Job可以把任务分发到子线程，减轻主线程的压力；并且Job可以使用Burst进行编译，在多层面进行优化，也可以带来性能的提升。
+
+如下的测试：
+
+在Update中每帧更新一千万个Vector3时，卡到10帧左右。
+
+![image-20240108190712071](./Images/image-20240108190712071.png) 
+
+
+
+而如果使用Job：
+
+![image-20240108194634235](./Images/image-20240108194634235.png) 
+
+可以看到，快了将近10倍。
+
+![image-20240108194802847](./Images/image-20240108194802847.png) 
 
 
 
@@ -5259,7 +5275,36 @@ Job支持的类和语法并不多，而IDE是只判断C#语法的，没办法识
 
 ## 并行地使用Job System
 
+Job不止可以分发到一个线程中，可以利用并行Job接口进一步榨干硬件的性能：
 
+```c#
+ [BurstCompile]
+// 使用IJobParallelFor接口来使Job分发到不同的线程
+struct MyJob : IJobParallelFor
+{
+    public NativeArray<Vector3> v3s;
+    public float timeCache;
+
+    public void Execute(int i)
+    {
+        v3s[i] = Vector3.one * timeCache;
+    }
+}
+```
+
+![image-20240108195734481](./Images/image-20240108195734481.png) 
+
+同样是更新一千万个Vector3，分发线程比不分发又快了3倍左右，相比单线程快了30倍左右。
+
+从Profiler中也能看到，各线程的性能都被榨干。
+
+![image-20240108195842613](./Images/image-20240108195842613.png) 
+
+除了IJobParallelFor接口，还有其他的ParallelFor（并行用）接口。
+
+主要是为Transform和Particle System的大批量计算提供解决方案。
+
+![image-20240108200033092](./Images/image-20240108200033092.png) 
 
 
 
