@@ -5342,9 +5342,26 @@ Console.WriteLine($"Number: {result.Item1}, Text: {result.Item2}");
 
 ## 元组
 
-类似于一种轻量级的匿名的数据结构。[微软C#开发文档](https://learn.microsoft.com/zh-cn/dotnet/csharp/language-reference/builtin-types/value-tuples)
+[微软C#开发文档](https://learn.microsoft.com/zh-cn/dotnet/csharp/language-reference/builtin-types/value-tuples)
 
-//TODO: 元组应用场合
+可以视为一种轻量级的匿名的数据结构，在一些场合会比较实用。
+
+比如：
+
+```C#
+static void Main()
+{
+    var person = GetPerson();
+    Console.WriteLine($"Name: {person.Name}, Age: {person.Age}");
+}
+
+static (string Name, int Age) GetPerson()
+{
+    string name = "Alice";
+    int age = 30;
+    return (name, age);
+}
+```
 
 
 
@@ -5398,6 +5415,67 @@ nullableNumber ??= defaultValue;
 
 
 # C# new、GC和性能问题
+
+[参考文章](https://kb.cnblogs.com/page/106720/)
+
+GC即garbage collection，垃圾回收。
+
+在C语言中，我们可以使用malloc函数申请一块内存，并通过指针来使用它、通过free函数来释放它。
+
+```c#
+int main() {
+    int *ptr;  // 声明一个指向整数的指针变量
+
+    // 申请内存空间，大小为5个整数的空间
+    ptr = (int *)malloc(5 * sizeof(int));
+
+    // 使用申请的内存空间
+    for (int i = 0; i < 5; i++) {
+        ptr[i] = i * 10;
+    }
+    
+    // 释放内存空间
+    free(ptr);
+    
+    return 0;
+}
+```
+
+然而，如果开发者不使用free函数将其释放，则就会导致所谓的“内存泄露”，说简单点就是占着茅坑不拉屎。已经没有指针能指向这块内存了，但是又没有释放它，所以它会一直存在。
+
+内存泄露泄得太多的话，可能就会导致占用过多内存、进而导致程序崩溃。
+
+可见内存管理对于程序来说是一件非常重要的任务，然而它非常繁琐又容易被遗忘，所以开发者们需要一个机制来更方便地管理内存。
+
+
+
+## GC和GC问题
+
+C#中的GC就是用来管理内存的。
+
+> GC如其名，就是垃圾收集，当然这里仅就内存而言。Garbage Collector（垃圾收集器，在不至于混淆的情况下也成为GC）以应用程序的root为基础，遍历应用程序在Heap上动态分配的所有对象[2]，通过识别它们是否被引用来确定哪些对象是已经死亡的、哪些仍需要被使用。已经不再被应用程序的root或者别的对象所引用的对象就是已经死亡的对象，即所谓的垃圾，需要被回收。这就是GC工作的原理。为了实现这个原理，GC有多种算法。比较常见的算法有Reference Counting，Mark Sweep，Copy Collection等等。目前主流的虚拟系统.NET CLR，Java VM和Rotor都是采用的Mark Sweep算法。
+
+在开发中，我们只需要关注与使用new等方式来创建对象，而不太需要关心如何去申请和释放它需要的内存。
+
+GC会在特定的时候进行扫描和识别，对于已经“死亡”的对象打下标记，即Allocate方法。GC也会在特定的时候进行垃圾的清理，即GC.Collect()方法。具体的时机是由GC算法和CLR的实现决定的，通常是在系统空闲时或者在内存达到一定阈值时进行垃圾收集。GC的行为是自动的，但也可以通过手动调用GC.Collect方法来强制进行垃圾回收。
+
+通常Allocate的开销较小，而Collect方法的开销较大。如果在比较关键的时刻、GC系统不得不进行Collect了，那么就会在那个关键时刻造成卡顿。这就是GC问题。
+
+Unity中，Allocate常分散在程序的各个环节，开销较小，也比较灵活，不太造成卡顿
+
+![image-20240110202409310](./Images/image-20240110202409310.png) 
+
+而Unity中的Collect功能还是很恐怖的，会造成明显的卡顿。
+
+![image-20240110202804713](./Images/image-20240110202804713.png) 
+
+
+
+因此，我们需要一些手段和思维来避免在游戏的关键时刻进行Collect。
+
+首先是使用对象池技术，来避免大量重复地new和Allocate内存，这样也就不会那么容易触发Collect。
+
+其次是在一些空间换时间的做法中，也需要综合考虑下GC可能会造成的问题，有些情况甚至可能得到负的收益。
 
 
 
