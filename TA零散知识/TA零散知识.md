@@ -5483,9 +5483,141 @@ Unity中，Allocate常分散在程序的各个环节，开销较小，也比较�
 
 
 
-# C#，别名、引用和指针
+# C#，值和引用
+
+[参考](https://www.cnblogs.com/yinrq/p/5588330.html)
+
+C#中的数据类型有两种，一种是值类型，一种是引用类型。
+
+![543714-20160617170410354-326965855](./Images/543714-20160617170410354-326965855.png) 
+
+值类型本身就存储对应Type的数据，而引用类型本质上存的是内存地址，有点像C的指针。
+
+两边在使用上最直观能感受到的不同就是传参和赋值时，值类型传递的是副本，而引用类型传递的是引用。
+
+在判断使用结构体还是class的时候，也需要注意自己到底需要一个值还是一个引用。
+
+值类型和引用类型在C#中有不同的特点：
+
+值类型:
+
+- 优势：
+  - 存储在堆栈上，访问速度快。
+  - 占用空间小，适合存储简单的数据。
+- 劣势：
+  - 当值类型作为方法参数传递时，会发生值的拷贝，可能增加内存开销。
+  - 无法表示空值，除非使用可空类型。
+
+引用类型:
+
+- 优势：
+  - 可以表示空值。
+  - 当作为方法参数传递时，只会传递引用，而不是整个对象，减少内存开销。
+  - 适合用于大型对象和复杂数据结构。
+- 劣势：
+  - 存储在托管堆上，访问速度相对慢。
+
+在开发中，应该根据数据的大小、生存周期和使用方式选择合适的数据类型。一般来说，对于简单的数据结构或者数据量较小的情况，可以选择值类型，而对于复杂的数据结构、大型对象或需要表示空值的情况，应该选择引用类型。
 
 
+
+## 装箱和拆箱
+
+在C#中，装箱（boxing）是将值类型转换为引用类型的过程，而拆箱（unboxing）是将之前被装箱的引用类型转换回值类型的过程。装箱会将值类型封装为一个对象，而拆箱则是从对象中提取出原始的值类型。
+
+在实际开发中，常见的装箱和拆箱情景之一是在使用集合类（如ArrayList、List等）时。当我们需要将值类型放入这些集合类中时，由于集合类存储的是对象类型，因此会触发装箱操作。而当我们从集合类中取出这些值时，就会触发拆箱操作。
+
+举例来说，如果我们有一个ArrayList集合需要存储整数，我们需要将整数值添加到ArrayList中，此时就会发生装箱操作。当我们从ArrayList中取出这些整数时，就会发生拆箱操作。
+
+在需要频繁进行装箱和拆箱的情况下，可能会对性能产生一定的影响，因此在对性能要求较高的场景下，需要谨慎使用装箱和拆箱操作，装箱的开销比拆箱大。
+
+在很多情况下，装箱和拆箱是自动进行的，开发者不需要手动进行操作。
+
+尽管如此，开发者需要了解装箱和拆箱的概念，以便在需要高性能的场景下避免不必要的装箱和拆箱操作。
+
+
+
+---
+
+
+
+# C#别名
+
+[参考](https://learn.microsoft.com/zh-cn/dotnet/csharp/language-reference/keywords/using-directive)
+
+C++中学过变量的别名，主要是用&做一个引用的用法。
+
+本来想在C#也弄一个类似的给结构体做一下引用的，但是发现C#中没有这种用法的。
+
+查了一下，发现C#中的别名是在using命令中，可以给其他命名空间起别名，如下：
+
+```c#
+using ST = System.Text;
+
+//ST. pass
+```
+
+这样需要引用一些嵌套很深的命名空间的时候，就可以少打几个字符，代码也比较好看。
+
+
+
+---
+
+
+
+# C# 指针
+
+之前想在函数间传递struct的引用的，别名不是走不通嘛，我就想用指针。结果发现C#其实并不推荐使用指针。
+
+~~所以如果struct需要传递引用还是用class吧，省事太多了QAQ~~
+
+用法跟C基本上是一样的，但是需要用unsafe关键字包裹
+
+```c#
+// Normal pointer to an object.
+int[] a = [10, 20, 30, 40, 50];
+// Must be in unsafe code to use interior pointers.
+unsafe
+{
+    // Must pin object on heap so that it doesn't move while using interior pointers.
+    fixed (int* p = &a[0])
+    {
+        // p is pinned as well as object, so create another pointer to show incrementing it.
+        int* p2 = p;
+        Console.WriteLine(*p2);
+        // Incrementing p2 bumps the pointer by four bytes due to its type ...
+        p2 += 1;
+        Console.WriteLine(*p2);
+        p2 += 1;
+        Console.WriteLine(*p2);
+        Console.WriteLine("--------");
+        Console.WriteLine(*p);
+        // Dereferencing p and incrementing changes the value of a[0] ...
+        *p += 1;
+        Console.WriteLine(*p);
+        *p += 1;
+        Console.WriteLine(*p);
+    }
+}
+
+Console.WriteLine("--------");
+Console.WriteLine(a[0]);
+
+/*
+Output:
+10
+20
+30
+--------
+10
+11
+12
+--------
+12
+*/
+```
+
+既然不推荐使用、非必要还是别用了吧，用class可以在大部分情况下替代指针了
 
 
 
@@ -5495,7 +5627,38 @@ Unity中，Allocate常分散在程序的各个环节，开销较小，也比较�
 
 # C# 参数列表， params 关键字 和args
 
+以前学Java就很好奇，为什么main函数的参数是string[] argss
 
+```java
+public static void main(String[] args) {
+    System.out.println("Hello World");
+}
+```
+
+后来在摸索中我发现C#也有类似的用法，这样的叫做参数列表：
+
+[参考](https://www.runoob.com/csharp/csharp-param-arrays.html)
+
+```c#
+public int AddElements(params int[] arr)
+{
+     int sum = 0;
+     foreach (int i in arr)
+     {
+            sum += i;
+     }
+     return sum;
+}
+
+// 调用时:
+int sum = app.AddElements(512, 720, 250, 567, 889);
+```
+
+Python也有类似的用法，叫做有名参数和无名参数之类的，可以去看Maya的笔记，里面有。
+
+
+
+其实就是函数可以接收若干个同类型的参数，有些时候可以简化表达提高可读性。
 
 
 
