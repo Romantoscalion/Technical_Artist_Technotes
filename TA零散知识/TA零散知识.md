@@ -5689,6 +5689,8 @@ void Update() {
 
 
 
+而对于Editor Window等，则应该直接在Update里调用RePaint方法，SetDirty是无效的
+
 ---
 
 
