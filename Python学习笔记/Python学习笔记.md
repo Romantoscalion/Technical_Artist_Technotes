@@ -920,7 +920,7 @@ exp图像是这样的：
 
 
 
-# 最简单的神经网络示例代码
+# 最简单的神经网络前向传播示例代码
 
 ```python
 # 初始化定义神经网络
@@ -1116,6 +1116,16 @@ t_batch = t_train[batch_mask]
 
 
 
+但是一般不会像上面这样直接随机出索引来选Mini Batch，因为这不利于每Epoch进行模型准确度的评价。
+
+具体来说，一般会把训练用数据集先打乱（像洗牌一样），然后为打乱后的数据集分组为Mini Batch进行学习，比如索引0~99作为一批、100~199又作为一批，以此类推。
+
+这样做的好处是可以比较好地保证学习下来、每个数据被学过的次数是一样的，不会出现有些索引表被随机到的次数多、它所提供的特征就更多的这种情况；并且，这样做也可以更放心地说模型经历了一个Epoch的学习（即数据集全都被学了一遍，如果像上面那样用随机索引，即使Mini Batch数乘以随机次数已经达到了训练用数据集的大小，也不能拍着胸脯说所有的数据都被学了一遍）
+
+开发者可以每若干个Epoch对模型进行准确性的评价，以做进一步的判断。
+
+
+
 ---
 
 
@@ -1170,6 +1180,63 @@ x0和x1是某层神经网络中的两个权重参数，f是损失函数。这里
 
 
 
+## 计算梯度
+
+
+
+### 使用数值微分
+
+在早期的学习中我们使用数值微分，它更容易理解和实现，但是效率较低。
+
+```python
+def numerical_gradient(f, x):
+ h = 1e-4 # 0.0001
+ grad = np.zeros_like(x) # 生成和x形状相同的数组
+ for idx in range(x.size):
+ tmp_val = x[idx]
+ # f(x+h)的计算
+ x[idx] = tmp_val + h
+ fxh1 = f(x)
+ # f(x-h)的计算
+ x[idx] = tmp_val - h
+ fxh2 = f(x)
+ grad[idx] = (fxh1 - fxh2) / (2*h)
+ x[idx] = tmp_val # 还原值
+ return grad
+```
+
+其实非常简单，就像用路程除以时间一样，求微小变化内的平均速度。当微小变化趋近于0的时候，就是这个时刻的瞬间速度，在这里就是所谓的“变化率”。
+
+这里类似于计算多元方程的“算数解”。
+
+
+
+### 使用“误差反向传播法”
+
+上面说了用数值微分类似求多元方程的算数解，比较慢。
+
+所以有学者研究出了类似“解析解”的方法，叫“误差反向传播法”。
+
+基本的思路是基于“链式法则”，从Loss函数的值一步步反向传播，对神经网络的每一层中的激活函数和仿射变换求当前层的所有权重参数和偏置参数的偏导数、进而组成梯度。
+
+反向传播到最后，每一组权重和偏置参数都获得了梯度数据，再利用梯度数据更新权重和偏置参数即可。
+
+
+
+关于“误差反向传播法”具有非常多的细节内容，接下来开单独的栏目详细说明。
+
+
+
+
+
+## 梯度确认
+
+使用误差反向传播法是比较复杂的，因此它比较容易出错。
+
+所以开发者一般在若干次的学习后使用数值微分计算一次梯度，并与误差反向传播得到的梯度进行比较，如果二者相差不大证明误差反向传播法的工作状态良好。
+
+
+
 ---
 
 
@@ -1177,6 +1244,323 @@ x0和x1是某层神经网络中的两个权重参数，f是损失函数。这里
 # 超参数
 
 在梯度下降法中，了解到了 “学习率”和“学习步数”等概念。这些参数是开发者（神经网络训练家？）可以配置的、但又不是神经网络内部的权重参数和偏置参数，这些参数被称为超参数 。
+
+
+
+---
+
+
+
+# 误差反向传播法
+
+
+
+## 链式法则
+
+误差反向传播法 的理论依据之一就是 “链式法则”。
+
+所谓链式法则其实非常简单，对于一个神经网络，比如它就是f(x) = y，y是最终的输出，而x是最初的输入。
+
+f是什么呢？通过之前的学习，我们知道x就是若干次的x乘以权重再加偏置，然后过激活函数 这样的循环罢了。那么其实每一层的计算相对独立对吧，那么对于一个具有一层隐藏层的神经网络来说，是不是可以理解为：
+
+f(x) = y;    ===>  x -> f1(x) = z -> f2(z) = f2(f1(x)) -> y
+
+显然是可以的，无非就是把一些运算划分为f1，另一些运算划分为f2罢了。
+
+f2(f1(x))这样的函数可以称之为 复合函数。
+
+符合函数具有 链式法则的特性。所谓链式法则，就是 ： 复合函数的导数，可以由其每个单元的导数的乘积表示。
+
+用数学的方法来说明：
+
+复合函数定义：
+
+![image-20240221192645529](./Images/image-20240221192645529.png) 
+
+复合函数求导：
+
+![image-20240221192705564](./Images/image-20240221192705564.png) 
+
+其实本质就是约分罢了。
+
+
+
+为什么链式法则可以支撑误差反向传播法呢？
+
+首先，误差反向传播法的目的就是通过Loss函数的值反向传播，求出从后往前的每一层中的权重和偏置参数的梯度。梯度其实就是由每一维的偏导组成的向量。
+
+如下图，我想求z对于输入数据x 的偏导，那么根据链式法则，我们将每个单元的导数相乘即可！
+
+![image-20240221193516236](./Images/image-20240221193516236.png) 
+
+![image-20240221193730545](./Images/image-20240221193730545.png) 
+
+
+
+来看一个更复杂的例子：
+
+![image-20240221193948421](./Images/image-20240221193948421.png) 
+
+这里最终输出开销是715，反向传播的第一步中，首先
+
+ $ 开销 = 总价 * 消费税$ 即 650 * 1.1 = 715
+
+那么 : $\partial 开销 / \partial 消费税 = 总价$
+
+意味着对于现在的开销,  消费税每增加1，开销就会增加 “总价”那么多的量。
+
+所以这里我们得到消费税的偏导数为 总价，即650。
+
+开销对于总价的偏导也是类似的，不再赘述。
+
+我们得到了总价的偏导，但是总价并不是输入数值之一，所以我们根据链式法则继续向下拆分，最终可以得到苹果个数、苹果单价、橘子个数和橘子单价的偏导。
+
+以苹果单价为例，其偏导值为2.2，意味着在当前输入的条件下，苹果的单价每上升1，最终的开销就会上升2.2。
+
+
+
+说了这么多，其实汇作一句话就是：链式法则可以支撑误差反向传播算法进行反向逐层的各参数的偏导值求解，并且其相对于数值微分更加快捷准确。
+
+
+
+## 常用函数的偏导推导和记忆
+
+既然知道了链式法则，那么我们就可以大胆地像剥竹笋一样，反向一层一层剥掉计算单元们的偏导值了！
+
+让我们先来对神经网络算法中最常用的计算单元来造一些轮子：
+
+**加法**
+
+x + y = z
+
+z 对于x和y的偏导就是1，因此加法在反向传播中不会对收到的偏导值进行修改。
+
+求对于某个变量的偏导其实就是把其他维的变量都视为常数然后求导就行。
+
+
+
+**乘法**
+
+x*y = z
+
+z对于x的偏导是y，对于y的偏导是x。
+
+那么其实乘法在反向传播中，会反转并乘以正向传播时的输入值。
+
+如对于乘法，反向传播输入的d为2，正向传播的dx = 2，dy = 3，那么反向传播时，dx = 6，dy = 4。
+
+
+
+**ReLU**
+
+![image-20240221200959458](./Images/image-20240221200959458.png) 
+
+ReLU现在流行的原因之一就是导数好求。
+
+说形象点就是，输入的值大于0，则不动偏导数值，小于0则把偏导数值改成0，即本层对结果毫无影响。
+
+
+
+**Sigmoid**
+
+它就有点难绷了，本身没什么难的推导，但是挺繁杂的，直接上结论吧：
+
+![image-20240221201501066](./Images/image-20240221201501066.png) 
+
+![image-20240221201631284](./Images/image-20240221201631284.png) 
+
+关键就是这个y(1-y)，其实就是乘上这个系数即可。
+
+
+
+**Affine**
+
+之前没有怎么说这个概念，这个叫放射变换，在神经网络里面指的是输入乘以一次权重再加一次偏置的这个过程。
+
+在正向传播中，它是： $Y = X * W + B$
+
+在反向传播中，它的偏导如下：（小T右上标代表矩阵转置）
+
+![image-20240221202214600](./Images/image-20240221202214600.png) 
+
+在批处理中、不需要怎么复杂处理，给输入数据和输出数据直接加第二个维度即可。
+
+这里要推导的话也是比较繁杂，记一下结论吧。
+
+这里对于输入的 $\frac{\part L}{\part Y}$, 我们得到了分别对于X、W和B的偏导数的值。
+
+在反向传播中，W和B的偏导数值会被保存起来用作更新数据，而对于X的偏导值会继续反向传播。
+
+
+
+**SoftMax with Loss**
+
+成型模型推理的时候不需要算Loss，甚至不需要算SoftMax，只需要给出一个答案即可。
+
+SoftMax说过，就是把神经网络输出层得到的数据全部非线性映射到0~1，Loss是评判模型答案和监督答案的差距有多大。一般正向传播中我们最后拿到的数据就是Loss了。
+
+那么 SoftMax with Loss 其实作为一个整体来求偏导会比较方便。
+
+这里的Loss使用交叉熵误差算法。
+
+因为推导比较复杂，还是直接摆图了：
+
+![image-20240221203632458](./Images/image-20240221203632458.png) 
+
+简单来说，Loss值对于SoftMax with Loss的偏导为正向传播soft max输出值减去监督数据值。
+
+
+
+## 两层 误差反向传播法 示例代码
+
+```python
+# coding: utf-8
+import sys, os
+sys.path.append(os.pardir)  # 为了导入父目录的文件而进行的设定
+import numpy as np
+from common.layers import *
+from common.gradient import numerical_gradient
+from collections import OrderedDict
+
+
+class TwoLayerNet:
+
+    def __init__(self, input_size, hidden_size, output_size, weight_init_std = 0.01):
+        # 初始化权重，这里类似于C#声明和初始化变量
+        self.params = {}
+        self.params['W1'] = weight_init_std * np.random.randn(input_size, hidden_size) # 权重初始化为随机数
+        self.params['b1'] = np.zeros(hidden_size) # 偏置初始化为0
+        self.params['W2'] = weight_init_std * np.random.randn(hidden_size, output_size) 
+        self.params['b2'] = np.zeros(output_size)
+
+        # 生成层对象
+        self.layers = OrderedDict() # 有序字典方便反向传播，因为可以直接Reverse
+        self.layers['Affine1'] = Affine(self.params['W1'], self.params['b1']) # 第一层仿射层，即输入乘权重加偏置
+        self.layers['Relu1'] = Relu() # ReLU，这个共用就好了，它没有自己的参数 
+        self.layers['Affine2'] = Affine(self.params['W2'], self.params['b2'])
+
+        self.lastLayer = SoftmaxWithLoss() # 最后一层输出用SoftMax，方便反向传播
+        
+    def predict(self, x): # 即推理
+        for layer in self.layers.values():
+            x = layer.forward(x) # 遍历每一层，前向传播，不停更新X即可。 遍历期间各层会存下反向传播的时候各自需要的数据，不同的计算单元记录的数据不尽相同。
+        
+        return x
+        
+    # x:输入数据, t:监督数据
+    def loss(self, x, t):
+        y = self.predict(x) 
+        return self.lastLayer.forward(y, t) #执行推理后，传入LastLayer，这里是SoftMax With Loss
+    
+    def accuracy(self, x, t): # 评判模型准确性，这个是最终指标，就是本批推理中，算对了的比例。
+        y = self.predict(x)
+        y = np.argmax(y, axis=1)
+        if t.ndim != 1 : t = np.argmax(t, axis=1)
+        
+        accuracy = np.sum(y == t) / float(x.shape[0])
+        return accuracy
+        
+    # x:输入数据, t:监督数据
+    def numerical_gradient(self, x, t): # 这是数值微分法
+        loss_W = lambda W: self.loss(x, t)
+        
+        grads = {}
+        grads['W1'] = numerical_gradient(loss_W, self.params['W1']) # 这里虽然和定义它的函数同名，但是不是同一个函数，这里的numerical_gradient是另一个模块中重用的数值微分的实现方法
+        grads['b1'] = numerical_gradient(loss_W, self.params['b1'])
+        grads['W2'] = numerical_gradient(loss_W, self.params['W2'])
+        grads['b2'] = numerical_gradient(loss_W, self.params['b2'])
+        
+        return grads
+        
+    def gradient(self, x, t): # 误差反向传播求梯度法。
+        # forward 前向传播
+        self.loss(x, t)
+
+        # backward
+        dout = 1 #最终的输出的相对自己的偏导，肯定是1嘛，这里作初始化用
+        dout = self.lastLayer.backward(dout) #最后一层反向传播
+        
+        layers = list(self.layers.values()) # 这里的layers是上面定义的有序字典，这里是把字典改成了列表
+        layers.reverse() #因为要开始循环反向传播了，所以反转了原来的顺序
+        for layer in layers:
+            dout = layer.backward(dout) # 每一层都执行反向传播，反向传播的过程中已经把W和B的梯度存进了计算单元的偏导数值的字典中。
+
+        # 这里直接将字典各计算单元的权重和偏置的梯度取出来返回就好了
+        grads = {}
+        grads['W1'], grads['b1'] = self.layers['Affine1'].dW, self.layers['Affine1'].db
+        grads['W2'], grads['b2'] = self.layers['Affine2'].dW, self.layers['Affine2'].db
+       
+
+        return grads
+
+
+```
+
+
+
+
+
+# 简单的反向传播示例代码
+
+学了这么多，终于可以给一个反向传播的示例代码了！
+
+```python
+# coding: utf-8
+import sys, os
+sys.path.append(os.pardir)
+
+import numpy as np
+from dataset.mnist import load_mnist
+from two_layer_net import TwoLayerNet
+
+# 读入数据
+(x_train, t_train), (x_test, t_test) = load_mnist(normalize=True, one_hot_label=True)
+
+# 初始化网络对象
+network = TwoLayerNet(input_size=784, hidden_size=50, output_size=10)
+
+# 超参数
+iters_num = 10000  # 这里指做一万次反向传播，每次反向传播完成都会更新权重和偏置参数
+train_size = x_train.shape[0] # 训练数据集总大小
+batch_size = 100 # 每批学多少个数据
+learning_rate = 0.1 # 权重和偏置的更新幅度
+
+train_loss_list = []
+train_acc_list = []
+test_acc_list = []
+
+# 每Epoch需要迭代多少次，即多少次反向传播后视为一次Epoch
+iter_per_epoch = max(train_size / batch_size, 1)
+
+for i in range(iters_num):
+    # 随机Roll出Mini Batch
+    batch_mask = np.random.choice(train_size, batch_size)
+    x_batch = x_train[batch_mask]
+    t_batch = t_train[batch_mask]
+    
+    # 梯度
+    #grad = network.numerical_gradient(x_batch, t_batch) 这是数值微分法梯度
+    # 用误差反向传播法得到各层的梯度
+    grad = network.gradient(x_batch, t_batch) 
+    
+    # 用梯度和学习率更新权重和偏置参数
+    for key in ('W1', 'b1', 'W2', 'b2'):
+        network.params[key] -= learning_rate * grad[key]
+    
+    # 评估一下Loss
+    loss = network.loss(x_batch, t_batch)
+    # 记录此时的loss方便后面打图
+    train_loss_list.append(loss)
+    
+    if i % iter_per_epoch == 0: # 每Epoch
+        # 评估对于训练集、测试集的准确度，方便看模型整体能力和过拟合情况
+        train_acc = network.accuracy(x_train, t_train)
+        test_acc = network.accuracy(x_test, t_test)
+        train_acc_list.append(train_acc)
+        test_acc_list.append(test_acc)
+        print(train_acc, test_acc)
+
+```
 
 
 
