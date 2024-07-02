@@ -3197,6 +3197,12 @@ private void OnValidate() {
 
 
 
+MPB在GPUInstance中也有非常广泛的应用。
+
+![image-20240627105325439](./Images/image-20240627105325439.png) 
+
+
+
 **核心的优点**
 
 可以**避免生成很多材质实例**，材质实例还是太多了还是蛮占内存的，尤其是属性比较多的材质。
@@ -3347,6 +3353,36 @@ public class JobSystemExample : MonoBehaviour
 6. IsValid：一个只读属性，表示JobHandle对象是否有效。如果JobHandle对象已经被释放，那么该属性会返回false。
 
 这些函数和属性可以帮助我们管理作业之间的依赖关系，等待作业完成，以及释放相关资源，是使用JobSystem的必备工具。
+
+
+
+## 使用中的经验
+
+**不要重复Set Job内的字段**
+
+比如Job中定义了两个字段input 和 output，都是NativeArray。
+
+按照一般的思考，NativeArray作为值类型，在主线程中发生的变化并不会同步到Job的对象内（如每帧的input会发生变化），而是需要每次更新时重新在主线程中把更新后的NativeArray再Set给Job对象。
+
+然而，经过实测发现，只要在初始化的时候将input的NativeArray传给Job对象，在之后的input发生变化时，就会在下次Schedule之前反映到job对象中。这是类似引用类型的性质，然而NativeArray是实打实的值类型，这让我感到困惑。这可能是Unity的底层设计，我不确定。
+
+重点是：不需要重复Set Job内的字段！如果像上面这样每帧将更新后的Input NativeArray Set给Job对象，效率会非常低，丧失了使用Job的意义。在更新input时，直接修改初始化时传入Job的NativeArray即可。
+
+
+
+**使用并行Job的技巧**
+
+在处理大批量数据的时候并行Job相比普通Job效率高很多，但是写起来是蛮蛋疼的。
+
+如果是说 “输入1w个Vector4，输出它们的模长”这种任务，可以说写起来非常简单。
+
+但如果我想写一个并行筛选、或者并行剔除类的任务，应该怎么做？
+
+比如说：“输入1w个float值，输出这些float中大于0.5的数组”。
+
+怎么想都不适合并行Job。一般的思考是：不知道结果的长度，考虑用NativeList。但是NativeList是无法用在并行Job中的。而且涉及到并行写入的操作，即多个线程往一个数组里写东西，很容易打架。
+
+[使用并行的Job完成筛选类任务](#使用并行的Job完成筛选类任务)
 
 
 
@@ -3661,7 +3697,7 @@ Unity中有一些自带的程序集：
 
 
 
-默认情况下自己写的C＃代码都会打到Assembly-CSharp的dll中：
+Unity中，默认情况下自己写的C＃代码都会打到Assembly-CSharp的dll中：
 
 ![image-20231011151846035](./Images/image-20231011151846035.png) 
 
@@ -3673,9 +3709,11 @@ Unity中有一些自带的程序集：
 
 ![image-20231011152003388](./Images/image-20231011152003388.png) 
 
-以前有一个经典的错误就是我在Editor文件夹以外的地方（这些地方的代码一般会打到Assembly-CSharp中），使用了一些Editor的类库，然后就一直报using 的类找不到，非常恼火。
+有一个经典的错误就是我在Editor文件夹以外的地方（这些地方的代码一般会打到Assembly-CSharp中），使用了一些Editor的类库，然后就一直报using 的类找不到，非常恼火。
 
 这是因为Assembly-CSharp是不引用Assembly-CSharp-Editor的，我们在Assembly-CSharp中写的代码自然无法访问到Assembly-CSharp-Editor中的内容。
+
+但是我们在Assembly-CSharp-Editor中写的代码是可以访问到Assembly-CSharp的类的，这意味着在工具设计中，我们应该只在CSharp中开放相应的接口，只从Editor下的工具中调用和读取相应的接口。
 
 
 
@@ -5023,6 +5061,24 @@ class MyCustomEditor : Editor
 
 
 
+## EditorWindow怎么办
+
+EditorWindow不太绷得住主要是因为没有呼入的Message。（相对的Mono有OnDrawGizmos，Editor有OnSceneGUI）
+
+```c#
+    // 注册注销OnSceneGUI回调
+    protected override void OnEnable()
+    => SceneView.duringSceneGui += OnSceneGUI;
+    protected void OnDisable()
+    => SceneView.duringSceneGui -= OnSceneGUI;
+```
+
+这里OnSceneGUI是自己定义的函数，在启用的时候手动把函数加到场景的更新时间里面。
+
+这里面只能用Handlers类，如果就是想用Gizmos，就只能临时建一个GO进场景了。
+
+
+
 ## 用什么画
 
 从上面两个简单的例子可以看到，通过Gizmos类和Handles类，就可以在SceneView中绘制。
@@ -5820,4 +5876,178 @@ a |= c;
 
 
 ---
+
+
+
+# Job-并行写入安全声明
+
+默认情况下，**并行Job只能给你传入的数组的当前index位置写入内容**。
+
+比如你有两个数组Array1和Array2，并行Job此时运行到index 为 1.那么你只能在Array1[1]和Array2[1]写入内容。
+
+如果你在非Index位置写入数据，Unity会报错。
+
+**在非Index位置写入内容是有风险的**，因为这意味着并行的两个线程可能往同一个位置写东西，会出现数据竞争的情况，**导致结果错误、无法预测。**
+
+但有时候**我是明确知道我并行中肯定不会往同一个位置写东西的**（这个东西程序和IDE都判断不出来），比如我希望将一个数组倒序，倒序结果存到另一个数组中。这一点在并行Job中做的话，**两个数组的索引其实是一一对应的**，但是因为结果数组的索引肯定不是当前线程的index，所以安全检查会报错。
+
+这种情况下可以给你需要并行写入的数组打上`[NativeDisableParallelForRestriction]`的Attribute，这其实就是一个安全声明，**意为作为开发者，我明确知道不会出现数据竞争的情况，我对结果负责。**如此安全检查系统便会忽略对这个数组的索引检查。
+
+
+
+---
+
+
+
+# 从一个Matrix4x4中获取pos rot 和Scale
+
+从位置旋转缩放计算出一个矩阵是很容易的，但是想从矩阵得到位置旋转缩放没有那么容易。参考这个：
+
+https://discussions.unity.com/t/how-to-decompose-a-trs-matrix/63681/2
+
+```c#
+// Extract new local position
+Vector3 position = m.GetColumn(3);
+
+// Extract new local rotation
+Quaternion rotation = Quaternion.LookRotation(
+    m.GetColumn(2),
+    m.GetColumn(1)
+);
+
+// Extract new local scale
+Vector3 scale = new Vector3(
+    m.GetColumn(0).magnitude,
+    m.GetColumn(1).magnitude,
+    m.GetColumn(2).magnitude
+);
+```
+
+有时候我们**从上游获取了一个矩阵，但是想在此时对这个矩阵做一些Transform的操作时**，就需要这样解析出Pos、Rot和Scale，对**这仨三维向量做修改后、再重新构建矩阵**。
+
+需要注意，这个方法获取不到负数的Scale。
+
+
+
+---
+
+
+
+# 使NameID而非String name去Set材质的属性
+
+当需要使用代码设定一个材质或者一块MaterialPropertyBlock的某个属性值的时候，我们倾向于使用Set系的方法：
+
+![image-20240627113133843](./Images/image-20240627113133843.png) 
+
+图方便的话、倾向于直接使用string name去找到对应的属性。
+
+但是**频繁使用string name去找到对应的属性的话，效率比使用nameID低。**[官方文档](https://docs.unity3d.com/ScriptReference/Shader.PropertyToID.html)
+
+![image-20240627113410280](./Images/image-20240627113410280.png) 使用 string name 查找属性的时候，其实内部会先调用一次Shader.PropertyToID() 将string转化为一个intID，然后再通过这个ID查找对应属性。
+
+**所以频繁调用的时候，其实也频繁做了重复的PropertyToID的计算。**
+
+可以找地方把这些ID存储下来，比如说专门做一个Static的类，里面放Static  int值，初始化的时候就把所有的属性都通过PropertyToID先缓存好，就不用每次都自己倒腾用Shader.PropertyToID()算nameID了。
+
+
+
+`int nameID = Shader.PropertyToID("盯帧"); `
+
+上面是获取nameID的方式，初见时让我感到非常困惑。
+
+因为我们想要Set材质上的值的时候，肯定是只希望Set到这个材质或者这个MPB上的，但是这里获取nameID的方式跟我的材质和Shader完全无关，如果不同的Shader中有重名的属性，在我Set的时候会不会影响到其他的材质？
+
+后来我想通了，每次Set的时候其实都是通过Material或者MPB的一个对象去Set的，所以其实只会Set到目标对的对象上。
+
+不同的Shader间的同名属性，他们的nameID确实是一样的，但是无所谓，反正Set的时候限定了对象，所以不用担心。
+
+
+
+---
+
+
+
+# 使用并行的Job完成筛选类任务
+
+并行Job在处理大批量数据的时候相比单线程的Job具有非常大的优势，但是只要并行就会有不可避免的缺陷：数据竞争问题。
+
+**单线程循环中，循环体中的每个index是依次执行的，而多线程循环中，每个循环的index之间是独立的**，不知道谁先执行、谁后执行，甚至有时候会同时执行。
+
+这样的差异会导致一些任务难以执行，比如说我想要并行地快速筛选出一个长float数组中，值大于0.5的数字，组成一个新的数组，直观来说会写出以下代码：
+
+![image-20240628184425453](./Images/image-20240628184425453.png) 
+
+然而，并行执行起来的时候，只会得到这样的输出：（这里是连续5次测试的结果）
+
+![image-20240628184542131](./Images/image-20240628184542131.png) 
+
+可以发现，每次执行这个Job，它找到的大于0.5的数值都不一样，而且每次只能找到一两个。
+
+这是因为并行执行时，上图代码的count++发生了数据竞争。不同线程间几乎同时执行了count++，它们执行的时候count都还是0，所以++完也只是1而已，因此最终只能输出一个count的索引而已。
+
+
+
+再想想呢？这种情况、用List不是很合适吗？而且Unity也有NativeList，让我们试一试：
+
+![image-20240628190443629](./Images/image-20240628190443629.png) 
+
+然而，实际执行时，还是出现了数据竞争的问题，与上面类似地、每次输出的结果都不一样：
+
+![image-20240628190402714](./Images/image-20240628190402714.png) 
+
+
+
+再想想呢？其实整个筛选过程中，只有最后的输出阶段是不好并行的，那我可不可以把筛选做成并行的、最终输出做成单线程的呢？
+
+可以！
+
+![code](./Images/code.png) 
+
+当我们并行地做完一个判断流程后，可以再接一个这样的单线程Job，来将boolResult转成一个NativeList输出，可以看到现在的结果是稳定正确的：
+
+![image-20240628192225415](./Images/image-20240628192225415.png) 
+
+这么做看上去有点麻烦，但其实这个转换Job是可以轻松地换成泛型结构体的，非常好复用：
+
+![image-20240628192657778](./Images/image-20240628192657778.png) 
+
+
+
+**关于Unity.Jobs.IJobFilter**
+
+这是较新版本的Jobs包加入的新接口，可以完成筛选类任务。
+
+使用起来大概就是如下两图：
+
+定义Job结构体的时候，Execute方法会传入一个index、并返回一个bool表示是否通过筛选。
+
+![image-20240702201729508](./Images/image-20240702201729508.png) 
+
+使用的时候，必须调用ScheduleFilter方法而不是通常的Schedule方法，并且需要以一个NativeList<int> 的indices列表作为参数。理想情况下，通过筛选的输入数组元素的索引会被加入这个NativeList，想要获取通过筛选的元素数组还是得做一步转换。
+
+![image-20240702201801732](./Images/image-20240702201801732.png) 
+
+这个Job使用NativeList，所以我猜想它并不是多线程的；同时由于其仍然需要转换、官方的文档也潦草至极，没有什么人用，所以这里笔者也不做过多探究了。
+
+
+
+有时候实现大批量数据的筛选任务是刚需：比如使用DrawMeshInstanced命令时，希望通过并行Job来做视锥剔除，此时需要筛选大批量数据组成新的筛选后的数组。
+
+目前也没有想到更高效更优雅的方法了，欢迎讨论。
+
+
+
+---
+
+
+
+
+
+
+
+
+
+
+
+
 
