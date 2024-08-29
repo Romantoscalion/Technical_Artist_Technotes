@@ -6041,10 +6041,13 @@ Vector3 scale = new Vector3(
 
 
 
+# 在Editor下使用携程
+
+啥也不用说了：`EditorCoroutineUtility.StartCoroutineOwnerless(DelayedFunctionCall());`
 
 
 
-
+---
 
 
 
