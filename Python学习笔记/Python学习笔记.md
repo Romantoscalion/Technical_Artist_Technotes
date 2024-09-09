@@ -508,7 +508,7 @@ Handler可以玩得很花：
 
 logging也可以用在Maya的脚本开发中，效果如下：
 
-![截图.png](./Images/clip_image006.gif)
+![截图.png](./Images/clip_image006.gif) 
 
 只不过，输出的字符串在Maya中会再做一步处理，头部会加上# 
 
@@ -740,6 +740,169 @@ plt.hist(
 
 
 
+## 面向对象基础
+
+注意类的对象的实例字段不是直接在类里声明，而是通过`__init__`魔术方法声明。
+
+```Python
+class Person:
+    # 类的构造方法，用于初始化对象属性
+    def __init__(self, name, age, job):
+        self.name = name
+        self.age = age
+        self.job = job
+
+    # 定义一个方法，用于显示基本信息
+    def display_info(self):
+        print(f"Name: {self.name}, Age: {self.age}, Job: {self.job}")
+
+    # 定义一个方法，用于模拟人的行为
+    def greet(self, other_person):
+        print(f"{self.name} says hello to {other_person.name}!")
+
+    # 定义一个方法，用于表示生日，增加年龄
+    def have_birthday(self):
+        self.age += 1
+        print(f"Happy birthday {self.name}! You are now {self.age} years old.")
+
+# 创建实例对象
+person1 = Person("Alice", 30, "Engineer")
+person2 = Person("Bob", 25, "Artist")
+
+# 调用对象的方法
+person1.display_info()  # 输出: Name: Alice, Age: 30, Job: Engineer
+person2.display_info()  # 输出: Name: Bob, Age: 25, Job: Artist
+
+# 让person1向person2打招呼
+person1.greet(person2)  # 输出: Alice says hello to Bob!
+
+# 给person1过生日
+person1.have_birthday()  # 输出: Happy birthday Alice! You are now 31 years old.
+
+# 再次显示person1的信息
+person1.display_info()  # 输出: Name: Alice, Age: 31, Job: Engineer
+```
+
+
+
+
+
+## 使用枚举
+
+```python
+from enum import Enum
+
+# 定义枚举类型
+class Color(Enum):
+    RED = 1
+    GREEN = 2
+    BLUE = 3
+
+# 使用枚举类型
+color = Color.RED
+
+print(color)           # 输出: Color.RED
+print(color.name)      # 输出: RED
+print(color.value)     # 输出: 1
+
+# 通过值来访问枚举成员
+color = Color(1)
+print(color)  # 输出: Color.RED
+
+# 枚举成员的遍历
+for color in Color:
+    print(color)
+
+# 比较枚举成员
+if color is Color.RED:
+    print("It's red!")
+
+print(Color.RED == Color.RED)   # 输出: True
+print(Color.RED == Color.GREEN) # 输出: False
+
+# 自定义枚举类型
+class Status(Enum):
+    SUCCESS = "success"
+    FAIL = "fail"
+    PENDING = "pending"
+
+# 使用自定义枚举类型
+status = Status.SUCCESS
+print(status)           # 输出: Status.SUCCESS
+print(status.name)      # 输出: SUCCESS
+print(status.value)     # 输出: success
+```
+
+
+
+## Python命名规范
+
+```python
+MAX_CONNECTIONS = 100  # 常量
+
+class DataProcessor:  # 类名
+    def __init__(self, data_source):  # 特殊方法
+        self.data_source = data_source  # 实例变量
+
+    def process_data(self):  # 函数名
+        total_sum = sum(self.data_source)  # 变量名
+        return total_sum
+
+def main():  # 函数名
+    data = [1, 2, 3, 4, 5]  # 变量名
+    processor = DataProcessor(data)  # 类实例化
+    result = processor.process_data()  # 调用方法
+    print(result)  # 输出结果
+
+if __name__ == "__main__":
+    main()
+```
+
+
+
+## 用命令行直接跑py文件
+
+虽然IDE里都可以直接用跑py，但有时候多开着一个IDE还是比较烦的。
+
+py文件是可以直接用命令行去执行的，对应的输出也会一并显示在终端里。
+
+先cd到py文件所在的目录下，然后直接`python hello.py` 就好了。
+
+顺带一提，如果目录在非C盘盘符，需要命令行先切到其他盘符。
+
+比如在D盘，则需要命令行先执行：`D:`。
+
+稍微有点反直觉，记一下。
+
+
+
+## 忽略一些Warning
+
+有时候有些Warning输出得很频繁、又很没有必要。它们的存在容易挤占有效信息的空间，因此会希望忽略一些Warning的输出。
+
+对于不同的Warning，有不同的做法。如果是使用Python自带的Warning模块输出的Warning，需要用Warning模块的一些API去进行输出的筛选，比如：
+
+```python
+warnings.filterwarnings("ignore", category=UserWarning, module='PIL.Image')
+```
+
+可以指定哪一类Warning以及哪一个模块报的Warning被忽略。
+
+
+
+如果使用的是Logging之类的包，则需要用专门的忽略方法。
+
+以logging为例：
+
+```python
+# 设置TensorFlow的日志级别
+tf.get_logger().setLevel(logging.ERROR)
+```
+
+关于logging可以看看[logging](#logging)这一块。
+
+
+
 # 常用的Package
 
 
@@ -749,6 +912,10 @@ plt.hist(
 经常被`import numpy as np`
 
 主要提供数学计算和数据分析相关的方法。
+
+
+
+
 
 
 
@@ -2032,4 +2199,33 @@ Batch Norm就是这样的做法，它会**统计当前输入的Mini-Batch中的�
 
 
 
+
+# 图像预处理相关
+
+
+
+## 处理带Alpha通道的图
+
+在某些情况下，期望的模型输入为灰度图，因此需要将原图先处理成灰度图。
+
+如果原图是RGBA图的话，直接用PIL.Image转灰度图的时候，可能会出错，因为PIL的做法是直接忽视图片的A通道，然后取RGB用亮度算法得到灰度。如果你的RGB通道有“填充”的内容，那么直接忽视A通道就会导致转出来的灰度图也带有这些“填充”的信息，这些信息可能会对神经网络的预测造成非常大的影响，因此需要一个方法好好地处理图像的A通道。
+
+正确的做法稍微有点反直觉，我想了好一会儿才想到，因此稍微记一下。本质就是叠两层，底下那层是RGBA的纯黑图，A通道全255，上面那层则是待处理的图像，这样就能在处理RGBA图时、也考虑到其A通道了。代码如下：
+
+```python
+from PIL import Image
+
+def add_black_background(image_path, output_path):
+    # 打开图片
+    img = Image.open(image_path).convert("RGBA")
+    # 创建一张纯黑色的背景图片，尺寸与原图相同
+    black_bg = Image.new("RGBA", img.size, (0, 0, 0, 255))
+    # 将背景图片和原图组合起来
+    combined = Image.alpha_composite(black_bg, img)
+    # 保存结果
+    combined.save(output_path, format="PNG")
+    
+# 示例使用
+add_black_background("input_image_with_alpha.png", "output_image_with_black_bg.png")
+```
 
