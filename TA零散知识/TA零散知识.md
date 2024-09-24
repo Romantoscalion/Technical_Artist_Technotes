@@ -6066,11 +6066,11 @@ Vector3 scale = new Vector3(
 ```
 * # 默认忽略全部文件
 !/.gitignore  # 确保.gitignore文件本身不被忽略
-!myfile.txt   # 手动添加的文件
-!myfolder/    # 手动添加的文件夹
 ```
 
-只在我们明确知道需要修改哪些文件或文件夹时，对其执行ADD命令即可。指定ADD命令后，也不需要手动管理Ignore文件，Git会自动帮我们处理。
+只在我们明确知道需要修改哪些文件或文件夹时，对其执行ADD命令即可将文件加入到库中。
+
+注意，对某个文件夹执行ADD命令时，Git默认不会显示被忽略的文件，需要在ADD窗口中勾选“显示已忽略”；对单个文件执行ADD命令时则不需要。
 
 另外，在项目的根目录中的Git库是不限制数量的，我们可以同时建立多个总库，来应对多个需要修改分散的文件的任务。
 
@@ -6094,11 +6094,212 @@ Vector3 scale = new Vector3(
 
 
 
+# SDK
+
+"SDK" 指的是软件开发工具包（Software Development Kit）。
+
+常常是某方提供的一组工具、库、接口及文档。
+
+在开发环境下被调用的接口的实现一般在SDK提供的库中，但这些库一般是打好的dll之类的，具体源码就看不到了。
+
+比如说我想要在软件中接入支付宝支付功能，不用SDK、想自己从头开发的话，是几乎不可能的；而使用支付宝官方放出的SDK，则在需要支付的地方调用对应的接口就好了，调用之后做的事情，就看支付宝那边的SDK库了。
+
+另外，在开发插件和拓展程序时也常常需要使用SDK。通过SDK中的接口，可以用我们的程序调用到目标端的一些方法。比如说想做VSCode的拓展，想说按一个快捷键后，帮我总结Diff，然后提交。SDK就能告诉我们，调用哪一个接口可以让VSCode进入Diff页面、调用哪一个接口可以往Diff框里填充文本等。
 
 
 
+---
 
 
+
+# 点关于平面的镜像位置
+
+虽然自己是能推导的，但是每次都推导一次都好麻烦啊==
+
+只需要知道需要面上一点、面法线和输入位置就可以求到镜像位置了。
+
+假设：
+
+- 点的世界空间位置为 `P`
+- 平面的法线为 `N`（必须是单位向量）
+- 平面上的任意一点为 `P0`
+
+计算步骤：
+
+1. 计算从平面到点的向量：`V = P - P0`
+2. 计算点到平面的垂直距离：`d = dot(V, N)`
+3. 计算镜像点的位置：`P_mirror = P - 2 * (d * N)`
+
+下面是一个简单的Shader代码示例：
+
+```hlsl
+float3 CalculateMirrorPoint(float3 point, float3 planePoint, float3 planeNormal)
+{
+    // 确保法线为单位向量
+    float3 N = normalize(planeNormal);
+    
+    // 向量从平面到点
+    float3 V = point - planePoint;
+    
+    // 点到平面的垂直距离
+    float d = dot(V, N);
+    
+    // 计算镜像位置
+    float3 mirroredPoint = point - 2.0 * d * N;
+    
+    return mirroredPoint;
+}
+```
+
+在使用时，你需要将 `point`、`planePoint` 和 `planeNormal` 传入这个函数来获得镜像位置。确保在调用时法线是标准化的，以避免错误。
+
+这样就可以计算出点在给定平面上的镜像位置。
+
+
+
+推导过程
+
+![image-20240911144628054](./Images/image-20240911144628054.png)  
+
+在法线的另一端也是一样的，不用想了
+
+![image-20240911145639165](./Images/image-20240911145639165.png) 
+
+
+
+---
+
+
+
+# Transparent 和 Transcluent
+
+Transparent，以下译作半透明，半透明材料允许光线几乎不受阻碍地穿过，从而清晰显现背后的物体。
+
+一般来说，游戏里的Transparent不需要多Pass的支持，直接将片元着色器的输出结果按照BlendMode叠到目标缓冲区中去就好了。
+
+
+
+Transcluent，以下译作透射，透射材料允许光线通过，但光线在通过时会发生散射，导致后面的物体模糊不清。
+
+Transcluent透出的部分一般是通过多Pass实现的，对透出的部分可以有更多更好的处理，如模糊、扭曲、重影等，这些单Pass的Transparent做不到的。
+
+
+
+举例来说：
+
+**Transparent**
+
+- **玻璃**：窗户、镜片、透明墙壁等。
+- **水体表面**：清澈的湖泊、水池表面。
+- **UI元素**：例如半透明的菜单、背景。
+- **透明塑料**：透明塑料瓶、盒子等。
+- **气泡**：肥皂泡、泡沫等。
+- **透明布料**：例如薄纱、窗帘等。
+
+**Translucent**
+
+- **磨砂玻璃**：浴室玻璃门、办公室隔板。
+- **冰块**：未完全透明的冰块。
+- **皮肤**：角色皮肤的次表面散射效果。
+- **叶子**：阳光穿透时的半透明效果。
+- **烟雾**：云雾、烟尘等。
+- **灯罩**：半透明的纸质或织物灯罩。
+- **果冻**：或其他半透明的食品。
+- **蜡烛**：蜡烛的蜡体部分。
+
+
+
+---
+
+
+
+# Mathf.Epsilon-微小浮点数
+
+判断浮点数是否相等类的问题经常需要用Mathf.Epsilon，因为浮点数精度问题直接判两个Float相等会出问题。
+
+另外Mathf.Epsilon也常用于做除数的兜底，避免除0错误。
+
+为什么记这个？这不是很基础嘛。
+
+因为这个Epsilon太他妈难记了，我总是忘记是哪个类底下哪个变量，记下方便以后速查。
+
+
+
+---
+
+
+
+# 绕着指定的轴旋转
+
+核心就是构造四元数，关于四元数的数学知识后面补。
+
+```c#
+using UnityEngine;
+
+public class RotateVector : MonoBehaviour
+{
+    // 你的原始方向向量
+    public Vector3 originalDirection;
+    // 旋转轴
+    public Vector3 axis;
+    // 旋转角度
+    public float angle;
+
+    void Start()
+    {
+        // 归一化轴向量
+        Vector3 normalizedAxis = axis.normalized;
+        
+        // 创建旋转四元数
+        Quaternion rotation = Quaternion.AngleAxis(angle, normalizedAxis);
+        
+        // 旋转向量
+        Vector3 rotatedDirection = rotation * originalDirection;
+        
+        // 输出结果
+        Debug.Log("Rotated Direction: " + rotatedDirection);
+    }
+}
+```
+
+
+
+---
+
+
+
+# 求直线和平面的交点
+
+妈的，真有人每次用都重新推导一遍？
+
+记又记不住，还是这里存下代码，要用直接拿就好。
+
+```c#
+float3 IntersectLineWithPlane(float3 lineOrigin, float3 lineDirection, float3 planePoint, float3 planeNormal) {
+    // 计算直线方向向量和平面法向量的点积
+    float denom = dot(planeNormal, lineDirection);
+
+    // 如果点积为零，说明直线与平面平行，不相交
+    if (abs(denom) < 1e-6) {
+        // 返回一个特殊值表示没有交点，例如一个很大的值（此处假设不可能出现在其他位置）
+        return float3(FLT_MAX, FLT_MAX, FLT_MAX);
+    }
+
+    // 计算从直线起点到平面上的点的向量
+    float3 p0l0 = planePoint - lineOrigin;
+
+    // 计算交点距离
+    float t = dot(p0l0, planeNormal) / denom;
+
+    // 计算交点位置
+    float3 intersection = lineOrigin + t * lineDirection;
+    return intersection;
+}
+```
+
+
+
+---
 
 
 
