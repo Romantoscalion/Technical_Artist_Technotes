@@ -837,6 +837,8 @@ print(status.value)     # 输出: success
 
 ## Python命名规范
 
+模块名（即py文件名）规范同函数名，全小写，用下划线连接。
+
 ```python
 MAX_CONNECTIONS = 100  # 常量
 
@@ -900,6 +902,81 @@ tf.get_logger().setLevel(logging.ERROR)
 ```
 
 关于logging可以看看[logging](#logging)这一块。
+
+
+
+## 简易的控制台进度条实现
+
+可以直接用。
+
+效果如下：
+
+![image-20240903160741247](./Images/image-20240903160741247.png) 
+
+```python
+import time
+import sys
+
+def progress_bar(iterable, total, prefix='', suffix='', decimals=1, length=50, fill='█', print_end="\r"):
+    """
+    调用方式： 
+    for i in progress_bar(range(100), 100, prefix='Progress:', suffix='Complete', length=50):
+        time.sleep(0.1)  # 模拟一些工作
+    """
+    def print_progress_bar(iteration, total, prefix='', suffix='', decimals=1, length=50, fill='█', print_end="\r"):
+        elapsed_time = time.time() - start_time
+        eta = (elapsed_time / iteration) * (total - iteration) if iteration else 0
+        percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
+        filled_length = int(length * iteration // total)
+        bar = fill * filled_length + '-' * (length - filled_length)
+        eta_formatted = time.strftime("%H:%M:%S", time.gmtime(eta))
+        print(f'\r{prefix} |{bar}| {percent}% {suffix} ETA: {eta_formatted}', end=print_end)
+        # 打印新行当完成
+        if iteration == total: 
+            print()
+
+    start_time = time.time()
+    iterable = iterable if hasattr(iterable, '__iter__') else range(iterable)
+    for i, item in enumerate(iterable, 1):
+        yield item
+        print_progress_bar(i, total, prefix, suffix, decimals, length, fill, print_end)
+
+# 示例用法
+for i in progress_bar(range(100), 100, prefix='Progress:', suffix='Complete', length=50):
+    time.sleep(0.1)  # 模拟一些工作
+```
+
+
+
+## //
+
+这不是注释，这是整数除法。
+
+```python
+result = 7 // 3
+print(result)  # 输出 2
+result = -7 // 3
+print(result)  # 输出 -3
+```
+
+
+
+## 返回多个对象
+
+标注中需要用下元组，一段看懂：
+
+```python
+from typing import Tuple
+from PIL import Image
+
+def generate_out_img_str(self) -> Tuple[Image.Image, str]:
+    # 假设这是函数的实现
+    out_img = Image.new('RGB', (60, 30), color = 'red')
+    out_str = "example"
+    return out_img, out_str
+```
+
+标注返回类型可以让调用这个方法的地方明确知道返回对象的类型，有助于继续开发。
 
 
 
