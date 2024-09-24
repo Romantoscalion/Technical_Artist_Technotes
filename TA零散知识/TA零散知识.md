@@ -6303,7 +6303,37 @@ float3 IntersectLineWithPlane(float3 lineOrigin, float3 lineDirection, float3 pl
 
 
 
+# Git从库中彻底删除文件
 
+如果只是使用Git的delete功能，文件只是在当前的Head中被删除了，它的副本其实还在Git储存库中，方便随时回溯。
+
+这种文件多了可能导致库变大，很烦。
+
+另外，有些时候不小心把带有敏感信息的文件传到Github上了，只是使用Git的Delete功能也删不干净，任何Clone了库的人都能回溯出来。
+
+因此非常需要手段去彻底删除Git库中的文件，及其存在过的历史。
+
+目前Git推荐的手段是使用：[git-filter-repo](https://github.com/newren/git-filter-repo). 这玩意儿的核心是一个Python脚本，要使用的时候，把这个脚本放到你的Git库根目录下，然后开cmd用python去跑这个脚本。
+
+以我这个项目为例，如果要删掉一个文件夹及其下所有文件的存在历史时，只需要跑这条命令：
+
+```sh
+python git-filter-repo --invert-paths --path TA零散知识/TA零散知识Images/ --force
+```
+
+注意，这个操作会把本地的文件也删了。
+
+删完后浏览之前任何版本的储存库，都能发现删掉的东西根本不存在了。
+
+这之后把Repo推送到Github上，这些被删掉的文件的历史就灰飞烟灭了。
+
+但是如果在这之前你的Repo就被人克隆到本地了就不行了，别人Folk的你的库也删不掉，只能说上传的时候多长点心眼了。
+
+这个工具功能还挺多的，大多是针对库的修改，可以多看看。
+
+
+
+---
 
 
 
