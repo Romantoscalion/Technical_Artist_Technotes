@@ -980,19 +980,154 @@ def generate_out_img_str(self) -> Tuple[Image.Image, str]:
 
 
 
-# 常用的Package
+## CSV增删改查
+
+Python使用中经常需要搓表，掌握如何灵活控制表格非常重要。以下实例代码展示如何仅使用csv模块对一个csv文件进行增删改查。
+
+```Python
+import csv
+
+# 示例CSV文件路径
+csv_file = 'example.csv'
+
+# 创建CSV文件并写入一些初始数据
+def create_csv():
+    with open(csv_file, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(["ID", "姓名", "年龄"])
+        writer.writerow([1, "张三", 25])
+        writer.writerow([2, "李四", 30])
+        writer.writerow([3, "王五", 22])
+
+# 读取CSV文件
+def read_csv():
+    with open(csv_file, mode='r') as file:
+        reader = csv.reader(file)
+        for row in reader:
+            print(row)
+
+# 增加一行数据
+def add_row(row):
+    with open(csv_file, mode='a', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(row)
+
+# 修改某行数据（根据ID）
+def update_row(target_id, new_data):
+    rows = []
+    with open(csv_file, mode='r') as file:
+        reader = csv.reader(file)
+        for row in reader:
+            if row[0] == str(target_id):
+                rows.append(new_data)
+            else:
+                rows.append(row)
+
+    with open(csv_file, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerows(rows)
+
+# 删除某行数据（根据ID）
+def delete_row(target_id):
+    rows = []
+    with open(csv_file, mode='r') as file:
+        reader = csv.reader(file)
+        for row in reader:
+            if row[0] != str(target_id):
+                rows.append(row)
+
+    with open(csv_file, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerows(rows)
+
+# 示例操作
+create_csv()
+print("初始数据:")
+read_csv()
+
+print("\n增加一行数据:")
+add_row([4, "赵六", 28])
+read_csv()
+
+print("\n修改ID为2的数据:")
+update_row(2, [2, "李四", 35])
+read_csv()
+
+print("\n删除ID为1的数据:")
+delete_row(1)
+read_csv()
+```
 
 
 
-**Numpy**
+不过csv模块本身不是特别强大，如果需要对表格进行稍微复杂的操作或统计数据，建议结合pandas模块使用。
 
-经常被`import numpy as np`
+下列代码展示结合使用csv和pandas对csv表格中的数据进行增删改查和一些稍微进阶的操作：
 
-主要提供数学计算和数据分析相关的方法。
+```python
+import pandas as pd
 
+# 读取 CSV 文件
+df = pd.read_csv('example.csv')
+print("原始数据:")
+print(df)
 
+# 增加一列
+df['新列'] = ['值1', '值2', '值3']
+print("\n增加一列后:")
+print(df)
 
+# 修改数据
+df.loc[0, '姓名'] = '新名字'
+print("\n修改数据后:")
+print(df)
 
+# 删除一列
+df = df.drop('新列', axis=1)
+print("\n删除一列后:")
+print(df)
+
+# 删除一行
+df = df.drop(1)
+print("\n删除一行后:")
+print(df)
+
+# 保存修改后的数据到新的 CSV 文件
+df.to_csv('modified_example.csv', index=False)
+print("\n修改后的数据已保存到 'modified_example.csv'")
+
+# 获取第一列的所有数据
+first_column = df.iloc[:, 0]
+print("第一列的所有数据:")
+print(first_column)
+
+# 筛选出某列中值大于某个数的所有行
+filtered_rows = df[df['年龄'] > 30]
+print("\n年龄大于30的行:")
+print(filtered_rows)
+
+# 根据某列的值进行统计计数
+value_counts = df['城市'].value_counts()
+print("\n不同城市的计数:")
+print(value_counts)
+
+# 计算某列的平均值
+average_age = df['年龄'].mean()
+print("\n年龄的平均值:")
+print(average_age)
+
+# 分组统计，按城市计算平均年龄
+grouped = df.groupby('城市')['年龄'].mean()
+print("\n按城市计算的平均年龄:")
+print(grouped)
+
+# 排序数据，按某列降序排序
+sorted_df = df.sort_values(by='年龄', ascending=False)
+print("\n按年龄降序排序的数据:")
+print(sorted_df)
+```
+
+基本是pandas的用法，这里只演示了一些最基本的API的基础用法。
 
 
 
