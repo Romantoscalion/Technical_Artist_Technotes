@@ -3197,6 +3197,14 @@ private void OnValidate() {
 
 
 
+当使用上述的方法给Renderer Set过属性后，对应的属性将无法再通过材质面板被直接修改。这样的修改是持续性的，即只需要Set一次，这个值将在下次修改block之前都保持在你Set的值。因此只在确认需要更新属性的时候SetBlock即可，这个Get和SetBlock的操作是有一定性能开销的。
+
+
+
+如果想要恢复渲染时的参数为材质上本身的参数，可以对Renderer使用：`Renderer.SetPropertyBlock(null);`
+
+
+
 MPB在GPUInstance中也有非常广泛的应用。
 
 ![image-20240627105325439](./Images/image-20240627105325439.png) 
@@ -6334,6 +6342,20 @@ python git-filter-repo --invert-paths --path TA零散知识/TA零散知识Images
 
 
 另外，如果你要彻底删除的文件在被托管后经历过重命名或者移动位置的操作，那就很烦了，这些操作类似于做了一个副本，你得把重命名前后和移动前后的文件都删一遍才行。
+
+
+
+---
+
+
+
+# Compute Shader
+
+[知乎](https://zhuanlan.zhihu.com/p/368307575) 这篇文章写得非常好，基本把所有内容都说完了。以下补一些个人使用中了解到的内容：
+
+
+
+ComputeBuffer本质上类似于Texture或者RenderTexture，在RenderDoc中，我们可以看到它以Resources的形式参与渲染（其他非纹理类的参数一般以ConstBuffer的形式参与）。
 
 
 
