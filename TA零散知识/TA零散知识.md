@@ -6053,6 +6053,10 @@ Vector3 scale = new Vector3(
 
 啥也不用说了：`EditorCoroutineUtility.StartCoroutineOwnerless(DelayedFunctionCall());`
 
+不过也要注意，在yield return的时候，需要使用带Editor前缀的WaitFor，和运行时的不一样。如：`yield return new EditorWaitForSeconds(1f);`
+
+[这是官方EditorCoroutine的文档，遇到疑难杂症先看这个吧](https://docs.unity3d.com/Packages/com.unity.editorcoroutines@0.0/api/Unity.EditorCoroutines.Editor.EditorCoroutine.html)
+
 
 
 ---
@@ -6081,6 +6085,13 @@ Vector3 scale = new Vector3(
 注意，对某个文件夹执行ADD命令时，Git默认不会显示被忽略的文件，需要在ADD窗口中勾选“显示已忽略”；对单个文件执行ADD命令时则不需要。
 
 另外，在项目的根目录中的Git库是不限制数量的，我们可以同时建立多个总库，来应对多个需要修改分散的文件的任务。
+
+在已有总库的情况下，若想要在总库文件夹内任意目录下再创建另一个小库，此时TortoiseGUI不好使，右键菜单中的“在此处建立版本库”选项不会出现，因为Tortoise识别到此时已经在一个Git库中。但是可以通过cmd来做到这件事，如下命令：
+
+```bash
+cd /path/to/your/directory
+git init
+```
 
 
 
