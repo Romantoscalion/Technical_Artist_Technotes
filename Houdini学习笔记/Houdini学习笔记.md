@@ -1,30 +1,6 @@
 # Houdini学习笔记
 
-
-
-# 前言
-
-Part1是Excel部分。
-
-Part2是MarkDown部分。
-
-Part3是有道云部分。
-
-有道云就是一坨。😅
-
-很痛苦，做这一波整合。
-
-往后的部分会续在这个文件上。
-
-
-
----
-
-# 内容
-
-
-
-## Part1
+整理中
 
 | 名称                                                 | 说明                                                         |
 | ---------------------------------------------------- | ------------------------------------------------------------ |
@@ -222,35 +198,21 @@ Part3是有道云部分。
 
 
 
-## Part2
-
-
-
-### Houdini学习笔记Part2
-
-#### 前言
-
-**我弃用了excel制作笔记**
-
-之前参加“游戏的人”这个交流活动的时候，听一个策划大佬说用excel做笔记和策划案很方便。经过近半年的excel笔记经验，一开始觉得确实还不错，但后来接触了md，发现excel就是个垃圾！之后的笔记都会转md了。
-
----
-
-**带有Part*字样的笔记文件，转移和保存时务必找齐所有部分**
-
 ---
 
 
 
----
+# 导出带多个Mesh的FBX
 
-#### 导出带树状层级的FBX
+放几个Cube然后Merge导出FBX，得到的只有一个Mesh。
 
-如果什么都不做，放几个Cube然后导出FBX，得到的只有一个Mesh，在Unity里只能看到一个东西，没法修改。
-
-如果要导出带树状层级的FBX（像3Dmax默认的导出那样），需要修改导出节点的以下两个属性。然后就会根据这个树状层级分Mesh。这个path名字可以修改，一般是面的属性。
+如果要导出带多个Mesh的具有树状层级的FBX，需要在FBX Output节点中勾选Build Hierarchy From Path Attribute、并指定Path Attribute，一般来说习惯就叫“path”
 
 ![image-20220926155958854](Images/image-20220926155958854-16841587029885-16841587047487.png) 
+
+path属性一般是面的属性，可以通过AttributeCreate节点简单添加。
+
+ Houdini会根据Path Attribute分Mesh，可以通过“/”符号分子层级。
 
  <img src="Images/image-20220926160101403-16841586758821.png" alt="image-20220926160101403" style="zoom:150%;" /> 
 
@@ -260,11 +222,9 @@ Part3是有道云部分。
 
 
 
-#### 关于多边面转化为三角面、四边面
+# 多边面转三角面、四边面
 
-使用Divide节点，若不转化，在某些情况下模型的连线会混乱。
-
-[参考](https://www.bilibili.com/read/cv11549531/)
+[参考](https://www.bilibili.com/read/cv11549531/) 使用Divide节点。若不转化，导入引擎的Mesh可能会出现连线混乱、多边面内有折线等问题。
 
 
 
@@ -272,109 +232,45 @@ Part3是有道云部分。
 
 
 
-#### 强制导出平滑组、Houdini导出Fbx在Substance中硬边变软
+# 提取模型的边缘，连成线
 
-未知问题，没找到Houdini导出平滑组选项。总之，带着平滑组信息的模型进Substance会导致硬边变软。
-
-解决方法是把Houdini导出的Fbx导入到max或者maya重新导出一遍，本次导出取消平滑组的勾选。
-
-[参考](https://tieba.baidu.com/p/7796785792)
-
-
-
----
-
-
-
-#### 提取模型的边连成线
-
-使用Labs Edge Group to Curve节点。
+使用Labs Edge Group to Curve节点可以将输入线组转换为curve。
 
 ![image-20230122210905323](Images/image-20230122210905323-16841586804943.png) 
 
+也可以直接在Labs Edge Group to Curve节点中配置Thick，将得到类似Sweep的效果。
+
+也可以接入resample节点，做进一步的效果。
+
+![Untitled](./Images/Untitled-1729513069147-1.png) 
+
 
 
 ---
 
 
 
-### Part3
+# HDA导入引擎时无法生成模型——HDA的Editable列表
 
-#### Houdini学习笔记Part3
+当我试图在HDA内通过Python节点更改HDA内的其他节点的参数时，若不做处理，则会导致在引擎中无法生成几何体，但是在Houdini中一切正常。
 
- 
+如下：我尝试在HDA上游通过Python节点修改下游节点的的参数，这在Houdini中运行没有任何问题，但是导入引擎使用后，报出无法生成几何体的错误，也没有其他提示。
 
-#### 前言
+![截图.png](Images/clip_image002.gif) 
 
-Part1为Excel笔记阶段，Part2为Markdown笔记阶段。
+解决方案：将会被修改的参数加入HDA的Editable列表中：
 
-Markdown笔记很好用，但是它不太方便线上协同。而进入工作阶段的我，必须使用线上笔记的方式才能比较方便地在家里和公司交流知识，故写下此笔记的Part3，也基本宣告Part2的完结。
-
- 
-
-
-
-#### 关于HDA——导入引擎时无法生成几何体——大坑
-
-当我试图在HDA内通过Python节点更改HDA内的其他节点的参数时，若不做处理，则会导致在引擎中无法生成几何体（但是在Houdini中一切正常）。
-
-如下：
-
-我尝试在HDA上游通过Python节点修改下游节点的的参数，这在Houdini中运行没有任何问题，但是导入引擎使用后，报出无法生成几何体的错误，也没有其他提示。
-
-![截图.png](Images/clip_image002.gif)
-
-解决方案：
-
-将会被修改的参数加入HDA的Editable列表中：
-
-![截图.png](Images/clip_image004.gif)
+![截图.png](Images/clip_image004.gif) 
 
 再次导入引擎时则不会出现问题。
 
- 
+
+
+---
 
  
 
- 
-
-#### 使用HDA制作DCC工具的注意事项
-
-在实习期间，我接到的第二个任务是制作一个Maya工具，工具需要在场景中指定一点，然后使得所有UV Island的U朝向都指向那个点；若如此做，当贴图向U方向运动，实际效果为贴图内容都流向那个指定点。
-
-接到这个需求，我是懵逼的，原因有以下几点：
-
-\1.   我对Maya不熟悉。自从Maya课结课，我就再也没用过Maya。当时上课的时候，我也对Maya留下了非常不好的印象，因为其功能繁杂、效果差、效率低，且功能不陈列，而是使用快捷键。
-
-\2.   我对Maya的脚本编程完全不了解。连Mel语言都是我第一次听说，Python也是几乎没有实战过，OJ都基本没做过。
-
-\3.   需求本身对于我来说难做。我起初有两个思路：
-
-a)   使用UV投影。把一个UV流向同一点的球体的UV投影到处理的物体上。这么做的好处是不需要什么复杂的计算，投就完了；坏处是离中心越近，拉伸得越狠，如果对变形要求很严格，这种投影法是用不了的。
-
-b)   使用美术原始切分的UV。然后通过计算得到该UV Island需要旋转的角度，然后遍历UV　Island，把每一块都旋转到计算出的正确角度。好处是不会拉伸，按照原UV能得到近乎完美的UV；坏处是计算复杂，对于初学的我不可能算出来。
-
-最终我选择了投影的思路
-
- 
-
-因为对Maya完全不熟悉，所以导师建议我使用Houdini制作HDA在Maya中使用。
-
-这确实是个很好的思路，但是在当前的需求下，HDA并不好用。
-
-HDA的最终产出方式是：输入 => HDA处理 => Bake副本。这个流程并不会修改输入几何体。
-
-如果只是复制也好说，坏就坏在，**Bake出的副本，无法保留输入几何体的处理节点。这意味着非烘培式的信息（如骨骼绑定信息等）无法被保留。**
-
-作为工具，这个缺陷是无法接受的。
-
- 
-
- 
-
- 
-
-#### 在Houdini使用Python
+# 在Houdini使用Python
 
 可以通过Python节点在节点树中插入自定义内容。Python节点非常强大，在任何节点处（不管在节点树中是在Python节点之前还是之后），节点参数的增删改查、几何体各类的属性的增删改查都可以通过Python节点做到。
 
@@ -426,13 +322,13 @@ nodeproject.parm("tz").set(center[2])
 
 如上面的代码：nodeproject = node.node("../uvproject3")就可以直接拿到下面的投影节点3
 
-![截图.png](Images/clip_image006.gif)
+![截图.png](Images/clip_image006.gif)　
 
  
 
 注解2：如图，Parameters中的变量名才是可以在Python中使用的变量
 
-![截图.png](Images/clip_image008.gif)
+![截图.png](Images/clip_image008.gif)　
 
  
 
@@ -440,7 +336,7 @@ nodeproject.parm("tz").set(center[2])
 
  
 
-#### 在HDA中制作ItemMenu——下拉菜单
+# 在HDA中制作ItemMenu——下拉菜单
 
 可能有更规范的方式。
 
@@ -468,7 +364,7 @@ nodeproject.parm("tz").set(center[2])
 
  
 
-#### 判断几何体中面组的独立性——UV岛——遍历UV岛——遍历每一个封闭几何体
+# 判断几何体中面组的独立性——UV岛——遍历UV岛——遍历每一个封闭几何体
 
 使用connectivity节点，可以给面添加属性，同属同一个封闭几何体的会被归为一类，在class属性中做区分。
 
@@ -486,7 +382,7 @@ nodeproject.parm("tz").set(center[2])
 
  
 
-#### 使用本地变量
+# 使用本地变量
 
 每一个节点都有自己特殊的本地变量，使用$NAME进行访问。
 
@@ -502,9 +398,11 @@ nodeproject.parm("tz").set(center[2])
 
  
 
- 
+---
 
-#### 使用Channel函数和表达式链接节点间的参数
+
+
+# 使用Channel函数和表达式链接节点间的参数
 
 很多时候一个节点的某些参数会和其他节点的某些参数相关，需要从其他节点的参数计算而来。这时，就需要连接属性。
 
@@ -516,7 +414,7 @@ nodeproject.parm("tz").set(center[2])
 
 下图是HDA的结构，HDA本身拥有一系列参数，然后又内含一级节点树，节点数中的每个节点都有若干个自己的参数，而HDA本身又算一个节点，属于一种嵌套的关系。
 
-![截图.png](Images/clip_image024.gif)
+![截图.png](Images/clip_image024.gif) 
 
 l 对于同级节点，我们使用：
 
@@ -536,7 +434,7 @@ ch("../../nodename/paraname")
 
 注意，这里的级指的是一片节点树，如下的3级
 
-![截图.png](Images/clip_image026.gif)
+![截图.png](Images/clip_image026.gif) 
 
 可见，“../”可以代表当前工作节点树。
 
@@ -544,13 +442,15 @@ ch("../../nodename/paraname")
 
  
 
- 
+---
 
-#### 在HDA中制作勾选项
 
-同样可以使用Switch，将Switch的Input参数拖入HDA参数页面后，可以修改参数的类型为Toggle
 
-![截图.png](Images/clip_image028.gif)
+# 在HDA中制作勾选项
+
+同样可以使用Switch节点，将Switch的Input参数拖入HDA参数页面后，可以修改参数的类型为Toggle
+
+![截图.png](Images/clip_image028.gif) 
 
 如此，勾选状态值为1，不勾选为0。
 
@@ -558,31 +458,43 @@ ch("../../nodename/paraname")
 
  
 
- 
+---
 
-#### HDA与引擎（Maya）的链接问题
 
-有时我试图通过Maya打开HDA，Maya会报错，说链接不上Houdini的会话，各种报服务器地址不对之类的，这其实是插件的一个缺陷。
 
-我们知道，使用HDA通过HoudiniServer调用Houdini的功能，所以在其他引擎使用HDA时，必须链接到HoudiniServer。（这个操作即使不打开Houdini也可以完成，Houdini Server是独立自动打开的）
+#  一次性BooleanUnion多个物体的方法
 
-插件在某些特殊情况下，端口选项会变化，导致链接失败。届时我们只需要在引擎中，更改插件的首选项中的Back End选项为：
+如果现在有一个物体的很多小零件，现希望将他们全部BooleanUnion起来，最粗暴的方法就是两两逐个用Boolean节点。
 
-![截图.png](Images/clip_image030.gif)
+但其实可以把多个物体先Merge起来，再用一个BooleanUnion节点，B set留空即可。
 
-即可。
+这是因为默认参数下BooleanUnion节点将输入的几何体视为Solid，即实心的。因此如上做就可以直接去掉Cube之间堆叠的部分，一次性BooleanUnion多个物体。
 
- 
+从下图可见，4个Cube内部堆叠的线在Boolean之后被抹除。
+
+![ ](./Images/Untitled.png)
+
+
 
 ---
 
 
 
- 
+#  疑难杂症
 
- 
 
- 
+
+##  HDA与DCC（Maya等）的链接问题
+
+有时我试图通过Maya打开HDA，Maya会报错，说链接不上Houdini的会话，各种报服务器地址不对之类的，这似乎是插件的一个缺陷。
+
+我们知道，使用HDA时，DCC通过HoudiniServer调用Houdini的功能，所以在DCC使用HDA时，必须链接到HoudiniServer。这个操作即使不打开Houdini也可以完成，Houdini Server是独立自动打开的。
+
+插件在某些特殊情况下，端口选项会变化，导致链接失败。这时我们只需要在DCC中，更改HoudiniEngine插件的首选项中的Back End选项为：
+
+![截图.png](Images/clip_image030.gif) 
+
+即可。
 
  
 
