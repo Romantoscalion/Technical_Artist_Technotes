@@ -5732,6 +5732,10 @@ Python也有类似的用法，叫做有名参数和无名参数之类的，可�
 
 # 每帧强制更新MonoGUI的方式
 
+**[每帧强制更新MonoGUI的方式 ▪ 極](#每帧强制更新MonoGUI的方式 ▪ 極) ——建议优先用这个**
+
+
+
 一般来说，MonoBehavior类的InspectorGUI通过OnGUI回调刷新。
 
 但是，这个OnGUI只在GUI事件出发的时候发生，比如点击按钮、拖拽物体、调整窗口大小等操作，会触发OnGUI方法。
@@ -6367,6 +6371,20 @@ python git-filter-repo --invert-paths --path TA零散知识/TA零散知识Images
 
 
 ComputeBuffer本质上类似于Texture或者RenderTexture，在RenderDoc中，我们可以看到它以Resources的形式参与渲染（其他非纹理类的参数一般以ConstBuffer的形式参与）。
+
+
+
+---
+
+
+
+# 每帧强制更新MonoGUI的方式 ▪ 極
+
+之前这篇 [每帧强制更新MonoGUI的方式](# 每帧强制更新MonoGUI的方式) ，感觉这么写比较屎，有些不能改的怎么办呢？比如材质面板。而且每个想看更新的面板都得弄个Update加上这一段，非常麻烦。
+
+因此想了一个新的方式，大概思路就是每一小段时间就重新收集现在打开的所有Inspector对象，然后每帧强制Repaint它们就可以了。
+
+代码在这里：[github](https://github.com/Romantoscalion/Unity_Inspector_Repainter)
 
 
 

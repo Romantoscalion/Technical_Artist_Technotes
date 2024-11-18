@@ -173,7 +173,6 @@
 | 力场/引力场/磁力                                     | 在蛋糕案例中，作者使用了mateball，查询过后的知这是一个力场，可以理解为一个函数，在给定的力场范围内，我输入一个位置，这个力场会告诉我这个地方的力是怎样的。这是很好用的一个节点，作者在这里使用是为了把蛋糕的中部挤下凹一点，因此把一个球形的力场置于蛋糕中部上面，即可对蛋糕中部的形态造成挤压。这可以很好的模拟自然的弯曲、被锤了一拳的软体等等、传统的多边形建模不是很好做的效果。     光有力场是不行的，需要搭配Bulge（凸出）节点，输入要影响的几何体和力场，才可以起到效果。 |
 | 体积模型/VDB                                         | 类似与密度雾、体积云、力场之类的东西。目前了解不深入但是已经开始使用。在蛋糕案例中，作者把poly模型转换成VDB，使得它看上去更软、更实。VDB也更加容易保存和读取。他能保存一个低成本高精度的模型、但是原poly的优点就无法使用了。体积模型也可以通过VDBConvert节点转换回Poly，但是会产生很恐怖的面数。 |
 | 测量/测量曲率/获得数据                               | 使用measure节点，可以测量很多模型数据，并保存到图元中。在蛋糕案例中，作者测量了蛋糕的曲率、并把曲率信息存在点属性中。 |
-| 把图元延法线方向移动                                 | 使用Peak节点。在蛋糕案例中，作者把包装纸延法线方向延长，就能做到类似挤出的效果，但不会生成新的点。 |
 | 通过null节点快速获取包围盒信息                       | 当我想快速获得包围盒信息、可以拿到整个物体的长宽高，可以在链中添加一个null节点，在获取的时候，可以在属性栏：bbox("../SIZE/",D_YMAX)。SIZE就是这个Null节点的名字，D_YMAX就是包围盒的Y长度。 |
 | 遮罩                                                 | 和PS的遮罩非常像，本质上是一个0~1的float属性，作为一个控制程度的变量使用。 |
 | 根据几何体的位置关系生成遮罩                         | 使用maskfromgeometry节点。在蛋糕案例中，作者需要控制包装纸完全贴合和完全不贴合的程度，而且需要其仅对可能穿模的地方使用，就使用了这个节点。 |
@@ -250,19 +249,17 @@ path属性一般是面的属性，可以通过AttributeCreate节点简单添加�
 
 
 
-# HDA导入引擎时无法生成模型——HDA的Editable列表
+# HDA导入目标平台时时无法生成模型——HDA的Editable Nodes列表
 
-当我试图在HDA内通过Python节点更改HDA内的其他节点的参数时，若不做处理，则会导致在引擎中无法生成几何体，但是在Houdini中一切正常。
+当我试图在HDA内通过Python节点更改HDA内的其他节点的参数时，遇到了在Maya中无法生成几何体的问题，但是在Houdini中一切正常。
 
-如下：我尝试在HDA上游通过Python节点修改下游节点的的参数，这在Houdini中运行没有任何问题，但是导入引擎使用后，报出无法生成几何体的错误，也没有其他提示。
+如下：我尝试在HDA上游通过Python节点修改下游节点的的参数，这在Houdini中运行没有任何问题，但是导入引擎使用后，报出无法生成几何体的错误，但是没有其他提示。
 
 ![截图.png](Images/clip_image002.gif) 
 
-解决方案：将会被修改的参数加入HDA的Editable列表中：
+解决方案：将会被修改参数的节点加入HDA的Editable列表中：
 
 ![截图.png](Images/clip_image004.gif) 
-
-再次导入引擎时则不会出现问题。
 
 
 
@@ -280,45 +277,30 @@ path属性一般是面的属性，可以通过AttributeCreate节点简单添加�
 
  
 
-以下是我写的第一个Python脚本：
+以下是一个使用hou库的简单Python脚本：
 
-\# 引入houdini库
-
+```python
+# 引入houdini库
 import hou
 
- 
-
-\# hou.pwd()为当前节点，也就是这个Python节点
-
+ # hou.pwd()为当前节点，也就是这个Python节点
 node = hou.pwd()
-
 geo = node.geometry()
-
- 
 
 center = geo.boundingBox().center()
 
- 
-
-\# hou对象的node函数，用于从当前工作路径中查找一个节点，并将它返回。关于当前工作路径，请看下面的注解。        
-
+# hou对象的node函数，用于从当前工作路径中查找一个节点，并将它返回  
 nodeproject = node.node("../uvproject3")
 
-\# 对节点参数进行修改，使用节点的parm(参数名).set(value)函数
-
-\# 注意，这里的参数名不是在参数面板看到的名字，而是将鼠标悬停在参数上时，显示的参数名。详见下面的注解。
-
-\# 这得益于Python编程的“优良传统”，变量名只用2~3个字符，丧失了可读性
-
+# 对节点参数进行修改，使用节点的parm(参数名).set(value)函数
+# 注意，这里的参数名不是在Houdini参数面板看到的名字，而是将鼠标悬停在参数上时，显示的参数名。
+# 这得益于Python编程的“优良传统”，变量名只用2~3个字符，丧失了可读性
 nodeproject.parm("tx").set(center[0])
-
 nodeproject.parm("ty").set(center[1])
-
 nodeproject.parm("tz").set(center[2])
+```
 
-\# ……
-
-注解1：在Python中使用node("..")时，代表的不是Python节点下面的节点，而是当前的节点树。节点树下的所有节点都可以直接通过节点名称找到。
+注意，在Python中使用node("..")时，`..`代表的是当前的节点树。节点树中的所有节点都可以直接通过节点名称找到。
 
 如上面的代码：nodeproject = node.node("../uvproject3")就可以直接拿到下面的投影节点3
 
@@ -326,15 +308,15 @@ nodeproject.parm("tz").set(center[2])
 
  
 
-注解2：如图，Parameters中的变量名才是可以在Python中使用的变量
+如图，Parameters中的变量名才是可以在Python中使用的变量
 
 ![截图.png](Images/clip_image008.gif)　
 
  
 
- 
+---
 
- 
+
 
 # 在HDA中制作ItemMenu——下拉菜单
 
@@ -342,39 +324,41 @@ nodeproject.parm("tz").set(center[2])
 
 我目前的做法是：
 
-\1.   将各选项以Switch的形式按顺序接入
+将各选项以Switch的形式按顺序接入
 
-![截图.png](Images/clip_image010.gif)
+![截图.png](Images/clip_image010.gif) 
 
-\2.   将Switch的Input参数拖入HDA的参数树
+将Switch的Input参数拖入HDA的参数树
 
-![截图.png](Images/clip_image012.gif)
+![截图.png](Images/clip_image012.gif) 
 
-\3.   在HDA编辑器中给这个Int型参数添加ItemMenu。顺序从上往下，第0个值就是0，以此类推。
+在HDA编辑器中给这个Int型参数添加ItemMenu。顺序从上往下，第0个值就是0，以此类推。
 
-![截图.png](Images/clip_image014.gif)
+![截图.png](Images/clip_image014.gif) 
 
-\4.   然后就能看到效果
+然后就能看到效果
 
-![截图.png](Images/clip_image016.gif)
+![截图.png](Images/clip_image016.gif) 
 
- 
 
- 
 
- 
+---
 
-# 判断几何体中面组的独立性——UV岛——遍历UV岛——遍历每一个封闭几何体
 
-使用connectivity节点，可以给面添加属性，同属同一个封闭几何体的会被归为一类，在class属性中做区分。
 
-![截图.png](Images/clip_image018.gif)
+# 几何体的独立性——遍历每一个封闭几何体
 
-在我的实际使用中，我用它来区分UV岛。
+使用connectivity节点，给面或者点添加属性（int或string），同属一个封闭几何体的会被归为一类，用class属性值做区分。
+
+![截图.png](Images/clip_image018.gif) 
+
+在我的实际使用中，我用它来区分和遍历UV岛（即展开后完全不相连的UV）。
 
 在我的需求中，我需要遍历UV岛，将每一块UV岛重映射到指定的大小范围内。
 
 我使用For　Each　Conect　Piece节点后，自动添加了connectivity这个节点。
+
+==// TODO: 没弄完==
 
  
 
@@ -473,6 +457,34 @@ ch("../../nodename/paraname")
 从下图可见，4个Cube内部堆叠的线在Boolean之后被抹除。
 
 ![ ](./Images/Untitled.png)
+
+
+
+---
+
+
+
+# 更换节点的版本
+
+Houdini的节点是会随着Houdini的更新而更新的，有些时候新版本的节点无法满足功能，可能需要让节点退版本。
+
+比如之前我想用Curve节点通过HDA在Unity中暴露曲线的控制点，进而生成几何体的时候，遇到了无法生成曲线控制点的问题。查了一下发现是新版的Curve节点不支持Unity中的Houdini Engine，需要退回旧版。
+
+操作方法如下图。
+
+![image-20241029143149630](./Images/image-20241029143149630.png) 
+
+![image-20241029143238499](./Images/image-20241029143238499.png) 
+
+
+
+---
+
+
+
+# 延法线方向移动图元
+
+使用Peak节点，可以选择点线面。
 
 
 
