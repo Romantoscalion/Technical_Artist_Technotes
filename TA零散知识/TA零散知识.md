@@ -137,6 +137,176 @@ _MyFloat("MyFloat",Range(0,1)) = 1.0
 
 
 
+## Unity中的级联阴影渲染
+
+上面说的那些是偏向抽象的方法，我们来看下Unity URP中的阴影是如何做的。
+
+Unity URP中的阴影方案称作“SSSM（Screen Space Shadow Mapping，屏幕空间阴影映射）”，相比上面提到的SSSM，多了细节和效果上的优化以及具体的数据组织和底层实现。
+
+
+
+### 光源
+
+有光源才能投出阴影，光源上也有一些阴影相关的设置。
+
+![Untitled(2)](./Images/Untitled(2).png) 
+
+以主平行光为例，当我们调整主光源的阴影配置时，可以通过FrameDebuger观察到传入GPU的_MainLightShadowParams发生了变化。
+
+![Untitled(3)](./Images/Untitled(3).png) 
+
+
+
+可以从URPLitShader中观察到_MainLightShadowParams控制了这些表现：
+
+```glsl
+float4      _MainLightShadowParams;   // (x: shadowStrength, y: >= 1.0 if soft shadows, 0.0 otherwise, z: main light fade scale, w: main light fade bias)
+```
+
+
+
+### 级联阴影
+
+在Unity的渲染管线资产中，我们可以配置主光源的级联阴影参数。
+
+![image-20241211184132662](./Images/image-20241211184132662.png) 
+
+级联阴影是以牺牲远处阴影质量为代价、提升近处阴影质量的一种技术。
+
+
+
+我们可以配置级联参数，级联数量为4意味着ShadowMap将被等分为4个象限，彩色的条带代表了最大距离内四个象限内如何分配阴影图的空间。
+
+如紫色0块上的信息，意味着距离相机0~6.2米的渲染点将会使用第0象限的阴影图，第0象限储存了6.2米内的场景的深度信息，绿色1块则意味着相机6.2~14.6米的渲染点将使用第1象限的阴影图，第一象限储存了8.5米的有效信息。
+
+下图为4级联的示意阴影图。
+
+![image-20241212165828684](./Images/image-20241212165828684.png) 
+
+级联阴影的做法有点类似于图像的伽马编码，将更多的精度用于存储人眼比较敏感的暗部信息。
+
+
+
+### Shadow Map的生成
+
+物体被渲染时，会比较灯光坐标系下的渲染点深度和ShadowMap中记录的最小深度，如果渲染点的深度大于最小深度，说明渲染点处于阴影中；如果使用了PCSS等滤波软阴影方案，则会多次采样ShadowMap，得到一个0~1的值用于描述渲染点被阴影遮蔽的程度。最终，用Shadow的值去影响输出颜色，也就让一个物体接受了投影。
+
+
+
+那么这张ShadowMap是如何生成的呢？
+
+以主平行光为例，我们可以从FrameDebuger中看到在渲染管线流程的靠前部分，渲染了主光源的Shadow Map。这里暂时没有考虑级联阴影。
+
+![Untitled(4)](./Images/Untitled(4).png) 
+
+
+
+为什么这张Shadow Map长这样？它是怎么被渲染出来的？
+
+与正常渲染一个物体的流程类似地，Shadow Map也是通过流水线进行渲染的。首先我们会创建一个特定的相机，然后调用场景里所有投影物体的Shader的ShadowCaster这个Pass，Pass本身不输出颜色。待所有的物体的ShadowCaster执行完毕后，将当前的深度缓冲输出到作为RenderTarget的ShadowMap即可。
+
+如果有多个光源，每个光源都会以上述的流程渲染自己的ShadowMap。
+
+![image-20241212153854247](./Images/image-20241212153854247.png)
+
+
+
+上面所谓的特定的相机是如何确定的呢？
+
+让我们在灯光GameObject下添加一个相机，尝试复刻出ShadowMap来。
+
+首先，我们来确定相机的Transform。相机的朝向就是光源的朝向，相机的位置则是主相机前方最大阴影距离处，这个最大阴影距离通过渲染管线资产进行配置。
+
+![image-20241212161248301](./Images/image-20241212161248301.png) 
+
+然后我们来配置相机上的参数，根据平行光的特性，我们需要将相机的投影类型改为正交投影；然后我们将相机的视野大小也改为最大阴影距离，同时为了避免场景被远近裁剪平面裁剪，我们给一个合适的裁剪平面距离。
+
+设置完成后，我们就能从这个新的相机中看到与主相机ShadowMap一模一样的轮廓，主平行光渲染ShadowMap的相机就是使用类似这样的方法确定的。
+
+![Untitled(5)](./Images/Untitled(5).png) 
+
+
+
+#### 级联ShadowMap
+
+级联ShadowMap相对于上面的单张ShadowMap的渲染流程稍有差异。
+
+首先DrawCall的次数将会变成级联数，每个级联的ShadowMap会渲染到最终输出ShadowMap对应的象限中。
+
+其次每个级联相机的位置和视野大小也是不同的，需要根据级联的分割参数做出对应的调整。
+
+![image-20241212171017782](./Images/image-20241212171017782.png) 
+
+
+
+
+
+### 阴影的渲染
+
+得到ShadowMap后，在渲染物体时就可以比较渲染点在灯光坐标系下的深度和ShadowMap中记录的深度，以此来判断渲染点是否在阴影的遮蔽中。
+
+Unity中软阴影的实现是对ShadowMap以一个固定大小的滤波核进行滤波，得数就是被阴影遮蔽的程度。
+
+如下代码是高质量设置下软阴影的代码，共采样ShadowMap16次。
+
+```glsl
+real SampleShadowmapFilteredHighQuality(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float4 shadowCoord, ShadowSamplingData samplingData)
+{
+    real fetchesWeights[16];
+    real2 fetchesUV[16];
+    SampleShadow_ComputeSamples_Tent_7x7(samplingData.shadowmapSize, shadowCoord.xy, fetchesWeights, fetchesUV);
+
+    return fetchesWeights[0] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[0].xy, shadowCoord.z))
+                + fetchesWeights[1] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[1].xy, shadowCoord.z))
+                + fetchesWeights[2] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[2].xy, shadowCoord.z))
+                + fetchesWeights[3] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[3].xy, shadowCoord.z))
+                + fetchesWeights[4] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[4].xy, shadowCoord.z))
+                + fetchesWeights[5] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[5].xy, shadowCoord.z))
+                + fetchesWeights[6] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[6].xy, shadowCoord.z))
+                + fetchesWeights[7] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[7].xy, shadowCoord.z))
+                + fetchesWeights[8] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[8].xy, shadowCoord.z))
+                + fetchesWeights[9] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[9].xy, shadowCoord.z))
+                + fetchesWeights[10] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[10].xy, shadowCoord.z))
+                + fetchesWeights[11] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[11].xy, shadowCoord.z))
+                + fetchesWeights[12] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[12].xy, shadowCoord.z))
+                + fetchesWeights[13] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[13].xy, shadowCoord.z))
+                + fetchesWeights[14] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[14].xy, shadowCoord.z))
+                + fetchesWeights[15] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[15].xy, shadowCoord.z));
+}
+```
+
+与PCSS不同的是，Unity的SSSM没有根据渲染点离遮蔽物的距离去动态调整滤波核的Step步长，因此SSSM无法做到PCSS那样真实的近实远虚的软阴影，只能让阴影的边缘不那么锐利。
+
+![Untitled(6)](./Images/Untitled(6).png)  
+
+
+
+拿到遮蔽程度后，Unity URP LIt Shader将其乘到光源的衰减系数里面，影响最终输出的颜色：
+
+```glsl
+half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat, Light light, half3 normalWS, half3 viewDirectionWS, half clearCoatMask, bool specularHighlightsOff)
+{
+    return LightingPhysicallyBased(brdfData, brdfDataClearCoat, light.color, light.direction, light.distanceAttenuation * light.shadowAttenuation, normalWS, viewDirectionWS, clearCoatMask, specularHighlightsOff);
+}
+
+half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat,
+    half3 lightColor, half3 lightDirectionWS, float lightAttenuation,
+    half3 normalWS, half3 viewDirectionWS,
+    half clearCoatMask, bool specularHighlightsOff)
+{
+    half NdotL = saturate(dot(normalWS, lightDirectionWS));
+    half3 radiance = lightColor * (lightAttenuation * NdotL);
+  	// ...
+    return brdf * radiance;
+}
+```
+
+
+
+如此这般，物体上就渲染出了阴影。
+
+
+
 ---
 
 
@@ -1074,23 +1244,27 @@ P‘ = M2M1P
 
 # 关于骨骼和蒙皮
 
-主要参考文章：[CSDN](https://blog.csdn.net/n5/article/details/3105872)
+参考文章：[CSDN](https://blog.csdn.net/n5/article/details/3105872)
 
  
 
-## 骨骼的本质是什么
+## 骨骼的本质
 
-如果通过DCC看，骨骼不过就是**一堆Transform嵌套**，都包含着其在**父节点坐标系下的**Translae、Rotation和Scale的三维向量信息。
+在Maya等DCC中，骨骼本质上是**一个Transform的节点树**。将带有骨骼和蒙皮的模型导入Unity，也可以看到骨骼组成了一个Transform的节点树。 
 
-是的，骨骼的本质就是一个**普通的正交坐标系**。如果把它抽象成一个类，其中Translae、Rotation和Scale的三维向量信息是它的显性属性，为了使其能够满足上面的运算需求，它还会有很多隐性的属性。
+![Untitled](./Images/Untitled.png)
 
- 
 
-## 蒙皮Mesh中，如何确定顶点在世界空间中的位置？
 
-在普通的静态Mesh中，顶点中储存了它在模型空间下的位置，这个位置通过M矩阵可以转到世界空间下。
+## 蒙皮Mesh确定世界空间顶点位置的方法
+
+Mesh的顶点储存了Object空间下的位置。
+
+对于非蒙皮Mesh，Object空间位置可以通过模型矩阵转到世界空间下。
 
 **顶点在模型空间的坐标---<模型矩阵>--->顶点在世界空间的坐标**
+
+这里的模型矩阵可以理解为一个localToWorld的Transform矩阵，其实就是将Local（Object）空间的位置转移到世界空间中。
 
  
 
@@ -1154,7 +1328,7 @@ Pw = M1M2M3Pb2
 
 这个M1M2M3也就是需要的BoneCombinedTransformMatrix了。
 
-![截图.png](Images/clip_image010.gif)
+![截图.png](Images/clip_image010.gif) 
 
  
 
@@ -6049,6 +6223,12 @@ Vector3 scale = new Vector3(
 
 
 
+后续作者尝试了在Job中使用Interlocked原子加等操作试图直接在并行Job中让索引原子自加，这样就可以只用一个Job就完成筛选操作，但是并没有成功。失败的原因是Unity的Native系列容器无法作为ref 传入原子自加函数中；另外，即使在Job里维护一个Struct 成员变量，做简单自加或者原子自加，也无法解决数据竞争的问题。
+
+![870a5911-9c57-4a85-a8c9-cda0bd0b1cba](./Images/870a5911-9c57-4a85-a8c9-cda0bd0b1cba.png) 
+
+
+
 ---
 
 
@@ -6391,4 +6571,20 @@ ComputeBuffer本质上类似于Texture或者RenderTexture，在RenderDoc中，�
 ---
 
 
+
+# localToWorldMatrix和worldToLocalMatrix
+
+Unity的Transform里面有两个矩阵，分别是localToWorldMatrix和worldToLocalMatrix。
+
+我们知道三维空间中一个Matrix4x4就能代表一个Transform，那如果我想从Matrix中解析出这个Transform的世界空间的Translate、Rotate和Scale，我应该用localToWorldMatrix和worldToLocalMatrix中的哪一个呢？
+
+答案是localToWorldMatrix，试想现在有一个无旋转无缩放的点，我们将localToWorldMatrix左乘到这个点的位置上，可以得到世界空间中这个点的位置，即这个Transform代表的世界空间位置；这个转变的流程相当于将Local中的原点通过localToWorldMatrix转换到世界空间，而Local中点原点代表的就是这个坐标系在世界空间中的点。
+
+worldToLocalMatrix一般用于将世界空间的点转移到此Transform的局部空间，而不用它来解析Transform信息。worldToLocalMatrix是localToWorldMatrix的逆矩阵。
+
+稍稍有些绕，这里做下总结和梳理。
+
+
+
+---
 
