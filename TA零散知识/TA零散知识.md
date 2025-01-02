@@ -1264,7 +1264,7 @@ Mesh的顶点储存了Object空间下的位置。
 
 **顶点在模型空间的坐标---<模型矩阵>--->顶点在世界空间的坐标**
 
-这里的模型矩阵可以理解为一个localToWorld的Transform矩阵，其实就是将Local（Object）空间的位置转移到世界空间中。
+这里说的模型矩阵，就是代表Transform的localToWorldMatrix，可以从transform对象中获取。
 
  
 
@@ -6587,4 +6587,452 @@ worldToLocalMatrix一般用于将世界空间的点转移到此Transform的局�
 
 
 ---
+
+
+
+# C# delegate event 和 事件系统
+
+游戏开发中常用**事件模式**的设计思路；以Unity为例，**借助C#的特性可以轻松地实现事件系统**。
+
+
+
+## **delegate 委托** 
+
+通俗地说，委托就是一个**占坑用的方法**，这个方法会在开发者指定的时刻被调用，至于方法的内容是什么，就看代码逻辑中给委托里订阅了什么内容了。
+
+举例来说，现在有一个按钮，它有一个委托“OnPressed”，在用户按下去的时候会执行这个委托；具体会发生什么呢？这就看游戏中的其他模块往这个委托中添加了什么方法了。
+
+这么做可以大大提升程序的**灵活性、可重用性，也将不同模块的耦合度降低了**，
+
+![image-20241227174247246](./Images/image-20241227174247246.png) 
+
+
+
+delegate 是C#中的一个关键字，用于标记这条语句正在声明一个委托类型，这一点与关键字enum类似。
+
+```c#
+public delegate void Callback(string message);
+```
+
+上示的代码声明了一个名为Callback的**委托类型**，注意这里**同时声明了返回类型void和方法的参数**。下文将以Callback类为例展开说明。
+
+Callback类的对象是**“方法”**，Callback类的对象需要**如上面所声明**的、以void为返回类型，并且必须仅接受一个string对象作为参数；如果返回类型或参数不匹配，编译器会报错。
+
+可以通过下面的语句来**实例化Callback类的对象**：
+
+```c#
+static void Main(string[] args)
+{   
+    // 直接创建委托实例
+    Callback callback0 = new Callback(PrintMessage);
+    // 使用方法组进行隐式类型转换
+    Callback callback1 = PrintMessage;
+    // 使用lambda表达式
+    Callback callback2 = (string message) => Console.WriteLine(message);
+    // 使用匿名方法
+    Callback callback3 = delegate(string message) { Console.WriteLine(message); };
+}
+
+static void PrintMessage(string message) => Console.WriteLine(message);
+```
+
+
+
+**Callback类的对象可以像方法一样使用：**
+
+```c#
+Callback callback = (string message) => Console.WriteLine(message);
+
+callback("Hello, World!");
+callback?.Invoke("Hello, World!");
+
+// output:
+// Hello, World!
+// Hello, World!
+```
+
+
+
+**Callback类的对象可以承载多个方法**，这些方法将按照添加顺序依次执行，这个特性被称为“多播”。
+
+```c#
+static void Main(string[] args)
+{   
+    Callback callback = (string message) => Console.WriteLine(message);
+    Callback toUpper = (string message) => Console.WriteLine(message.ToUpper());
+    // 订阅其他方法
+    callback += toUpper;
+    callback += PrintMessageToLower;
+
+    callback?.Invoke("Hello World");
+    // Output:
+    // Hello World
+    // HELLO WORLD
+    // hello world
+
+    Console.WriteLine("====================================");
+
+    // 取消订阅方法
+    callback -= toUpper;
+    callback -= PrintMessageToLower;
+
+    callback?.Invoke("Hello World");
+    // Output:
+    // Hello World
+}
+
+static void PrintMessageToLower(string message) => Console.WriteLine(message.ToLower());
+```
+
+需要注意，如果重复向一个委托中加入相同的方法，那么这个方法也会被执行多次：
+
+```c#
+static void Main(string[] args)
+{   
+    Callback callback = PrintMessage;
+    callback += PrintMessage;
+
+    callback("Hello World!");   
+    // Output:
+    // Hello World!
+    // Hello World!
+}
+
+static void PrintMessage(string message) => Console.WriteLine(message);
+```
+
+另外，匿名方法是不能直接通过lambda表达式取消订阅的，这是因为lambda表达式实际上是新创建了一个委托的实例，即使委托的内容完全一致，它们也不是一样的委托，因此无法被正常地取消订阅：
+
+```c#
+MyDelegate del = delegate { Console.WriteLine("Anonymous Method"); };
+del += delegate { Console.WriteLine("Anonymous Method"); };
+del -= delegate { Console.WriteLine("Anonymous Method"); }; // 无效
+```
+
+
+
+### 带有返回值的委托
+
+委托类型也可以在声明时指定返回类型：
+
+```c#
+public delegate string Callback(string message);
+static void Main(string[] args)
+{   
+    Callback callback = (string message) => message.ToUpper();
+    Console.WriteLine(callback("Hello World!"));
+    // Output: HELLO WORLD!
+}
+```
+
+但是涉及多播时，情况会有点特殊，多播委托调用时会依次执行所有订阅的方法，但只有最后一个方法的返回值会被保留并作为多播委托的返回值。
+
+```c#
+public delegate string Callback(string message);
+static void Main(string[] args)
+{   
+    Callback callback = (string message) => message.ToUpper();
+    callback += (string message) => message.ToLower();
+    Console.WriteLine(callback("Hello World!"));
+    // Output: hello world!
+}
+
+static void PrintMessage(string message) => Console.WriteLine(message);
+```
+
+
+
+### Action和Func
+
+如果开发者要为每个命名空间内的每种返回类型和参数列表的组合都声明一种委托类型的话，实在是太麻烦了。
+
+为了简化委托类型的声明流程，C#提供了两个内置的委托类型模板类，`Action<>`和`Func<>`。
+
+Action用于表示一个不返回值的委托，它可以有最多四个参数，如Action\<int>表示一个带有一个整数参数的委托，而Action<int, float, string, bool>表示一个带有四个参数的方法，分别为整数、浮点数、字符串和布尔值。
+
+Func类与Action类相似，它表示带有返回值的方法，并且在声明时需要指定返回值类型。例如，Func\<int>表示一个返回整数类型的方法，而Func<int, float, string, bool>表示一个带有三个参数并返回布尔值类型的方法。
+
+```c#
+static void Main(string[] args)
+{   
+    Action<string> action = PrintMessage;
+    Func<string, string> func = (string message) => message.ToUpper();
+
+    action("Hello World");
+    Console.WriteLine(func("Hello World"));
+    // Output:
+    // Hello World
+    // HELLO WORLD
+}
+
+static void PrintMessage(string message) => Console.WriteLine(message);
+```
+
+使用Action和Func模版类来定义自己的委托，可以精简声明的流程，也增强了委托在不同模块之间的通用性，因为使用delegate关键字声明的不同委托类型之间即使返回类型和参数列表完全一致，也无法直接类型转换。
+
+
+
+## event 事件
+
+event是一种特殊的委托，它与普通委托的核心区别在于它只能在声明它的类内调用。
+
+如果我们在另一个类中试图触发event，编译器会报出错误：
+
+![image-20241230164831246](./Images/image-20241230164831246.png) 
+
+在声明一个event时，相较于声明普通的委托对象，我们只需要在声明语句中加入关键字`event`即可：
+
+```c#
+// 声明委托类型
+public delegate void Callback(string message);
+// 声明委托对象
+public Callback OnCallback_Delegate;
+// 声明事件对象
+public event Callback OnCallback_Event;
+```
+
+event相较于delegate具有更好的封装性和安全性，但相对地也失去了一些灵活性。如果确定委托只应该在类内被触发，就把它标记为event吧。
+
+
+
+## 一个有趣的小Demo
+
+==// TODO:==
+
+
+
+---
+
+
+
+# C# 泛型方法
+
+Unity里有很多内置的泛型方法，比如`GetComponent<>`、`GetObjectOfType<>`等。
+
+有时候我们会希望定义自己的泛型方法，在我的情况中，我希望编写一个方法用于检查一个委托中是否已经订阅了某个方法。
+
+如果不使用泛型方法，需要为每一种Action都重载一个方法的实现，非常麻烦。
+
+如果像下面这样使用泛型方法的话，会非常方便：
+
+```c#
+static void Main(string[] args)
+{   
+    Action<string> action = (string str) => {};
+    var del = new Action<string>((string str) => {});
+    Console.WriteLine(ActionHasDelegate(action, del)); // Output: False
+    action += del;
+    Console.WriteLine(ActionHasDelegate(action, del)); // Output: True
+
+    Action<int, string> action1 = (int i, string str) => {};
+    var del1 = new Action<int, string>((int i, string str) => {});
+    Console.WriteLine(ActionHasDelegate(action1, del1)); // Output: False
+    action1 += del1;
+    Console.WriteLine(ActionHasDelegate(action1, del1)); // Output: True
+}
+
+static bool ActionHasDelegate<T>(T action, Delegate del) where T : Delegate
+{
+    foreach (var d in action.GetInvocationList())
+    {
+        if (d == del)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+```
+
+可以观察到泛型方法ActionHasDelegate对于不同类型的Action都能够顺利判断，可喜可贺，可喜可贺。
+
+
+
+---
+
+
+
+# Update中帧率无关的惯性模拟
+
+==// TODO:==
+
+
+
+---
+
+
+
+# 在Unity C#中执行其他的程序 或 cmd命令行
+
+如果能在Unity中直接使用一些外部工具有时会非常方便。
+
+
+
+## 直接在Unity中执行Tortoise指令
+
+有时想看一个文件或文件夹的Git Log，我们需要先在Unity中右键单击文件，再在文件夹中找到这个文件，然后再右键单击文件，才能打开Git Log。如果能在Unity中右键选中文件后直接打开GitLog会方便很多。
+
+我们可以在Unity的MenuItem的Assets菜单中添加一项来做到这件事情：
+
+```c#
+// 默认TortoiseGit会加入环境变量，所以这里直接用exe的名字就可以了
+private const string TORTOISEGITPATH = "TortoiseGitProc.exe";
+
+// 在Assets Menu Item中加入Git Log
+[MenuItem("Assets/Git Log", false, 2000)]
+private static void OpenWithTortoiseGitLog() =>
+    TortoiseCommand(TORTOISEGITPATH, "log");
+//  这是上面这个菜单项的验证函数，用于判断这个资产是否应该显示这个菜单项
+[MenuItem("Assets/Git Log", true)]
+private static bool ValidateOpenWithTortoiseGitLog() => 
+    Selection.activeObject != null;
+
+private static void TortoiseCommand(string tortoisePath, string command)
+{
+    if (!GetAssetPath(out string fullPath)) return;
+
+    string arguments = $"/command:{command} /path:\"{fullPath}\"";
+
+    // 通过C#的Process类来执行新的程序
+    Process.Start(new ProcessStartInfo
+    {
+        FileName = tortoisePath,
+        Arguments = arguments,
+        UseShellExecute = false,
+        CreateNoWindow = true
+    });
+}
+
+private static bool GetAssetPath(out string targetFullPath)
+{
+    targetFullPath = AssetDatabase.GetAssetPath(Selection.activeObject);
+    targetFullPath = Path.GetFullPath(targetFullPath);
+    var isValid = !string.IsNullOrEmpty(targetFullPath);
+    if (!isValid)
+        UnityEngine.Debug.LogError("No asset selected or path is invalid.");
+    return isValid;
+}
+```
+
+![demo](./Images/demo.gif) 
+
+
+
+## 直接在Unity中使用Python脚本
+
+Python有一些好用的库，如果能在Unity中直接执行Python脚本处理指定的对象，我们就不用自己从头开始实现一些功能了。
+
+比如我们希望加一个菜单项，上下翻转一张纹理，可以这样做：
+
+```c#
+private static readonly string PYIMAGETOOLPATH = Path.GetFullPath("Assets/Tools/Python/ImageTools.py");
+
+[MenuItem("Assets/上下翻转图片", false, 2000)]
+private static void FlipImage()
+    => PyImageTool(PYIMAGETOOLPATH, "flipUpAndDown");
+[MenuItem("Assets/上下翻转图片", true)]
+private static bool ValidateFlipImage() =>
+    Selection.activeObject != null && Selection.activeObject is Texture2D;
+
+private static void PyImageTool(string pyScriptPath, string command)
+{
+    if (!GetAssetPath(out string targetFullPath)) return;
+
+    string arguments = $"\"{pyScriptPath}\" \"{targetFullPath}\" \"{command}\"";
+    var process = Process.Start(new ProcessStartInfo
+    {
+        FileName = "python.exe",
+        Arguments = arguments,
+        UseShellExecute = false,
+        RedirectStandardError = true // 重定向程序的输出流，如果程序出错，我们可以在Unity中得到Log
+    });
+    process.WaitForExit();
+    var error = process.StandardError.ReadToEnd();
+    if (string.IsNullOrEmpty(error))
+        UnityEngine.Debug.Log("操作成功");
+    else
+        UnityEngine.Debug.LogError($"操作失败: {error}");
+
+    AssetDatabase.Refresh();
+}
+```
+
+
+
+在py文件中，我们可以通过sys.argv获取到C#中输入的参数：
+
+```python
+import sys
+import PIL.Image as Image
+
+def main():
+    image_path = sys.argv[1]
+    option = sys.argv[2]
+
+    if option == "flipUpAndDown":
+        flipUpAndDown(image_path)
+        print("Image flipped up and down")
+
+
+def flipUpAndDown(image_path : str):
+    image = Image.open(image_path)
+    image = image.transpose(Image.FLIP_TOP_BOTTOM)
+    extension = image_path.split(".")[-1]
+    new_file_path = image_path.replace(f".{extension}", f"_flipped_updown.{extension}")
+    image.save(new_file_path)
+
+if __name__ == "__main__":
+    main()
+```
+
+
+
+可以得到这样的效果：
+
+![demo](./Images/demo-1735807256023-2.gif) 
+
+
+
+## 直接在Unity中执行bat脚本
+
+有时我们会需要在Unity中执行一些bat脚本，用于做资产的检查等操作。
+
+但是Unity中无法直接执行bat脚本，因此也需要我们去做一步改造：
+
+```c#
+[MenuItem("Assets/Run Bat", false, 2000)]
+private static void RunBat()
+{
+    if (!GetAssetPath(out string fullPath)) return;
+    var process = Process.Start(new ProcessStartInfo
+    {
+        FileName = "cmd.exe",
+        Arguments = $"/c \"{fullPath}\"",
+        WorkingDirectory = Path.GetDirectoryName(fullPath),
+        UseShellExecute = false,
+        CreateNoWindow = true,
+        RedirectStandardError = true
+    });
+    UnityEngine.Debug.Log(process.StandardError.ReadToEnd());
+    AssetDatabase.Refresh();
+}
+[MenuItem("Assets/Run Bat", true)]
+private static bool ValidateRunBat() =>
+    Selection.activeObject != null && Selection.activeObject is DefaultAsset;
+```
+
+上面Arguments中的/c指的是执行完后关掉cmd窗口，相对的还有/k。
+
+- `/c`：执行指定的命令并在完成后终止。
+- `/k`：执行指定的命令但在完成后不终止命令提示符窗口。
+
+可以做到这样的效果：
+
+![demo](./Images/demo-1735807900631-4.gif) 
+
+
+
+---
+
+
 
