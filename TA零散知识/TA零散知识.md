@@ -6684,7 +6684,7 @@ static void Main(string[] args)
 static void PrintMessageToLower(string message) => Console.WriteLine(message.ToLower());
 ```
 
-需要注意，如果重复向一个委托中加入相同的方法，那么这个方法也会被执行多次：
+需要注意，**如果重复向一个委托中加入相同的方法，那么这个方法也会被执行多次：**
 
 ```c#
 static void Main(string[] args)
@@ -6701,7 +6701,7 @@ static void Main(string[] args)
 static void PrintMessage(string message) => Console.WriteLine(message);
 ```
 
-另外，匿名方法是不能直接通过lambda表达式取消订阅的，这是因为lambda表达式实际上是新创建了一个委托的实例，即使委托的内容完全一致，它们也不是一样的委托，因此无法被正常地取消订阅：
+另外，**匿名方法是不能直接通过lambda表达式取消订阅的**，这是因为lambda表达式实际上是新创建了一个委托的实例，即使委托的内容完全一致，它们也不是一样的委托，因此无法被正常地取消订阅：
 
 ```c#
 MyDelegate del = delegate { Console.WriteLine("Anonymous Method"); };
@@ -6746,7 +6746,7 @@ static void PrintMessage(string message) => Console.WriteLine(message);
 
 如果开发者要为每个命名空间内的每种返回类型和参数列表的组合都声明一种委托类型的话，实在是太麻烦了。
 
-为了简化委托类型的声明流程，C#提供了两个内置的委托类型模板类，`Action<>`和`Func<>`。
+**为了简化委托类型的声明流程，C#提供了两个内置的委托类型模板类，`Action<>`和`Func<>`。**
 
 Action用于表示一个不返回值的委托，它可以有最多四个参数，如Action\<int>表示一个带有一个整数参数的委托，而Action<int, float, string, bool>表示一个带有四个参数的方法，分别为整数、浮点数、字符串和布尔值。
 
@@ -6768,13 +6768,13 @@ static void Main(string[] args)
 static void PrintMessage(string message) => Console.WriteLine(message);
 ```
 
-使用Action和Func模版类来定义自己的委托，可以精简声明的流程，也增强了委托在不同模块之间的通用性，因为使用delegate关键字声明的不同委托类型之间即使返回类型和参数列表完全一致，也无法直接类型转换。
+使用Action和Func模版类来定义自己的委托，可以**精简声明的流程**，也增强了委托在不同模块之间的通用性，因为使用delegate关键字声明的不同委托类型之间即使返回类型和参数列表完全一致，也无法直接类型转换。
 
 
 
 ## event 事件
 
-event是一种特殊的委托，它与普通委托的核心区别在于它只能在声明它的类内调用。
+**event是一种特殊的委托，它与普通委托的核心区别在于它只能在声明它的类内调用。**
 
 如果我们在另一个类中试图触发event，编译器会报出错误：
 
@@ -7057,6 +7057,266 @@ VSCode中有一个常用命令，叫做`Git：重新打开已关闭的储存库`
 这样做其实是删掉了工作区的一些长久储存的数据，包括打开过的Git储存库的列表。
 
 这可能会误伤到其他工作区设置，不过应该影响不是很大，只是一些IDE的配置而已。
+
+
+
+---
+
+
+
+# C# Enumerable Aggregate
+
+之前都没注意到有这么好用的东西，这个东西的大体思路是对于一个Enumerable的对象，以列表为例，传一个任意类型的初始的随意什么东西进去，然后遍历列表中的每一对象，对这个初始的东西做累计的任意操作，遍历完后还可以进行一次转换，返回遍历完的这个初始对象。
+
+这么做可以减少一些for循环，增不增加可读性不知道，但是代码看着会简洁不少。
+
+下面列一些微软给的示例代码：
+
+```c#
+string[] fruits = { "apple", "mango", "orange", "passionfruit", "grape" };
+
+string longestName =
+    fruits.Aggregate("banana", //  输入一个初始的字符串类型的对象
+                    (longest, next) => // 遍历用的匿名函数，这里前面的参数是遍历中流传的对象，后面的参数是列表中的对象
+                        next.Length > longest.Length ? next : longest,
+                    fruit => fruit.ToUpper()); // 指定输出时的转换函数，把上面流传完的longest对象作为这个函数的输入fruit
+
+Console.WriteLine(
+    "The fruit with the longest name is {0}.",
+    longestName);
+// The fruit with the longest name is PASSIONFRUIT.
+```
+
+有两个Aggregate的参数少一些的重载，比如下面这个是省去了输出时的转换方法：
+
+```c#
+int[] ints = { 4, 8, 8, 3, 9, 0, 7, 8, 2 };
+
+
+int numEven = ints.Aggregate(0,  // 传入初始值Int型对象，0
+                             (total, next) => // 遍历列表对象，列表对象为偶数则给初始对象的值加1
+                                    next % 2 == 0 ? total + 1 : total);
+
+Console.WriteLine("The number of even integers is: {0}", numEven);
+// The number of even integers is: 6
+```
+
+初始值也可以省掉，不过需要注意，如果省掉初始值，会以列表中的第0项作为初始值开始遍历，而且遍历会跳过第0项。
+
+```c#
+string sentence = "the quick brown fox jumps over the lazy dog";
+string[] words = sentence.Split(' ');
+
+string reversed = words.Aggregate(
+    (workingSentence, next) => // 指定遍历函数，在输入初始对象的前面遍历地加上列表对象
+  		next + " " + workingSentence);
+
+Console.WriteLine(reversed);
+// dog lazy the over jumps fox brown quick the
+```
+
+
+
+---
+
+
+
+# Mesh顶点的连接性
+
+盘问GPT榨出来的代码，测过了，非常好用。
+
+输入一个Mesh，返回一个和Vertices等长的Int列表，代表Vertex属于Mesh中各分离的Parts的哪一块。
+
+```c#
+public static List<int> GetConnectedComponents(Mesh mesh)
+{
+    Vector3[] vertices = mesh.vertices;
+    int[] triangles = mesh.triangles;
+
+    // Step 1: Map unique vertex positions to indices
+    Dictionary<Vector3, int> uniqueVertexMap = new Dictionary<Vector3, int>();
+    int[] uniqueIndices = new int[vertices.Length];
+    int uniqueIndexCounter = 0;
+
+    for (int i = 0; i < vertices.Length; i++)
+    {
+        if (!uniqueVertexMap.ContainsKey(vertices[i]))
+        {
+            uniqueVertexMap[vertices[i]] = uniqueIndexCounter++;
+        }
+        uniqueIndices[i] = uniqueVertexMap[vertices[i]];
+    }
+
+    // Step 2: Build adjacency list based on unique indices
+    Dictionary<int, List<int>> adjacencyList = new Dictionary<int, List<int>>();
+
+    for (int i = 0; i < triangles.Length; i += 3)
+    {
+        int[] triUniqueIndices = {
+            uniqueIndices[triangles[i]],
+            uniqueIndices[triangles[i + 1]],
+            uniqueIndices[triangles[i + 2]]
+        };
+
+        for (int j = 0; j < 3; j++)
+        {
+            int v0 = triUniqueIndices[j];
+            int v1 = triUniqueIndices[(j + 1) % 3];
+
+            if (!adjacencyList.ContainsKey(v0))
+            {
+                adjacencyList[v0] = new List<int>();
+            }
+            if (!adjacencyList.ContainsKey(v1))
+            {
+                adjacencyList[v1] = new List<int>();
+            }
+
+            if (!adjacencyList[v0].Contains(v1))
+            {
+                adjacencyList[v0].Add(v1);
+            }
+            if (!adjacencyList[v1].Contains(v0))
+            {
+                adjacencyList[v1].Add(v0);
+            }
+        }
+    }
+
+    // Step 3: Use DFS to find connected components
+    int[] componentIDs = new int[uniqueVertexMap.Count];
+    bool[] visited = new bool[uniqueVertexMap.Count];
+    int componentID = 0;
+
+    void DFS(int v)
+    {
+        Stack<int> stack = new Stack<int>();
+        stack.Push(v);
+
+        while (stack.Count > 0)
+        {
+            int current = stack.Pop();
+            if (!visited[current])
+            {
+                visited[current] = true;
+                componentIDs[current] = componentID;
+                foreach (int neighbor in adjacencyList[current])
+                {
+                    if (!visited[neighbor])
+                    {
+                        stack.Push(neighbor);
+                    }
+                }
+            }
+        }
+    }
+
+    for (int i = 0; i < uniqueVertexMap.Count; i++)
+    {
+        if (!visited[i])
+        {
+            DFS(i);
+            componentID++;
+        }
+    }
+
+    // Map back to original vertices
+    List<int> vertexClasses = new List<int>(new int[vertices.Length]);
+    for (int i = 0; i < vertices.Length; i++)
+    {
+        vertexClasses[i] = componentIDs[uniqueIndices[i]];
+    }
+
+    return vertexClasses;
+}
+```
+
+
+
+---
+
+
+
+# Unity切线空间及其应用
+
+![Untitled](./Images/Untitled-1737013294595-1.png)
+
+Object空间是每个Mesh独有的、在建模阶段就已经确定的空间；Vertex的顶点位置、法线方向等信息都记录在Object空间中。
+
+切线空间是每个Vertex独有的、由Vertex的切线、副切线和法线分别作为XYZ坐标轴、以Vertex在Object空间下的位置作为Pivot组成的空间。切线空间会跟随Mesh的变形（Skinned Mesh等）而改变，这是因为Mesh变形时，Vertex的法线、切线和副切线也会随之变换。
+
+
+
+## 切线的确定方式
+
+模型文件导入Unity后会生成Mesh资产，Vertex的法线直接从模型文件中读取，而切线会根据Vertex的UV重新计算。
+
+在Unity Mesh中，Vertex的切线方向是一个与其法线垂直的、指向uv中U维增大方向的向量。
+
+下面这张GIF中，蓝线代表Vertex的法线，黄线代表Vertex的切线。可以观察到，当UV开始旋转时，Vertex的切线方向也随之旋转，它始终指向UV中U维增大的方向。
+
+![demo](./Images/demo-1737015590428-5.gif) 
+
+
+
+## 副切线的确定方式
+
+副切线是同时垂直于法线和切线的向量，存在两个这样的方向。
+
+参考[这篇文章](https://zhuanlan.zhihu.com/p/103546030)可以得知：副切线的选择由切线向量的w维（建模时确定）及RendererTransform的Scale同时确定。
+
+```glsl
+fixed tangentSign = v.tangent.w * unity_WorldTransformParams.w;
+fixed3 worldBinormal = cross(worldNormal, worldTangent) * tangentSign;
+```
+
+
+
+## 切线空间的变换矩阵
+
+从Mesh中可以获取Vertex在Object空间中的位置、切线、副切线和法线的方向，可以来构建TangentToObject矩阵了。
+
+根据我们学过的线性代数知识，要构建一个LocalToWorld的变换矩阵，需要将4X4矩阵的第一列设置为X轴的方向向量、第二列设置为Y轴的方向向量、第三列设置为Z轴的方向向量、第四列设置为Translate、矩阵的第四行设置为（0,0,0,1）。
+
+TangentToObject变换是一种LocalToWorld变换，因此它们的步骤也是一致的。在Unity中，我们约定切线空间的X轴为切线方向（右），Y轴方向为副切线方向（上）， Z轴方向为法线方向（前），可以用下面的代码来构建TangentToObject矩阵：
+
+```c#
+// Mesh中没有直接储存副切线向量，需要做一步计算：
+Vector3 OSBitangent = OSTangent.w * Vector3.Cross(OSNormal, OSTangent);
+// 构建objectToTangent矩阵
+var tangentToObject = new Matrix4x4();
+tangentToObject.SetColumn(0, new Vector4(OSTangent.x, OSTangent.y, OSTangent.z, 0.0f));
+tangentToObject.SetColumn(1, new Vector4(OSBitangent.x, OSBitangent.y, OSBitangent.z, 0.0f));
+tangentToObject.SetColumn(2, new Vector4(OSNormal.x, OSNormal.y, OSNormal.z, 0.0f));
+tangentToObject.SetColumn(3, new Vector4(OSPosition.x, OSPosition.y, OSPosition.z, 1.0f));
+var objectToTangent = Matrix4x4.Inverse(tangentToObject);
+```
+
+※：使用Mesh.GetNormals()等方法获取到的Mesh的法线、切线和副切线方向是已经经过归一化的，不需要额外处理。另外，在ShaderGraph中直接通过Normal Vector等节点获取到的法线、切线和副切线方向也是经过归一化的，也不需要再额外处理。
+
+
+
+## 切线空间的应用思路
+
+切线空间的应用思路一般是：将Object空间信息在制作阶段转为Tangent空间信息（特殊的位置、方向等），保存到Vertex的数据位或者贴图中；在Shader中，将读取到的Tangent空间信息重新转回Object空间使用。
+
+你可能会好奇，为什么要这么倒腾一下呢？这是因为切线空间有一个重要的非常好的性质，那就是在文章开头提到过的：切线空间会跟随Mesh的变形发生改变（这是因为Vertex的法线和切线都会随着Mesh的变形发生改变），因此当Shader把切线空间中的特殊数据转回Object空间时，这份特殊数据也会接受到Mesh的变形。
+
+从下面的GIF中，我们可以清晰地观察到切线空间的变化：
+
+ ![demo](./Images/demo-1737528465210-2.gif) 
+
+切线空间最广泛的应用是法线贴图，一般来说法线贴图中储存的就是切线空间中对法线方向的<u>扰动</u>。
+
+我们来通过一个例子来看下如果将法线方向扰动储存在Object空间中会导致什么样的结果：
+
+![image-20250122120145767](./Images/image-20250122120145767.png) 
+
+如果按照常规将法线偏移信息储存在切线空间中，变形后的物体法线方向正确：
+
+![image-20250122120320798](./Images/image-20250122120320798.png) 
+
+※：这也能引申出法线贴图总是呈现蓝紫色的原因，物体的表面大部分区域扰动并不强烈，即“扰动方向和几何图元法线的夹角很小”，表现在偏移方向向量上就是：（x方向-切线方向-小值，y方向-副切线方向-小值，z方向-几何图元法线方向-大值），几乎（0,0,1）的状态；又因为单位向量每维度的取值范围是-1~1，因此需要做一步`remap(-1,1,0,1,x);`，就变成了（0.5,0.5,1），将其转换为颜色就是法线贴图中常见的蓝紫色。
 
 
 
