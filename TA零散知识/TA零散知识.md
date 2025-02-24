@@ -2274,33 +2274,62 @@ Texture2D 类的方法，将 Texture2D 对象编码为对应格式所需要的 b
 
 
 
-# 使用路径
+# 在Unity工具开发中使用路径
 
-有时候编写工具需要大量使用路径，这时候活用字符串的 API、通配符和正则表达式等，可以大幅优化和简化路径的使用流程。
-
-之后会在这个板块不断更新关于路径的内容。
+Unity工具开发中常用路径索引到目标资产，使用通配符、正则表达式、string类方法等，可以帮助组织路径。
 
 
 
-## 相对路径
+## 相对路径和绝对路径
 
-Unity 中本身就使用了相对路径，一般有 Asset、Resource 等的锚点供开发者使用。
+Unity中常用相对路径，最常用的是Assets相对路径和Resources相对路径。
 
-但是，在大型项目中文件夹的前缀往往很长，这时候每次搞路径都很痛苦，所以可以这样：
 
-定义一个路径前缀：
 
-`private string pathPrefix = "Assets/Scene/***_scene/***_bake/*****/";`
+Assets一般来说只用在Editor中：
 
-也可以不手写路径前缀，而是直接通过这个对象本身的位置作为前缀：
+```c#
+// 示例路径："Assets/Textures/EnemyTexture.png"
+Texture2D editorTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/Sprites/Enemy.png");
+```
 
-`pathPrefix = AssetDatabase.GetAssetPath(this);`
 
-在之后使用路径的时候，就可以非常愉快地写了：
 
-`probeCubemap =  AssetDatabase.LoadAssetAtPath<Cubemap>(pathPrefix + "CubeMaps/****.exr");`
+Resources一般来说用在运行时：
 
-整体思路很像大多数 DCC 的“项目”这个概念。
+```c#
+// 示例路径："Sprites/Enemy" （对应实际路径：Assets/Resources/Sprites/Enemy.png）
+Sprite runtimeSprite = Resources.Load<Sprite>("Sprites/Enemy");
+```
+
+
+
+有时会用到绝对路径，一般是从Unity调用外部工具、需要传递目标路径时。
+
+比如：[在 Unity C#中执行其他的程序 或 cmd 命令行](#在 Unity C#中执行其他的程序 或 cmd 命令行)
+
+
+
+## 相对路径和绝对路径的转换
+
+使用绝对路径时经常需要和相对路径互相转换，转换的实现有很多种，基本思路是增减项目目录前缀，再根据需要替换路径分隔符。
+
+直接使用string的replace方法可以简易实现转换，但是不耐操，遇到特殊情况处理不了，比如路径中存在多个“Assets”的情况。
+
+这里分享一个在Unity中相对稳健的实现：
+
+```c#
+public static class PathUtil {
+    public static string ToAbsolute(string relativePath, string separator = "/")
+        => Path.Combine(Application.dataPath, relativePath).Replace("\\", separator).Replace("/", separator);
+
+    public static string ToRelative(string absolutePath) 
+        => Uri.UnescapeDataString(
+            new Uri(Application.dataPath + "/").
+            MakeRelativeUri(
+                new Uri(absolutePath)).ToString());
+}
+```
 
 
 
@@ -6977,6 +7006,10 @@ if __name__ == "__main__":
 
 
 
+※：在 C#代码中，`RedirectStandardError = true;`  可以重定向 Python 程序的输出流，如果 Python 程序出错，我们可以在 Unity 中输出 Log；若如此做，需要注意一下输出内容的编码问题。Python 直接通过 Print 输出的内容在中文操作系统中一般为 GBK 编码，而 Unity 中的 Log 输出为 UTF-16 编码，两边编码格式不一样导致输出时出现乱码问题。要解决上述的乱码问题，最简单的方式是在 Python 中设定输出流的编码格式：`sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')`
+
+
+
 ## 直接在 Unity 中执行 bat 脚本
 
 有时我们会需要在 Unity 中执行一些 bat 脚本，用于做资产的检查等操作。
@@ -7375,5 +7408,11 @@ mklink /D Images ..\images
 
 
 
+# cmd 参数和双引号
 
+[在 Unity C#中执行其他的程序 或 cmd 命令行](#在 Unity C#中执行其他的程序 或 cmd 命令行) 这篇中说明了在 C#中使用 cmd 的方法，这里补充一个小注意事项：如果 cmd 的参数包含空格、转义字符等特殊字符，那么需要用双引号将此参数包裹，这最常用于路径参数的场合。
+
+
+
+---
 
