@@ -2274,19 +2274,19 @@ Texture2D 类的方法，将 Texture2D 对象编码为对应格式所需要的 b
 
 
 
-# 在Unity工具开发中使用路径
+# 在 Unity 工具开发中使用路径
 
-Unity工具开发中常用路径索引到目标资产，使用通配符、正则表达式、string类方法等，可以帮助组织路径。
+Unity 工具开发中常用路径索引到目标资产，使用通配符、正则表达式、string 类方法等，可以帮助组织路径。
 
 
 
 ## 相对路径和绝对路径
 
-Unity中常用相对路径，最常用的是Assets相对路径和Resources相对路径。
+Unity 中常用相对路径，最常用的是 Assets 相对路径和 Resources 相对路径。
 
 
 
-Assets一般来说只用在Editor中：
+Assets 一般来说只用在 Editor 中：
 
 ```c#
 // 示例路径："Assets/Textures/EnemyTexture.png"
@@ -2295,7 +2295,7 @@ Texture2D editorTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resou
 
 
 
-Resources一般来说用在运行时：
+Resources 一般来说用在运行时：
 
 ```c#
 // 示例路径："Sprites/Enemy" （对应实际路径：Assets/Resources/Sprites/Enemy.png）
@@ -2304,7 +2304,7 @@ Sprite runtimeSprite = Resources.Load<Sprite>("Sprites/Enemy");
 
 
 
-有时会用到绝对路径，一般是从Unity调用外部工具、需要传递目标路径时。
+有时会用到绝对路径，一般是从 Unity 调用外部工具、需要传递目标路径时。
 
 比如：[在 Unity C#中执行其他的程序 或 cmd 命令行](#在 Unity C#中执行其他的程序 或 cmd 命令行)
 
@@ -2314,9 +2314,9 @@ Sprite runtimeSprite = Resources.Load<Sprite>("Sprites/Enemy");
 
 使用绝对路径时经常需要和相对路径互相转换，转换的实现有很多种，基本思路是增减项目目录前缀，再根据需要替换路径分隔符。
 
-直接使用string的replace方法可以简易实现转换，但是不耐操，遇到特殊情况处理不了，比如路径中存在多个“Assets”的情况。
+直接使用 string 的 replace 方法可以简易实现转换，但是不耐操，遇到特殊情况处理不了，比如路径中存在多个“Assets”的情况。
 
-这里分享一个在Unity中相对稳健的实现：
+这里分享一个在 Unity 中相对稳健的实现：
 
 ```c#
 public static class PathUtil {
@@ -7357,9 +7357,15 @@ var objectToTangent = Matrix4x4.Inverse(tangentToObject);
 
 
 
-# 异常抛出断点
+# Unity 调试技巧——异常抛出中断
 
-==// TODO:==
+在调试 Unity 项目时，有时会希望断点命中在产生异常的地方，尤其是异常在循环体内的情况；这时使用简单的断点需要每个 index 都去检查、若想使用条件断点又可能不知道出错的 index。
+
+使用调试器中的异常抛出中断可以让程序在发生异常的语句自动中断，不需要手动打断点，这对于上面的那种情况来说非常好用。
+
+以“Visual Studio 调试 unity 项目”为例，可以通过调试 -> 窗口 -> 异常设置 来打开下面的窗口，然后在 Common Language RunTime Exception 栏中选择要中断的错误类型即可，默认情况下是全部关闭的。
+
+![image-20250224190032623](./Images/image-20250224190032623.png) 
 
 
 
@@ -7367,9 +7373,15 @@ var objectToTangent = Matrix4x4.Inverse(tangentToObject);
 
 
 
-# CSV 多行输出
+# CSV 特殊字符和多行输出
 
-==// TODO:==
+csv 作为一种用简单文本形式记录的表格格式，用逗号分隔列，用换行号分隔行。
+
+如果表格中的 item 字符串（字段）本身就带有逗号和换行符，不另加处理 csv 读取时会出现错误。
+
+为了避免上述错误，字段带有这类特殊字符的时候，需要用双引号包裹字段；而当字段本身带有双引号的时候，双引号的每边都需要变成两个双引号，具体来说就是：`"你好" -> ""你好""` 。
+
+![image-20250224211213840](./Images/image-20250224211213840.png) 
 
 
 
