@@ -1131,6 +1131,14 @@ print(sorted_df)
 
 
 
+## 原始字符串
+
+C#中在字符串前加`@`可以表示这是一个原始字符串，将不会进行转义字符识别，如：` string a = @"C:\path\to\your\target";`
+
+Python也有类似的用法，在字符串前加r即可：`file_path = r"Hello\nWorld"`
+
+
+
 ---
 
 
