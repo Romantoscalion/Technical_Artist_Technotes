@@ -1,8 +1,6 @@
 # TA 零散知识
 
-知识非常杂。
-
-早期的笔记（比较靠前）看上去比较稚嫩，很多类似常识的东西都记下来了。。。
+越下面的越新，自 2022 年开始持续积累。
 
 
 
@@ -10,7 +8,7 @@
 
 
 
-# AO-Ambient Occlusion-环境光遮蔽
+## AO-Ambient Occlusion-环境光遮蔽
 
 如果两个物体靠的很近，比如我的手臂和身体的一侧，它们比较靠近的地方其实会偏暗。
 
@@ -34,7 +32,7 @@ GAMES 202 —— SSAO：
 
 
 
-# 在 Shader 中使用结构体
+## 在 Shader 中使用结构体
 
 在学习 NPR 的时候，我参考了大佬写的 Shader。
 
@@ -52,11 +50,11 @@ GAMES 202 —— SSAO：
 
 
 
-# 编辑 Shader 的材质面板
+## 编辑 Shader 的材质面板
 
 
 
-## 使用属性标签（约束、Attribute）来简易地编辑 Shader 的材质面板
+### 使用属性标签（约束、Attribute）来简易地编辑 Shader 的材质面板
 
 [参考](https://docs.unity3d.com/Manual/SL-Properties.html)
 
@@ -82,13 +80,13 @@ _MyFloat("MyFloat",Range(0,1)) = 1.0
 
 
 
-## 使用 Custom Shader GUI
+### 使用 Custom Shader GUI
 
 更 **自由** 的方式，可以做很多 **炫酷** 的材质 UI。
 
 但是比较 **麻烦**，得看值不值得去写这个东西。
 
-[跳转](#关于自定义材质GUI)
+==// TODO: 补充一下相关内容==
 
 
 
@@ -96,7 +94,7 @@ _MyFloat("MyFloat",Range(0,1)) = 1.0
 
 
 
-# 关于 GGX
+## 关于 GGX
 
 在渲染尤其是 **真实感渲染** 中，我们总会看到一个词叫 **GGX**，它总是和微表面模型等概念一起出现。
 
@@ -120,7 +118,7 @@ _MyFloat("MyFloat",Range(0,1)) = 1.0
 
 
 
-# 阴影渲染
+## 阴影渲染
 
 列举一些阴影渲染方法：
 
@@ -137,7 +135,7 @@ _MyFloat("MyFloat",Range(0,1)) = 1.0
 
 
 
-## Unity 中的级联阴影渲染
+### Unity 中的级联阴影渲染
 
 上面说的那些是偏向抽象的方法，我们来看下 Unity URP 中的阴影是如何做的。
 
@@ -145,7 +143,7 @@ Unity URP 中的阴影方案称作“SSSM（Screen Space Shadow Mapping，屏幕
 
 
 
-### 光源
+#### 光源
 
 有光源才能投出阴影，光源上也有一些阴影相关的设置。
 
@@ -165,7 +163,7 @@ float4      _MainLightShadowParams;   // (x: shadowStrength, y: >= 1.0 if soft s
 
 
 
-### 级联阴影
+#### 级联阴影
 
 在 Unity 的渲染管线资产中，我们可以配置主光源的级联阴影参数。
 
@@ -187,7 +185,7 @@ float4      _MainLightShadowParams;   // (x: shadowStrength, y: >= 1.0 if soft s
 
 
 
-### Shadow Map 的生成
+#### Shadow Map 的生成
 
 物体被渲染时，会比较灯光坐标系下的渲染点深度和 ShadowMap 中记录的最小深度，如果渲染点的深度大于最小深度，说明渲染点处于阴影中；如果使用了 PCSS 等滤波软阴影方案，则会多次采样 ShadowMap，得到一个 0~1 的值用于描述渲染点被阴影遮蔽的程度。最终，用 Shadow 的值去影响输出颜色，也就让一个物体接受了投影。
 
@@ -227,7 +225,7 @@ float4      _MainLightShadowParams;   // (x: shadowStrength, y: >= 1.0 if soft s
 
 
 
-#### 级联 ShadowMap
+##### 级联 ShadowMap
 
 级联 ShadowMap 相对于上面的单张 ShadowMap 的渲染流程稍有差异。
 
@@ -241,7 +239,7 @@ float4      _MainLightShadowParams;   // (x: shadowStrength, y: >= 1.0 if soft s
 
 
 
-### 阴影的渲染
+#### 阴影的渲染
 
 得到 ShadowMap 后，在渲染物体时就可以比较渲染点在灯光坐标系下的深度和 ShadowMap 中记录的深度，以此来判断渲染点是否在阴影的遮蔽中。
 
@@ -311,7 +309,7 @@ half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat,
 
 
 
-# 关于金属度、粗糙度工作流和镜面反射光泽度工作流
+## 关于金属度、粗糙度工作流和镜面反射光泽度工作流
 
 太杂了，在好多地方记了。
 
@@ -349,7 +347,7 @@ half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat,
 > **看本质、看代码**
 >
 > 分析一下代码，“金属度”这个量，作为阿尔法在 F0（可以理解为很暗的灰色）和物体本身颜色间插值，得到的值经过计算后作为直接光照的镜面反射部分。也就是说，非金属的镜面反射颜色不太受自身颜色影响，而金属的镜面反射颜色受自身颜色影响大。观察手连 PBR，得到相同的结论。
-
+>
 > **粗糙度控制着什么？**
 >
 > 1.直接光照的镜面反射部分的 D 项，越粗糙，D 项一般越小，代表渲染点的微表面们，和反射方向不太对齐。     
@@ -359,12 +357,12 @@ half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat,
 > 3.间接光照镜面反射第一部分入射光的计算。间接光照镜面反射的光源通过观察方向做反射，再对 CubeMap 采样确定，但是由于粗糙度不同，其实也需要对不同清晰度的 CubeMap 采样，这样的效果更真实，此处粗糙度作为参考值，决定采用哪一个层级的 CubeMap。越粗糙，使用越模糊的 CubeMap。    
 >
 > 4.间接光照镜面反射第二部分，作为参数之一，和 NV 一起、参与数值拟合，避免计算积分，越粗糙，一般来说镜面反射越弱。
-
+>
 > **金属度控制着什么？**
 >
 > 1.直接光照镜面反射部分的 F 项。金属度作为参考值，对 F0（0.04，可视为一个接近黑色的颜色）和物体本身颜色插值，得到的颜色经过计算后作为直接光照镜面反射部分使用。也就是说，非金属的镜面反射颜色不太受自身颜色影响，而金属的镜面反射颜色受自身颜色影响大。观察手连 PBR，得到相同的结论。
 >
->  2.直接光照漫反射的 KD。KD 本是 1-KS（KS 也就是 F 项）得到，但是 KD 又做了一步乘（1 -  Metallic），意味着，非金属漫反射强，能量几乎没有吸收，金属漫反射弱，有能量的吸收。     
+> 2.直接光照漫反射的 KD。KD 本是 1-KS（KS 也就是 F 项）得到，但是 KD 又做了一步乘（1 -  Metallic），意味着，非金属漫反射强，能量几乎没有吸收，金属漫反射弱，有能量的吸收。     
 >
 > 3.间接光照的镜面反射的 F 项，金属度控制 F0（指通过金属度在 0.04 和 baseColor 插值后得到的颜色），而 F0 参与 F 项的计算，产生的影响和 1.中一致。
 
@@ -374,23 +372,7 @@ half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat,
 
 
 
-# 关于顶点的法线、切线、和副切线
-
-[祖传参考文章](https://zhuanlan.zhihu.com/p/103546030)
-
-经过了平均法线写入工具的开发流程，我更理解了 Mesh 的顶点是一个怎样的存在，也理解了其实 **没有所谓的面法线，只有顶点有**。面法线是 DCC 自己从顶点通过重心坐标等手段插值算出来的。**顶点携带法线信息**，是三维向量。     
-
-**顶点的切线也是顶点携带的信息**，也是三维向量（Unity 中貌似是四维？）。**切线是与法线垂直的线**，因为空间内与法线垂直的线有无数条，所以通过顶点的 UV 中的 V 值来确定唯一的一根。     
-
-顶点的 **副切线是垂直于上述两条线的线**，副切线有两种可能（上或下），通过 v.tangent.w *  unity_WorldTransformParams.w 决定，前者与 DCC 软件有关，后者与模型的 Scale 的负值的个数有关。* *副切线不是顶点携带的信息**，是需要计算才能得到的值。
-
-
-
----
-
-
-
-# 为什么法线贴图总呈现蓝紫色
+## 为什么法线贴图总呈现蓝紫色
 
 法线扰动向量是 xyz 三维值,  我们得找个东西来储存它, 用什么来存呢? 
 
@@ -406,7 +388,7 @@ half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat,
 
 
 
-# 对于深度测试的误解
+## 对于深度测试的误解
 
 [百人计划笔记：深度测试](../百人计划学习笔记/百人计划学习笔记.md)——这里有关于深度测试更详细的内容。
 
@@ -424,7 +406,7 @@ half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat,
 
 
 
-# 在 Shader 中获取时间
+## 在 Shader 中获取时间
 
 虽然在入门精要里了解过，但是入门精要的笔记做得实在垃圾，没有写具体方法，而连连看获取时间相对简单，所以一直没有掌握。写理发店 Shader 的时候，遇到了这个问题，故回顾入门精要，要记住如下用法：
 
@@ -436,7 +418,7 @@ half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat,
 
 
 
-# 在 Shader 中添加 HDR 性质的颜色
+## 在 Shader 中添加 HDR 性质的颜色
 
 ![image-20220927155507592](Images/image-20220927155507592.png) 
 
@@ -446,17 +428,17 @@ half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat,
 
 
 
-# 关于 Scriptable Object
+## 关于 Scriptable Object
 
 ~~这不是开发的知识吗？~~
 
 差不多得了，这都不懂还能当 TA？😅
 
-## 是什么
+### 是什么
 
 是一种资产的类型，类似于配置文件，但是它不仅可以用来保存数据，也可以用来实现函数。它的函数可以在自己写的、针对于它的、Editor 的派生类来调用和控制。
 
-## 干什么使的
+### 干什么使的
 
 **用来保存类似“Static”的共用的、不变的数据。** 保存于此类资产的数据，不会随着游戏的关闭、重开而改变。比如可以作为配置文件保存敌人的各项数值，在敌人初始化的时候，使用这个资产里的数据，随后把这个控制资源给策划，让策划去调数值。这样不仅可以集中控制，而且可以节省内存，因为实例化后的各物体共用这一块资产内的数据。
 
@@ -468,7 +450,7 @@ half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat,
 
 
 
-# 关于“资产实现型工具”
+## 关于“资产实现型工具”
 
 这其实是我自定的名字，我也不知道别人叫这种工具叫什么。
 
@@ -519,7 +501,7 @@ Button、OnValueChanged 等等。
 
 ---
 
-# 关于自定义材质 GUI
+## 关于自定义材质 GUI
 
 虽然默认材质可以自动生成材质 GUI，也可以通过 Attribute 设置一些简单的 GUI，但是要更好地客制化，还是需要脚本的支持，Unity 也提供了相应的基类供使用。
 
@@ -527,7 +509,7 @@ Button、OnValueChanged 等等。
 
 
 
-## 在 Shader 末尾、同 FallBack 一起、绑定 GUI 脚本
+### 在 Shader 末尾、同 FallBack 一起、绑定 GUI 脚本
 
 ```c#
 //	通过字符串指定GUI脚本名称来绑定GUI脚本，插件里作者把GUI脚本和Shader放在同文件夹下，因此没有路径信息。如果在不同的文件夹，
@@ -538,7 +520,7 @@ FallBack "ProPixelizer/Hidden/MyPixelBase"
 
 
 
-## 细则
+### 细则
 
 1. 继承自 ShaderGUI
 
@@ -573,7 +555,7 @@ FallBack "ProPixelizer/Hidden/MyPixelBase"
 
 
 
-## 日后参考
+### 日后参考
 
 这个 ShaderGUI 脚本是少有的，我把它保存下来供日后参考。其中含有完整的流程，也有一些如折叠参数菜单、开关等参数的设定方法，非常有参考价值。
 
@@ -585,7 +567,7 @@ FallBack "ProPixelizer/Hidden/MyPixelBase"
 
 
 
-# 关于软硬边和平滑组
+## 关于软硬边和平滑组
 
 这两个 **本质上是相同的概念**，只是所处的 **DCC 不同，叫法不同**，**在 Maya 中，叫做软硬边，在 Max 中，叫做平滑组**，在 Houdini 中，这一块直接被 Normal 节点控制着。
 
@@ -595,11 +577,11 @@ FallBack "ProPixelizer/Hidden/MyPixelBase"
 
 
 
-## 关于软硬边
+### 关于软硬边
 
 以一个 Cube 为例，它的一个点上，其实有 3 个端点（Vertex）（这里我们沿用 Houdni 的叫法）。我们看一条棱，这个棱有两个点、6 个端点，每个端点有一个法线，而参与这条棱的两个面的端点，有 4 个。**当这四个端点的法线朝向一致时（就像我用工具做完法线平滑一样），我们认为这是一条软边，当不一致时则认为这是一条硬边。** 在着色时，着色点的法线方向是靠重心坐标插值出来的，这意味着，**如果有软边的参与，则两个相邻面的渲染、他们的交界处必然是平滑的，因为他们相交的边的端点的法线朝向相同。**
 
-## 关于平滑组
+### 关于平滑组
 
 本质上在做和软硬边相同的事情。平滑组是类似于给面一个属性，**如果两个相邻面的平滑组属性的值相同，则它们相交的边的四个端点会使用平滑后的法线**（以四边形为例）。
 
@@ -609,7 +591,7 @@ FallBack "ProPixelizer/Hidden/MyPixelBase"
 
 
 
-# Unity 的深度法线纹理
+## Unity 的深度法线纹理
 
 **前向渲染中若要用 G-Buffer 需要在相机勾选生成深度法线纹理**，这个深度法线纹理的深度是编码过的、非线性的、0~1 的深度值。法线是观察空间的法线方向，也就是模型空间顶点位置乘以 M 矩阵和 V 矩阵后的那个坐标的空间，可以理解为，以相机为原点，相机顶为 y 正，相机朝向为 z 负方向的坐标系。
 
@@ -619,7 +601,7 @@ FallBack "ProPixelizer/Hidden/MyPixelBase"
 
 
 
-# URP 渲染管线中，多 PassShader 的 Pass 执行顺序与执行可能问题
+## URP 渲染管线中，多 PassShader 的 Pass 执行顺序与执行可能问题
 
 **URP 渲染管线中，默认不再支持多 Pass 渲染，但是通过一些特殊的 Tag 可以做到多 Pass 渲染。**
 
@@ -643,11 +625,11 @@ FallBack "ProPixelizer/Hidden/MyPixelBase"
 
 
 
-# 关于 Layer 和 Render Layer
+## 关于 Layer 和 Render Layer
 
 
 
-## 是什么
+### 是什么
 
 **Layer 是物体（GameObject）的一个属性，本质是 int 型的一个参数。**
 
@@ -665,7 +647,7 @@ FallBack "ProPixelizer/Hidden/MyPixelBase"
 
 
 
-## 有什么用？
+### 有什么用？
 
 我起初接触的用法比较少，希望后续碰到能回来补充。
 
@@ -686,7 +668,7 @@ FallBack "ProPixelizer/Hidden/MyPixelBase"
 
 
 
-## 总结
+### 总结
 
 总之 Layer 和 Render Layer 就是一组 **分别位于渲染物体和 Pass 的辨识开关**，只有两个开关 **都表示 YES 时物体才会被渲染**。
 
@@ -696,7 +678,7 @@ FallBack "ProPixelizer/Hidden/MyPixelBase"
 
 
 
-# 关于 URP Shader 的 CBUFFER
+## 关于 URP Shader 的 CBUFFER
 
 以前的批处理要求比较严格，Shader 入门精要中：
 
@@ -737,7 +719,7 @@ FallBack "ProPixelizer/Hidden/MyPixelBase"
 
 
 
-## 关于 CBUFFER
+### 关于 CBUFFER
 
 **CBUFFER、即 Constant Buffer，常量缓冲区。**
 
@@ -853,7 +835,7 @@ Render Command（渲染命令）和 Draw Call（绘制调用）是 Unity 中两�
 
 
 
-# 关于软粒子
+## 关于软粒子
 
 ![image-20230116223031154](Images/image-20230116223031154.png) 
 
@@ -877,7 +859,7 @@ Render Command（渲染命令）和 Draw Call（绘制调用）是 Unity 中两�
 
 
 
-# 关于材质实例
+## 关于材质实例
 
 如果有 **一个材质要用于不同的模型**，而我又希望他们的 **参数不要同步** 的时候，就需要材质实例这个东西。也就是通过 **给与不同的模型以不同的材质实例** 来达到目的。
 
@@ -891,7 +873,7 @@ Render Command（渲染命令）和 Draw Call（绘制调用）是 Unity 中两�
 
 
 
-## 分清楚 Material 和 ShaderMaterial
+### 分清楚 Material 和 ShaderMaterial
 
 二者都是 Renderer 组件的属性之一，二者的类型都是 Material。
 
@@ -910,7 +892,7 @@ Render Command（渲染命令）和 Draw Call（绘制调用）是 Unity 中两�
 
 
 
-## 极具优势、不打断合批
+### 极具优势、不打断合批
 
 对于同一个材质的不同的材质实例，可能拥有不同的属性，一般而言，不同的材质属性会导致合批被打断。
 
@@ -928,7 +910,7 @@ ShaderGraph 中，会默认把颜色、Float 等属性写入 CBUFFER 中：
 
 ![image-20230906103649208](./Images/image-20230906103649208.png) 
 
-关于 CBUFFER：[跳转](#关于CBUFFER)
+关于 CBUFFER：[跳转](#关于 CBUFFER)
 
 
 
@@ -936,7 +918,7 @@ ShaderGraph 中，会默认把颜色、Float 等属性写入 CBUFFER 中：
 
 
 
-## 内存泄漏问题
+### 内存泄漏问题
 
 材质实例虽好，但是必须手动删除，否则一直存在于内存中。
 
@@ -961,7 +943,7 @@ void OnDestroy()
 
 
 
-# 使粒子系统可以控制自定义 Shader 的材质的颜色
+## 使粒子系统可以控制自定义 Shader 的材质的颜色
 
 如我自己写了一个材质，但是此时粒子系统组件不能控制材质的颜色，这是因为 **粒子系统是通过改变顶点色来影响最终的渲染颜色**。
 
@@ -975,11 +957,11 @@ void OnDestroy()
 
 
 
-# 关于资产预处理——Asset Post Processing
+## 关于资产预处理——Asset Post Processing
 
 
 
-## **什么是**
+### **什么是**
 
 所有类型的资产（如模型、音频、图片）导入时都会过一遍该类型的所有的预处理，如下模型的：
 
@@ -987,11 +969,11 @@ void OnDestroy()
 
 预处理可以帮助 Unity 更好的理解资产，可以给资产做规范化等等。
 
-比如我希望我项目中的所有模型，他们的 Mesh 的中心都是原点，那么就可以写一个资产预处理，在导入时 Unity 会自动通知你写的回调函数，然后执行操作更改资产。注意，这里的 **更改并不会更改源文件，而是让 Unity 对资产有额外的理解，在理解层面更改资产，源文件本身不会被改变。** 详见：[关于 Meta 文件](#关于ImportSetting、资产和Meta文件（元数据）)
+比如我希望我项目中的所有模型，他们的 Mesh 的中心都是原点，那么就可以写一个资产预处理，在导入时 Unity 会自动通知你写的回调函数，然后执行操作更改资产。注意，这里的 **更改并不会更改源文件，而是让 Unity 对资产有额外的理解，在理解层面更改资产，源文件本身不会被改变。** 详见：[关于 Meta 文件](#关于 ImportSetting、资产和 Meta 文件（元数据）)
 
 
 
-## 怎么写
+### 怎么写
 
 1. 继承 AssetPostprocessor
 
@@ -1001,7 +983,7 @@ void OnDestroy()
 
 3. 触发相应的重新导入，即可看到效果。
 
-## 参考
+### 参考
 
 [资产预处理](E:\我的往期办公文件\Unity资源\学习\供日后参考\资产预处理)
 
@@ -1013,7 +995,7 @@ void OnDestroy()
 
 
 
-# 关于插件更新的预想
+## 关于插件更新的预想
 
 2023.3.17 读到一篇博客，讲了 Maya 插件更新功能的实现思路。[原文](https://www.cnblogs.com/meteoric_cry/p/15905357.html)
 
@@ -1021,11 +1003,11 @@ void OnDestroy()
 
 
 
-## 什么是 URL
+### 什么是 URL
 
 统一资源定位符（Uniform Resource Locator）。就是一个 **标记文件在在服务器主机中的位置的字符串**。
 
-如：例如，http://www.example.com/index.html 就是一个 URL，其中 http 是协议，www.example.com 是主机名，index.html 是路径。
+如：例如，<http://www.example.com/index.html> 就是一个 URL，其中 http 是协议，<www.example.com> 是主机名，index.html 是路径。
 
  
 
@@ -1051,11 +1033,11 @@ print('文件下载成功！')
 
  
 
-## 更新的整体思路
+### 更新的整体思路
 
  
 
-**在初版插件中就内置检查更新功能。**
+<u>在初版插件中就内置检查更新功能。</u>
 
 检查更新时，将从服务器下载一个 XML 或 Jason 配置文件，用来记录版本信息和最新版本的 URL。
 
@@ -1063,19 +1045,19 @@ print('文件下载成功！')
 
  
 
-**下载**
+<u>下载</u>
 
 用上面的代码下载最新的插件文件到本地。
 
  
 
-**安装**
+<u>安装</u>
 
 也可以写在更新程序中（通常更新程序和本体程序区分开来），主要是一些文件的替换和移动。
 
  
 
-## 企业中运用
+### 企业中运用
 
 问了导师，说是项目组中会有自己的类似 Git 的项目托管，工具也会依托托管得到更新，不需要这样的传统软件更新方式。
 
@@ -1087,7 +1069,7 @@ print('文件下载成功！')
 
  
 
-# 关于 Python 装饰器
+## 关于 Python 装饰器
 
 这天查 Python 的时候发现函数声明上一行有@……的用法，问 GPT 发现是函数装饰器。想起来 C#也有类似的用法，比如@override，就想问这俩是不是基本一致，但发现其实根本不是一个东西。】
 
@@ -1122,11 +1104,11 @@ After the function is called.
 
  
 
-# 空间、矩阵和变换
+## 空间、矩阵和变换
 
 
 
-## 结论：
+### 结论
 
 父空间坐标到子，消除父影响，左乘子空间在父空间的逆变换矩阵
 
@@ -1140,7 +1122,7 @@ After the function is called.
 
  
 
-## 关于 SMTP 的个人理解
+### 关于 SMTP 的个人理解
 
 ![截图.png](Images/clip_image002.gif) 
 
@@ -1148,7 +1130,7 @@ After the function is called.
 
  
 
-## 关于空间转换的小推导和验证
+### 关于空间转换的小推导和验证
 
 想要把子空间下的坐标转移到父空间？那不就是把子空间在父空间中的变换再应用到坐标就行吗。
 
@@ -1210,7 +1192,7 @@ After the function is called.
 
  
 
-# 矩阵左乘和右乘
+## 矩阵左乘和右乘
 
 我一直没有理解，感觉也不太能理解。
 
@@ -1242,13 +1224,13 @@ P‘ = M2M1P
 
 
 
-# 关于骨骼和蒙皮
+## 关于骨骼和蒙皮
 
 参考文章：[CSDN](https://blog.csdn.net/n5/article/details/3105872)
 
  
 
-## 骨骼的本质
+### 骨骼的本质
 
 在 Maya 等 DCC 中，骨骼本质上是 **一个 Transform 的节点树**。将带有骨骼和蒙皮的模型导入 Unity，也可以看到骨骼组成了一个 Transform 的节点树。 
 
@@ -1256,13 +1238,13 @@ P‘ = M2M1P
 
 
 
-## 蒙皮 Mesh 确定世界空间顶点位置的方法
+### 蒙皮 Mesh 确定世界空间顶点位置的方法
 
 Mesh 的顶点储存了 Object 空间下的位置。
 
 对于非蒙皮 Mesh，Object 空间位置可以通过模型矩阵转到世界空间下。
 
-**顶点在模型空间的坐标---<模型矩阵>---> 顶点在世界空间的坐标**
+<u>顶点在模型空间的坐标---<模型矩阵>---> 顶点在世界空间的坐标</u>
 
 这里说的模型矩阵，就是代表 Transform 的 localToWorldMatrix，可以从 transform 对象中获取。
 
@@ -1270,13 +1252,13 @@ Mesh 的顶点储存了 Object 空间下的位置。
 
 但是对于蒙皮 Mesh 则需要做进一步的处理：
 
-**mesh vertex (defined in mesh space)---<BoneOffsetMatrix>---> Bone space---<BoneCombinedTransformMatrix>---> World**
+<u>mesh vertex (defined in mesh space)---<BoneOffsetMatrix>---> Bone space---<BoneCombinedTransformMatrix>---> World</u>
 
-**顶点在模型空间的坐标---<骨骼偏移矩阵>---> 顶点在骨骼空间的坐标---<骨骼组合变换矩阵>---> 顶点在世界空间下坐标**
+<u>顶点在模型空间的坐标---<骨骼偏移矩阵>---> 顶点在骨骼空间的坐标---<骨骼组合变换矩阵>---> 顶点在世界空间下坐标</u>
 
  
 
-## 什么是 BoneOffsetMatrix 矩阵？怎么算？
+### 什么是 BoneOffsetMatrix 矩阵？怎么算？
 
 把顶点 **从模型空间转移到骨骼空间的矩阵是骨骼偏移矩阵。**
 
@@ -1284,11 +1266,11 @@ Mesh 的顶点储存了 Object 空间下的位置。
 
 这模型空间和骨骼空间并不是什么父子关系，但是是同处世界空间下的两个坐标系，所以把顶点坐标从模型空间转移到骨骼空间时，需要：
 
-**模型空间顶点坐标---<模型矩阵>---> 世界空间---<递归地将坐标转移到指定骨骼节点>---> 指定的骨骼空间的顶点坐标**
+<u>模型空间顶点坐标---<模型矩阵>---> 世界空间---<递归地将坐标转移到指定骨骼节点>---> 指定的骨骼空间的顶点坐标</u>
 
 在建模规范中，往往使模型空间与世界空间重合，所以第一步常常可以省去，变为：
 
-**世界空间顶点坐标---<递归地将坐标转移到指定骨骼节点>---> 指定的骨骼空间的顶点坐标**
+<u>世界空间顶点坐标---<递归地将坐标转移到指定骨骼节点>---> 指定的骨骼空间的顶点坐标</u>
 
 从上面来看，这个“<递归地将坐标转移到指定骨骼节点>”的矩阵，就是我们需要的 BoneOffsetMatrix，它怎么求呢？
 
@@ -1308,7 +1290,7 @@ Pb2 = ((M1M2M3)^-1)Pw
 
  
 
-## 什么是 BoneCombinedTransformMatrix？怎么算？
+### 什么是 BoneCombinedTransformMatrix？怎么算？
 
 即骨骼组合变换矩阵。这个矩阵并不保存在骨骼的数据结构中，而是在需要时计算。
 
@@ -1332,7 +1314,7 @@ Pw = M1M2M3Pb2
 
  
 
-## 疑惑
+### 疑惑
 
 我被一个问题困扰了一段时间：
 
@@ -1352,7 +1334,7 @@ Pw = M1M2M3Pb2
 
  
 
-## 蒙皮 Mesh 的渲染流程
+### 蒙皮 Mesh 的渲染流程
 
 ```c#
 void myDisplay(void) {
@@ -1406,7 +1388,7 @@ void myDisplay(void) {
 }
 ```
 
-**读取动画，插值递归计算每一节骨骼世界坐标**
+<u>读取动画，插值递归计算每一节骨骼世界坐标</u>
 
 由 CPU 处理。
 
@@ -1416,7 +1398,7 @@ void myDisplay(void) {
 
  
 
-**蒙皮变形**
+<u>蒙皮变形</u>
 
 由 CPU 处理，输入原始 mesh，遍历顶点。
 
@@ -1434,13 +1416,13 @@ void myDisplay(void) {
 
  
 
-**渲染**
+<u>渲染</u>
 
 计算出的图元通过 DrawCall 调用 GPU 绘制
 
  
 
-## 解答疑问：为了实现蒙皮，需要哪些条件？
+### 解答疑问：为了实现蒙皮，需要哪些条件？
 
 1. 几何体的顶点中需要保存影响它的骨骼的指针数组和权重数组
 
@@ -1457,7 +1439,7 @@ void myDisplay(void) {
 
  
 
-# 在工具设计中使用状态模式
+## 在工具设计中使用状态模式
 
 在制作工具的时候，如 **菜单选项** 这种，**如果没有使用状态模式，和容易遗漏项目导致一些疑难杂症。**
 
@@ -1475,7 +1457,7 @@ void myDisplay(void) {
 
  
 
-# 配置文件、把代码写得优雅！
+## 配置文件-把代码写得优雅
 
 在工具 SkinningCopyTo 的开发中，我写了下面的屎山：
 
@@ -1715,19 +1697,19 @@ cmds.setParent('..')
 
  
 
-# 哈希
+## 哈希
 
  
 
-## 什么是？
+### 什么是？
 
 哈希是一类算法，可以把 **任意长度的输入转化为指定长度的字符串输出**。如：a7529dfe23（这是一个哈希值，10 位 16 进制，可以表达最多 16^10 种情况）
 
  
 
-## 特点是？
+### 特点
 
-**高度离散性、随机性、不可逆性**
+<u>高度离散性、随机性、不可逆性</u>
 
 只要输入发生任意微小变化，输出的哈希值就会发生不可预测的、极大的、（理论上有规律）无规律的改变。
 
@@ -1735,7 +1717,7 @@ cmds.setParent('..')
 
  
 
-## 怎么用？在哪里用？
+### 怎么用？在哪里用？
 
 1. 用作 **数字签名、保证数字资产的完整性、确认一个资产确实是一个资产，没有经过修改。**
 
@@ -1745,7 +1727,7 @@ cmds.setParent('..')
 
  
 
-## 大概是怎么被算出来的？
+### 大概是怎么被算出来的？
 
 基本是将 **数据分块、填充、压缩** 后算出来的，中间有很多参数。
 
@@ -1753,7 +1735,7 @@ cmds.setParent('..')
 
  
 
-## 哈希冲突
+### 哈希冲突
 
 既然是一种对资产的高度抽象算法，那么是有可能会出现 **多个输入对应一个输出的情况** 的。这种就叫哈希冲突。
 
@@ -1763,7 +1745,7 @@ cmds.setParent('..')
 
  
 
-## 哈希碰撞
+### 哈希碰撞
 
 [实例](https://linux.cn/article-8238-1.html)
 
@@ -1777,7 +1759,7 @@ cmds.setParent('..')
 
  
 
-## 在高级编程语言中的用处
+### 在高级编程语言中的用处
 
 哈希算法在高级编程语言中是非常常用的。
 
@@ -1789,7 +1771,7 @@ cmds.setParent('..')
 
 > 工作以后就会发现，项目中有时候用到哈希表，有时候用到字典表，这两个都是索引、值得表现形式，那么它们的区别在哪里？
 >
->  以下是笔者总结的区别：
+> 以下是笔者总结的区别：
 >
 > 1. 字典是线程不安全的，哈希表是线程安全的，所以一般情况下单线程用字典，多线程用哈希表。
 >
@@ -1807,7 +1789,7 @@ cmds.setParent('..')
 
 
 
-# 关于 Include 和 Import
+## 关于 Include 和 Import
 
 **import 和 include 的区别是？**
 
@@ -1825,7 +1807,7 @@ include 的处理方式非常简单，就是直接把 include 的文件的内容
 
 这取决于编程语言和具体的实现。 
 
-在 Python 中，当你执行 import 语句时，Python 会在 sys.path 路径中查找指定的模块，并将其编译为字节码文件（.pyc 或.pyc 文件）缓存到 __pycache__ 目录中。下一次导入相同的模块时，Python 会直接加载缓存的字节码文件，而不是重新编译源代码。因此，在 Python 中执行 import 语句实际上是导入编译后的字节码文件。
+在 Python 中，当你执行 import 语句时，Python 会在 sys.path 路径中查找指定的模块，并将其编译为字节码文件（.pyc 或.pyc 文件）缓存到 `__pycache__` 目录中。下一次导入相同的模块时，Python 会直接加载缓存的字节码文件，而不是重新编译源代码。因此，在 Python 中执行 import 语句实际上是导入编译后的字节码文件。
 
 ——注：这也导致 Python 中如果要更新引用的模块，需要处理一下缓存，或者使用重新导入命令，查阅：[关于 Python 的导入缓存导致的模块热更新失效问题](../Maya工具开发学习笔记/Maya工具开发学习笔记.md##关于Python的导入缓存导致的模块热更新失效问题)
 
@@ -1839,7 +1821,7 @@ include 的处理方式非常简单，就是直接把 include 的文件的内容
 
 
 
-# Git 的使用
+## Git 的使用
 
 因为已经用了很久的分布式版本管理了，这里只记一些不太了解的。
 
@@ -1847,7 +1829,7 @@ include 的处理方式非常简单，就是直接把 include 的文件的内容
 
  
 
-## 重置参数
+### 重置参数
 
 ![截图.png](Images/clip_image014.gif) 
 
@@ -1857,7 +1839,7 @@ include 的处理方式非常简单，就是直接把 include 的文件的内容
 
 
 
-## 不要全部文件都托管
+### 不要全部文件都托管
 
 右键菜单中可以从库中删除这个文件，也可以通过配置把这个文件加入忽略列表中
 
@@ -1867,7 +1849,7 @@ include 的处理方式非常简单，就是直接把 include 的文件的内容
 
  
 
-## 使用分支并行开发
+### 使用分支并行开发
 
 可以本地创建分支，然汇切换检出到新的分支。
 
@@ -1879,7 +1861,7 @@ include 的处理方式非常简单，就是直接把 include 的文件的内容
 
  
 
-## 变基
+### 变基
 
 一图看懂好吧：
 
@@ -1893,7 +1875,7 @@ include 的处理方式非常简单，就是直接把 include 的文件的内容
 
  
 
-## 版本回退
+### 版本回退
 
 本地版本回退只要选中要退的版本，右键重置就行，上面也提及了回退的参数。
 
@@ -1907,13 +1889,13 @@ include 的处理方式非常简单，就是直接把 include 的文件的内容
 
  
 
-## SSH 协议和 HTTP 协议
+### SSH 协议和 HTTP 协议
 
 在一些保密程度较高、规范性较强的项目中，往往使用 SSH 协议：
 
 ![截图.png](Images/clip_image030.gif)
 
-SSH 通过 Git 的客户端生成，TortoiseGUI 也可以：https://www.jianshu.com/p/1bbf5e25c912
+SSH 通过 Git 的客户端生成，TortoiseGUI 也可以：<https://www.jianshu.com/p/1bbf5e25c912>
 
 SSH 密钥分为公钥和私钥，公钥交给项目，当项目添加了你的公钥后，你可以拉取和查看项目。
 
@@ -1931,7 +1913,7 @@ SSH 密钥分为公钥和私钥，公钥交给项目，当项目添加了你的�
 
 
 
-# lib 和 dll
+## lib 和 dll
 
 **DLL ：Dynamic Link Library 动态链接库。** 在程序运行时，如果运行到引用了 DLL 的地方，程序就会动态地加载这个 DLL，读取里面的函数和变量。
 
@@ -1949,7 +1931,7 @@ SSH 密钥分为公钥和私钥，公钥交给项目，当项目添加了你的�
 
 
 
-# C#拆分类的方式
+## C#拆分类的方式
 
 有时候编写的类里面属性和一些比较杂的方法太多了，不方便查看和编写，此时就可以使用：**partial 关键字** 来修饰这个类，被修饰的类会和与其重名的类合并为一个完整的类。
 
@@ -1997,7 +1979,7 @@ public partial class Person
 
 
 
-# 使用 IDE 的重构功能
+## 使用 IDE 的重构功能
 
 选中代码块后右键菜单中选重构，就能弹出重构菜单：
 
@@ -2005,13 +1987,13 @@ public partial class Person
 
 
 
-## #if
+### #if
 
-[预处理器指令](##预处理器指令)
+[预处理器指令](# 预处理器指令)
 
 
 
-## #region
+### #region
 
 单词的意思是区域。
 
@@ -2019,7 +2001,7 @@ public partial class Person
 
 
 
-## #checked
+### #checked
 
 由 Checked block 指令生成，会包裹选中的代码。
 
@@ -2027,7 +2009,7 @@ public partial class Person
 
 
 
-## 提取方法
+### 提取方法
 
 这个很好用。选中一个代码块，可以自动把它作为函数打包。
 
@@ -2037,7 +2019,7 @@ public partial class Person
 
 
 
-# 预处理器指令
+## 预处理器指令
 
 在编译时，**编译器可以识别代码中的预处理器指令，然后对代码做出一些操作。**
 
@@ -2057,7 +2039,7 @@ public partial class Person
 
 
 
-# C# 静态查找、匹配、读取文件——UnityEditor
+## C# 静态查找、匹配、读取文件——UnityEditor
 
 需要注意，这里的方法使用了 AssetDatabase，其属于 UnityEditor 命名空间下的类，这个类只会在 Editor 模式下起作用。
 
@@ -2096,13 +2078,13 @@ foreach (string file in files)
 
 
 
-# 利用 Unity 进行对于图片文件的读取、写入和导出
+## 利用 Unity 进行对于图片文件的读取、写入和导出
 
 工作中需要把 CubeMap 的一面导出为普通的图片格式，但是这方面我完全没有了解过。
 
 这其中也包含了修改文件的工作流：
 
-**从文件中读取信息 → 处理读取出的数据 → 将处理后的数据重新写入文件**
+<u>从文件中读取信息 → 处理读取出的数据 → 将处理后的数据重新写入文件</u>
 
 
 
@@ -2128,13 +2110,13 @@ private void GetCubeMapSide(CubemapFace face){
 
 
 
-## Texture2D 类
+### Texture2D 类
 
 其代表 Unity 内的纹理类型。上述代码通过长宽、编码格式和是否使用 MipMap 作为参数初始化了这个对象。
 
 
 
-## TextureFormat
+### TextureFormat
 
 Format 直译是格式，但是不太好理解。
 
@@ -2146,13 +2128,13 @@ RGB24 是非压缩格式，适合让 CPU 处理，而不适合让 GPU 进行读�
 
 
 
-## tex.Apply()
+### tex.Apply()
 
 tex.Apply() 方法用于将设置了颜色的 Texture2D 对象提交到 GPU 进行渲染，这样可以确保修改后的纹理可以立即在场景中显示出来。如果不调用此方法，修改的纹理将不会被更新并显示在场景中。
 
 
 
-## tex.EncodeToxx()
+### tex.EncodeToxx()
 
 Texture2D 类的方法，将 Texture2D 对象编码为对应格式所需要的 byte 数组
 
@@ -2160,7 +2142,7 @@ Texture2D 类的方法，将 Texture2D 对象编码为对应格式所需要的 b
 
 
 
-## File.WriteAllBytes(path, bytes)
+### File.WriteAllBytes(path, bytes)
 
 将字节数组内容写到指定路径的指定文件。
 
@@ -2170,7 +2152,7 @@ Texture2D 类的方法，将 Texture2D 对象编码为对应格式所需要的 b
 
 
 
-# 静态（类型）语言和动态（类型）语言、强类型性和弱类型性
+## 静态（类型）语言和动态（类型）语言、强类型性和弱类型性
 
 [参考文献](http://c.biancheng.net/view/8803.html)、[参考文献 2](https://zhuanlan.zhihu.com/p/109803872)、[参考文献 3](https://developer.aliyun.com/article/646209)
 
@@ -2184,13 +2166,13 @@ Texture2D 类的方法，将 Texture2D 对象编码为对应格式所需要的 b
 
 
 
-## 静态语言
+### 静态语言
 
 本质上，当一种语言在编译时就决定了变量的类型，那么可以说这种语言是静态语言。
 
 
 
-**静态语言的特点**
+<u>静态语言的特点</u>
 
 1. 变量 **必须在使用之前声明其类型**。
 2. 变量的类型在编译时就已确定，**不允许在运行时改变**。
@@ -2201,13 +2183,13 @@ Texture2D 类的方法，将 Texture2D 对象编码为对应格式所需要的 b
 
  
 
-##  动态语言
+### 动态语言
 
 当变量的类型来自赋予给它的值而不是变量的定义时，可以说这种语言是动态语言。
 
 
 
-**动态语言的特点**
+<u>动态语言的特点</u>
 
 1. 变量的 **类型在运行时动态确定**，**允许在运行时改变变量的类型**。
 2. 动态类型语言通常需要 **更少的代码** 来定义类型和声明变量，但可能会 **降低代码的可读性和可维护性**。
@@ -2218,7 +2200,7 @@ Texture2D 类的方法，将 Texture2D 对象编码为对应格式所需要的 b
 
  
 
-## 强类型性
+### 强类型性
 
 类型性的强弱体现在对于 **类型转换的严格程度**。
 
@@ -2230,7 +2212,7 @@ Texture2D 类的方法，将 Texture2D 对象编码为对应格式所需要的 b
 
 
 
-## 弱类型性
+### 弱类型性
 
 弱类型性的语言对于类型转换相对宽松且自动，但也带来了一定的不可控性。
 
@@ -2247,7 +2229,7 @@ Texture2D 类的方法，将 Texture2D 对象编码为对应格式所需要的 b
 
 
 
-## 常见语言分类
+### 常见语言分类
 
 ![image-20230526174844950](Images/image-20230526174844950.png) 
 
@@ -2257,7 +2239,7 @@ Texture2D 类的方法，将 Texture2D 对象编码为对应格式所需要的 b
 
 
 
-# 关于 UnityEditor 下的 API 导致的打包失败问题
+## 关于 UnityEditor 下的 API 导致的打包失败问题
 
 按照规范，使用了 UnityEditorAPI 的脚本都应该放置到 Assets/Editor 文件夹下。
 
@@ -2274,13 +2256,13 @@ Texture2D 类的方法，将 Texture2D 对象编码为对应格式所需要的 b
 
 
 
-# 在 Unity 工具开发中使用路径
+## 在 Unity 工具开发中使用路径
 
 Unity 工具开发中常用路径索引到目标资产，使用通配符、正则表达式、string 类方法等，可以帮助组织路径。
 
 
 
-## 相对路径和绝对路径
+### 相对路径和绝对路径
 
 Unity 中常用相对路径，最常用的是 Assets 相对路径和 Resources 相对路径。
 
@@ -2310,7 +2292,7 @@ Sprite runtimeSprite = Resources.Load<Sprite>("Sprites/Enemy");
 
 
 
-## 相对路径和绝对路径的转换
+### 相对路径和绝对路径的转换
 
 使用绝对路径时经常需要和相对路径互相转换，转换的实现有很多种，基本思路是增减项目目录前缀，再根据需要替换路径分隔符。
 
@@ -2333,7 +2315,7 @@ public static class PathUtil {
 
 
 
-## 使用通配符或者正则表达式匹配
+### 使用通配符或者正则表达式匹配
 
 先复习一下什么是通配符：[Maya 笔记——通配符](../Maya工具开发学习笔记/Maya工具开发学习笔记.md###通配符)
 
@@ -2347,7 +2329,7 @@ public static class PathUtil {
 
 
 
-# 正则表达式
+## 正则表达式
 
 正则表达式是一种强大的匹配机制，其比 [通配符](../Maya工具开发学习笔记/Maya工具开发学习笔记.md###通配符) 更加复杂，但也能处理更加复杂的情况。
 
@@ -2357,64 +2339,44 @@ public static class PathUtil {
 
 创建正则表达式对象：
 
-```
-Regex regex = new Regex(pattern);
-```
+`Regex regex = new Regex(pattern);`
 
 检查字符串是否匹配正则表达式：
 
-```
-bool isMatch = regex.IsMatch(input);
-```
+`bool isMatch = regex.IsMatch(input);`
 
 获取第一个匹配项：
 
-```
-Match match = regex.Match(input);
-```
+`Match match = regex.Match(input);`
 
 获取所有匹配项：
 
-```
-MatchCollection matches = regex.Matches(input);
-```
+`MatchCollection matches = regex.Matches(input);`
 
 替换匹配项：
 
-```
-string result = regex.Replace(input, replacement);
-```
+`string result = regex.Replace(input, replacement);`
 
 获取匹配项的位置和长度：
 
-```
-int index = match.Index;
-int length = match.Length;
-```
+`int index = match.Index;`
+`int length = match.Length;`
 
 获取匹配项的值：
 
-```
-string value = match.Value;
-```
+`string value = match.Value;`
 
 在正则表达式中使用字符类：
 
-```
-string pattern = "[aeiou]"; // 匹配任何一个元音字母
-```
+`string pattern = "[aeiou]"; // 匹配任何一个元音字母`
 
 在正则表达式中使用量词：
 
-```
-string pattern = "a{2,4}"; // 匹配2到4个连续的字母a
-```
+`string pattern = "a{2,4}"; // 匹配2到4个连续的字母a`
 
 在正则表达式中使用分组：
 
-```
-string pattern = "(ab)+"; // 匹配一个或多个连续的ab
-```
+`string pattern = "(ab)+"; // 匹配一个或多个连续的ab`
 
 
 
@@ -2426,7 +2388,7 @@ string pattern = "(ab)+"; // 匹配一个或多个连续的ab
 
 **关于正则表达式的验证和测试：**
 
-https://regex101.com/r/lzwFoS/1
+<https://regex101.com/r/lzwFoS/1>
 
 
 
@@ -2446,7 +2408,7 @@ https://regex101.com/r/lzwFoS/1
 
 
 
-# Resources 类，动态加载和管理资源
+## Resources 类，动态加载和管理资源
 
 不同于 AssetDatabase，Resources 是属于 UnityEngine 下的类，其可以被 Build。
 
@@ -2469,7 +2431,7 @@ Resources 常用于 GamePlay 中对资产的动态加载、卸载、异步加载
 
 
 
-# 拉姆达表达式
+## 拉姆达表达式
 
 拉姆达表达式常用于 **创建匿名函数对象**。
 
@@ -2477,7 +2439,7 @@ Resources 常用于 GamePlay 中对资产的动态加载、卸载、异步加载
 
 比如在 Dotween 中为 tweening 动画中 **添加结束事件**：
 
-```
+```c#
 void Start()
 {
     transform.DOMoveX(10, 1).OnComplete(
@@ -2498,7 +2460,7 @@ void Start()
 
 > Lambda 表达式由以下几部分组成：
 >
-> ```
+> ```c#
 > (parameters) => expression
 > ```
 >
@@ -2516,7 +2478,7 @@ void Start()
 
 
 
-# 事件系统
+## 事件系统
 
 高级编程语言中常用事件系统，接下来我们以 C#为例。
 
@@ -2532,7 +2494,7 @@ void Start()
 
 
 
-**事件系统的应用场合**
+<u>事件系统的应用场合</u>
 
 > 以下是一些事件系统的应用场合：
 >
@@ -2548,7 +2510,7 @@ void Start()
 
 
 
-**事件系统的简单实例：**
+<u>事件系统的简单实例：</u>
 
 ```c#
 using UnityEngine;
@@ -2585,14 +2547,14 @@ public class Player : MonoBehaviour
 
 
 
-**使用 Action 和 Func 类型**
+<u>使用 Action 和 Func 类型</u>
 
 看了上面的示例，是不是觉得 **自己定义委托类型还挺麻烦的**？
 
 为了解决这些麻烦，Unity 预置了一些委托类型，**Action 和 Func 是两类常用的预置委托模板。**
 
 > 在 Unity 中，Action 类是一个预定义的委托类型，用于表示一个 **不返回值的方法**。它可以用于将方法作为参数传递给其他方法，或者在事件处理中注册方法。Action 类可以有 **最多四个参数**，如果需要更多的参数，则可以使用带有泛型参数的 Action 类。例如，**Action <int> 表示一个带有一个整数参数的方法**，而 **Action <int, float, string, bool> 表示一个带有四个参数的方法**，分别为整数、浮点数、字符串和布尔值。
-
+>
 > Func 类与 Action 类非常相似，但它可以表示带有返回值的方法，并且在定义时需要指定返回值类型。例如，**Func <int> 表示一个返回整数类型的方法**，而 **Func <int, float, string, bool> 表示一个带有三个参数并返回布尔值类型** 的方法。
 
 这样我们就可以使用 Action 去定义委托类型的对象，使其加入事件了。
@@ -2603,11 +2565,11 @@ public class Player : MonoBehaviour
 
 
 
-# 翻转纹理
+## 翻转纹理
 
 看似简单的功能，没有 GPT 和 Copilot 我还真写（抄）不出来捏：
 
-其中 colors 是从图片读取出来的信息： `Color[] colors = cm.GetPixels(face); `
+其中 colors 是从图片读取出来的信息： `Color[] colors = cm.GetPixels(face);`
 
 ```c#
 // 左右翻转
@@ -2638,7 +2600,7 @@ for (int i = 0; i < size; i++)
 
 
 
-# 关于 ImportSetting、资产和 Meta 文件（元数据）
+## 关于 ImportSetting、资产和 Meta 文件（元数据）
 
 导入项目的所有资产（甚至是文件夹）都有一个自己专属的 **Meta 文件**，这个文件叫做 **元数据**，用于 **告诉 Unity 如何解释这个资产**。
 
@@ -2670,7 +2632,7 @@ AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
 
 
 
-**区分资产读取和 ImportSetting 控制**
+<u>区分资产读取和 ImportSetting 控制</u>
 
 如果想读取一个目录下的资产，我们会使用：
 
@@ -2696,7 +2658,7 @@ AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
 
 
 
-# 关于 Blit
+## 关于 Blit
 
 不知道何时受什么影响，**我一直以为 URP 中不支持 Graphc.Blit**。
 
@@ -2736,11 +2698,11 @@ for (int i = 0; i < times; i++) {
 
 
 
-# 关于 Shader 变体
+## 关于 Shader 变体
 
-https://zhuanlan.zhihu.com/p/623658954——好文，可以参考
+<https://zhuanlan.zhihu.com/p/623658954>——好文，可以参考
 
-## 什么是？
+### 什么是？
 
 在 Unity 中，Shader 变体是 **根据不同的平台、渲染管线、材质属性和宏定义等因素生成的一组 Shader 程序**。这些变体将在 **运行时（Editor 中的 RunTime）自动编译并使用（打包时一次性全部编译）**，以确保在 **不同的环境中具有最佳的性能和质量**。Shader 变体的生成是通过 Unity 的 **Shader 编译器和预处理器进行** 的，可以通过 **手动设置 Shader 的编译选项和宏定义** 来控制变体的生成。
 
@@ -2758,7 +2720,7 @@ https://zhuanlan.zhihu.com/p/623658954——好文，可以参考
 
 
 
-## 让 Shader 产生变体
+### 让 Shader 产生变体
 
 在 Unity 中，可以通过在 Shader 文件中添 **加#pragma 指令来修改编译选项**。以下是一些常用的编译选项：
 
@@ -2774,16 +2736,16 @@ https://zhuanlan.zhihu.com/p/623658954——好文，可以参考
 
 以下是一个 #pragma shader_feature 指令的示例：
 
-```
+```glsl
 #pragma shader_feature _ALPHATEST_ON
 #pragma shader_feature _SPECULARHIGHLIGHTS_OFF
 ```
 
-这个示例中，#pragma shader_feature 指令指定了两个特性：_ALPHATEST_ON 和 _SPECULARHIGHLIGHTS_OFF。如果这两个特性在 Material 中启用，则 Unity 会生成支持这两个特性的 shader 变体。
+这个示例中，#pragma shader_feature 指令指定了两个特性：`_ALPHATEST_ON` 和 `_SPECULARHIGHLIGHTS_OFF`。如果这两个特性在 Material 中启用，则 Unity 会生成支持这两个特性的 shader 变体。
 
 可以在 Shader 中使用这些特性来编写条件代码。例如：
 
-```
+```glsl
 #ifdef _ALPHATEST_ON
  clip(_AlphaClip);
 #endif
@@ -2795,7 +2757,7 @@ https://zhuanlan.zhihu.com/p/623658954——好文，可以参考
 #endif
 ```
 
-在这个示例中，如果 _ALPHATEST_ON 特性启用，则执行 clip(_AlphaClip); 来实现 alpha testing。如果 _SPECULARHIGHLIGHTS_OFF 特性启用，则将 spec 变量设置为 0，否则使用标准的 Phong 镜面反射模型来计算 spec 变量。
+在这个示例中，如果 `_ALPHATEST_ON` 特性启用，则执行 `clip(_AlphaClip);` 来实现 alpha testing。如果 `_SPECULARHIGHLIGHTS_OFF` 特性启用，则将 spec 变量设置为 0，否则使用标准的 Phong 镜面反射模型来计算 spec 变量。
 
 
 
@@ -2805,7 +2767,7 @@ https://zhuanlan.zhihu.com/p/623658954——好文，可以参考
 
 
 
-### multi_compile、shader_feature 和变体数量
+#### multi_compile、shader_feature 和变体数量
 
 一般来说，Shader 代码中有 **N 个 multi_Compile 分支**，就有个 **2^N 个 Shader 变体** 会在打包时被编译出来，并打入包体中。可以在运行时动态激活或禁用关键字，自由地组合功能。
 
@@ -2823,7 +2785,7 @@ https://zhuanlan.zhihu.com/p/623658954——好文，可以参考
 
 
 
-### _local 后缀
+#### _local 后缀
 
 在两个关键字声明命令后面，**可以加上_local**，如：
 
@@ -2852,7 +2814,7 @@ https://zhuanlan.zhihu.com/p/623658954——好文，可以参考
 
 
 
-## Shader 变体是如何工作的？
+### Shader 变体是如何工作的？
 
 我们知道，Unity 项目其实是源码级别的东西，它需要经过编译后才能运行。
 
@@ -2862,7 +2824,7 @@ Shader 则是 **在编译的过程中生成不同的变体** 的。我们在 Sha
 
 
 
-## 使用变体的优缺点
+### 使用变体的优缺点
 
 
 
@@ -2888,7 +2850,7 @@ Shader 则是 **在编译的过程中生成不同的变体** 的。我们在 Sha
 
 
 
-## 让关键字显示在材质面板
+### 让关键字显示在材质面板
 
 不给材质指定 Custom GUI（Editor）的话，Unity 会给 Shader 一个默认的 GUI。
 
@@ -2954,7 +2916,7 @@ Pass 中的#Pragma 命令：
 
 使用的时候：
 
-`#ifdef _PRE_DEBUG `
+`#ifdef _PRE_DEBUG`
 
 `#endif`
 
@@ -2978,7 +2940,7 @@ Pass 中的#Pragma 命令：
 
 
 
-# 关于 PerRendererData
+## 关于 PerRendererData
 
 即“**基于每个渲染器数据**”。
 
@@ -3002,7 +2964,7 @@ Pass 中的#Pragma 命令：
 
 
 
-# 浅谈模板测试
+## 浅谈模板测试
 
 最早学习 TA 相关知识的时候，就稍微了解了模板测试，主要是它在渲染流水线中的位置和功能：
 
@@ -3040,7 +3002,7 @@ Pass 中的#Pragma 命令：
 
 
 
-## 流程
+### 流程
 
 **模板测试在透明度测试和深度测试之间。**
 
@@ -3052,7 +3014,7 @@ Pass 中的#Pragma 命令：
 
 
 
-## 细则
+### 细则
 
 以下是一个模板测试 Shader 代码的模板：
 
@@ -3131,7 +3093,7 @@ Stencil
 
 
 
-## ReadMask & WriteMask
+### ReadMask & WriteMask
 
 这两个功能我一直没有理解，也没有使用过。打算趁这次机会搞明白。
 
@@ -3187,11 +3149,11 @@ Stencil
 
 
 
-# 使用 Odin 和 CustomEditor 使 DOTween 动画可以在 Edit 模式下预览
+## 使用 Odin 和 CustomEditor 使 DOTween 动画可以在 Edit 模式下预览
 
 
 
-## 遇到的问题和使用场景：
+### 遇到的问题和使用场景
 
 近期我常需要制作 **GUI 动效**，**Tween 动画** 是一个很好的选择。
 
@@ -3207,7 +3169,7 @@ Stencil
 
 
 
-## 思路
+### 思路
 
 首先，编写一个 **基类**，**保存需要预览的 Tween 列表**。
 
@@ -3242,7 +3204,7 @@ public class EditModeTweenableMono : MonoBehaviour
 随后，我们需要编写一个 **对于这个基类及其派生类都生效的 Custom Editor**，因为 **只有 Editor 中的类可以调用 Edit 模式下预览 Tween 的关键方法**： `DOTweenEditorPreview.PrepareTweenForPreview(tween);`
 
 ```c#
-# if UNITY_EDITOR
+## if UNITY_EDITOR
 using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
@@ -3325,7 +3287,7 @@ public class RoomBossGradeWaveController : EditModeTweenableMono
 
 
 
-## 思考的过程和遇到的问题
+### 思考的过程和遇到的问题
 
 起初我有点迷茫，不知道从哪里开始做这件事。
 
@@ -3373,15 +3335,15 @@ DOTweenAnimation 那花哨的界面，没有 Custom Editor 是不可能的，于
 
 
 
-# 关于 MPB——Material Property Block
+## 关于 MPB——Material Property Block
 
-**是什么？**
+<u>是什么？</u>
 
 Material Property Block（材质属性块）是 Unity 中的一个 **数据结构**，用于在渲染过程中 **向材质实例提供额外的属性数据**。它可以包含 **一组键值对**，每个键值对对应于材质实例中的一个 **属性**。在渲染时，可以 **将多个对象的 MPB 实例传递给渲染器**，以 **避免为每个对象创建新的材质数据副本**，从而提高渲染性能。同时，使用 MPB 还可以 **更容易地实现材质属性的动态变化，因为它可以在渲染过程中动态修改材质属性**。 
 
 
 
-**用法**
+<u>用法</u>
 
 和 Material 类类似地、可以直接使用 **Block 对象的 SetFloat 等** 方法。
 
@@ -3414,7 +3376,7 @@ MPB 在 GPUInstance 中也有非常广泛的应用。
 
 
 
-**核心的优点**
+<u>核心的优点</u>
 
 可以 **避免生成很多材质实例**，材质实例还是太多了还是蛮占内存的，尤其是属性比较多的材质。
 
@@ -3422,7 +3384,7 @@ MPB 在 GPUInstance 中也有非常广泛的应用。
 
 
 
-**核心缺点**
+<u>核心缺点</u>
 
 经过验证、不同的 MPB 会 **导致合批被打断**。
 
@@ -3434,17 +3396,17 @@ MPB 在 GPUInstance 中也有非常广泛的应用。
 
 
 
-# 关于 Job System
+## 关于 Job System
 
 
 
-## 什么是？
+### 什么是？
 
 Job System 是 Unity 引擎中的一种并 **行处理解决方案**，它允许开发者 **在多个 CPU 核心上同时执行任务**，从而提高游戏性能。Job System 使用作业（Jobs）和作业组（Job System Groups）来实现任务并行化，同时还提供了安全的内存管理和数据并行处理的支持。与传统的单线程与协程相比，Job System 能够更高效地利用 CPU 资源，**特别是在处理大量数据时表现更为出色。**
 
 
 
-## 简单的使用示例
+### 简单的使用示例
 
 ```c#
 using UnityEngine;
@@ -3497,7 +3459,7 @@ public class JobSystemExample : MonoBehaviour
 
 
 
-## 在哪些场合比较实用？
+### 在哪些场合比较实用？
 
 1. **大规模并行化：** Job System 可以在多个 CPU 核心上同时执行任务，从而加速游戏中的计算和渲染过程。
 2. **大批量数据处理：** Job System 可以高效地处理大量数据，例如在场景中对物体进行更新、碰撞检测等操作。
@@ -3508,7 +3470,7 @@ public class JobSystemExample : MonoBehaviour
 
 
 
-## JobSystem 的优缺点
+### JobSystem 的优缺点
 
 优点：
 
@@ -3525,7 +3487,7 @@ public class JobSystemExample : MonoBehaviour
 
 
 
-## 除了 NativeArray，还支持这些数据类型
+### 除了 NativeArray，还支持这些数据类型
 
 1. NativeSlice：可以视为 NativeArray 的一个视图，用于对数组的部分进行读写访问。
 2. NativeList：类似于 List <T>，是一个动态数组，可以在运行时动态添加或删除元素。
@@ -3537,7 +3499,7 @@ public class JobSystemExample : MonoBehaviour
 
 
 
-### 开发者也可以自己在 Job 结构体的属性中，添加自定义的 Struct 对象
+#### 开发者也可以自己在 Job 结构体的属性中，添加自定义的 Struct 对象
 
 在 Unity 的 JobSystem 中，使用自定义结构体（Struct）也是被允许的，而且有时甚至可以提高性能。但是，需要注意以下几点：
 
@@ -3552,7 +3514,7 @@ public class JobSystemExample : MonoBehaviour
 
 
 
-## JobHandler 中的实用函数和属性
+### JobHandler 中的实用函数和属性
 
 在 Unity 中，JobHandle 对象是用于管理作业（Job）的句柄，它包含了作业的信息以及作业之间的依赖关系。以下是 JobHandle 对象中常用的函数和属性：
 
@@ -3567,9 +3529,9 @@ public class JobSystemExample : MonoBehaviour
 
 
 
-## 使用中的经验
+### 使用中的经验
 
-**不要重复 Set Job 内的字段**
+<u>不要重复 Set Job 内的字段</u>
 
 比如 Job 中定义了两个字段 input 和 output，都是 NativeArray。
 
@@ -3581,7 +3543,7 @@ public class JobSystemExample : MonoBehaviour
 
 
 
-**使用并行 Job 的技巧**
+<u>使用并行 Job 的技巧</u>
 
 在处理大批量数据的时候并行 Job 相比普通 Job 效率高很多，但是写起来是蛮蛋疼的。
 
@@ -3593,7 +3555,7 @@ public class JobSystemExample : MonoBehaviour
 
 怎么想都不适合并行 Job。一般的思考是：不知道结果的长度，考虑用 NativeList。但是 NativeList 是无法用在并行 Job 中的。而且涉及到并行写入的操作，即多个线程往一个数组里写东西，很容易打架。
 
-[使用并行的 Job 完成筛选类任务](#使用并行的Job完成筛选类任务)
+[使用并行的 Job 完成筛选类任务](# 使用并行的 Job 完成筛选类任务)
 
 
 
@@ -3601,7 +3563,7 @@ public class JobSystemExample : MonoBehaviour
 
 
 
-# 使用 Odin Editor Window 进行工具开发
+## 使用 Odin Editor Window 进行工具开发
 
 使用 Odin Editor Window 最重大的优势是 **可以给暴露的字段或者属性添加 Odin 的 Attribute**，**普通的 Editor Window 无法使用**，这是很蛋疼的一点。
 
@@ -3612,6 +3574,7 @@ public class JobSystemExample : MonoBehaviour
 
 
 使用 Odin Editor Window 制作工具也有局限性：
+
 1. **可读性差**，想找到某个功能的实现，需要在属性中找。
 2. **灵活性较差**。依赖于 Odin 插件，如果没装插件就没法运行。
 3. **GUI 复杂逻辑编写难度大**。当 GUI 之间有强而复杂的关联的时候，使用 Attribute 的方式编写 GUI 会比较困难。一方面是 Attribute 的功能有限，另一方面是 Attribute 的使用方式不够灵活，很多时候需要使用字符串传递信息，这会导致一些问题。
@@ -3628,7 +3591,7 @@ Odin Editor Window 继承自 Editor Window，自然可以使用 Editor Window �
 
 
 
-# 关于 Property（属性）和 Field（字段）
+## 关于 Property（属性）和 Field（字段）
 
 **属性和字段可以被统称为变量。**
 
@@ -3689,7 +3652,7 @@ public class Person
 
 
 
-# 关于 SAT（Summed Area Tables）
+## 关于 SAT（Summed Area Tables）
 
 以前的记录：
 
@@ -3715,7 +3678,7 @@ public class Person
 
 
 
-# 使用拓展方法
+## 使用拓展方法
 
 拓展方法是一种允许开发人员 **向现有的类添加新的方法**，而无需创建新的子类或修改原始类的方法的语言功能。拓展方法 **实际上是一种静态方法**，它使用“this”关键字作为其第一个参数，并且 **可以像实例方法一样在对象上调用**。通过使用拓展方法，可以提高代码的可读性和可维护性，同时也可以避免在原始类中添加过多的方法。
 
@@ -3743,7 +3706,7 @@ mesh.ReverseNormals();
 
 
 
-# 使用拓展方法——给类添加附加属性
+## 使用拓展方法——给类添加附加属性
 
 [参考](https://www.bilibili.com/video/BV1gV4y1P7aP/?spm_id_from=333.999.0.0&vd_source=9a5fef48671479d11a7dd5cdf12ca388)
 
@@ -3784,15 +3747,15 @@ Consoel.PrintLine( v3a.GetEXField() ;) // OUTPUT: 1
 
 
 
-# 关于 C＃ 反射（System.Reflection）
+## 关于 C＃ 反射（System.Reflection）
 
 反射是 C#中的一种机制，它 **允许程序在运行时获取和操作程序集、类型、方法和属性等元数据信息**。反射可以让程序 **动态地创建对象、调用方法、获取和设置属性值等操作**，这样就可以在运行时灵活地控制程序的行为。反射的核心是 System.Reflection 命名空间中的类和接口，如 Type、MethodInfo、PropertyInfo 等。
 
 
 
-**常规操作**
+<u>常规操作</u>
 
-**获取程序集中所有类型的信息**
+<u>获取程序集中所有类型的信息</u>
 
 动态读取程序集，访问、修改和执行其中的字段、方法。
 
@@ -3817,9 +3780,9 @@ foreach (Type type in types)
 
 
 
-**非常规操作**
+<u>非常规操作</u>
 
-**破坏封装性、稳定性。**
+<u>破坏封装性、稳定性。</u>
 
 **非法访问和修改 dll 中的内容，有法律风险**（是不是可以用来做外挂？）。
 
@@ -3868,7 +3831,7 @@ public class Program
 
 
 
-# 关于程序集 Assembly
+## 关于程序集 Assembly
 
 [参考](https://www.cnblogs.com/luna-hehe/p/10143748.html)
 
@@ -3890,7 +3853,7 @@ public class Program
 
 
 
-## Unity 中的程序集
+### Unity 中的程序集
 
 [参考](https://docs.unity3d.com/cn/2021.3/Manual/ScriptCompilationAssemblyDefinitionFiles.html)、[参考 2](https://zhuanlan.zhihu.com/p/547508501)
 
@@ -3928,7 +3891,7 @@ Unity 中，默认情况下自己写的 C＃ 代码都会打到 Assembly-CSharp 
 
 
 
-## pdb 文件
+### pdb 文件
 
 Build C#项目的时候，Build 出的 dll 或者 exe 文件往往会携带一个 pdb 文件。
 
@@ -3944,7 +3907,7 @@ dll 或 exe 可以脱离 pdb 文件运行。pdb 文件只包含调试信息，�
 
 
 
-# Linq 表达式
+## Linq 表达式
 
 LINQ（Language Integrated Query）表达式是一种用于.NET 平台（基本上 C#）上的编程语言，它允许开发人员在 **编写代码时使用一种类似于 SQL 的语言来查询和操作数据对象**。LINQ 表达式可以用于访问各种数据源，如数据库、XML 文档、对象集合等。通过 LINQ 表达式，开发人员可以使用一种统一的语法来查询和操作不同类型的数据源，这 **使得代码更加简洁、易于维护和重用**。
 
@@ -3996,7 +3959,7 @@ var result = doc.Descendants("book").Where(b => (string)b.Attribute("category") 
 
 
 
-# 关于序列化和反序列化
+## 关于序列化和反序列化
 
 [参考](https://zhuanlan.zhihu.com/p/76247383)
 
@@ -4020,7 +3983,7 @@ var result = doc.Descendants("book").Where(b => (string)b.Attribute("category") 
 
 预制体是典型的序列化的成果，一个预制体为例：
 
-```
+```yaml
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!1 &6539136517235615888
@@ -4077,7 +4040,7 @@ MeshFilter:
 
 
 
-## 工具制作中的序列化
+### 工具制作中的序列化
 
 工具并不是那么需要记录和读取的东西，它更倾向于一次性的运行，所以它默认是不可序列化的。
 
@@ -4089,7 +4052,7 @@ MeshFilter:
 
 
 
-## 不可序列化的类型
+### 不可序列化的类型
 
 泛型、字典、高维数组、委托等。
 
@@ -4101,7 +4064,7 @@ MeshFilter:
 
 
 
-## 序列化自己的类
+### 序列化自己的类
 
 工具类继承自 Editor Window，默认不序列化的。
 
@@ -4113,7 +4076,7 @@ MeshFilter:
 
 
 
-## 自定义如何序列化与反序列化
+### 自定义如何序列化与反序列化
 
 关于自定义序列化和反序列化方法：
 
@@ -4131,21 +4094,23 @@ MeshFilter:
 
 
 
-# 在 MarkDown 中使用 LaTeX 渲染公式
+## 在 MarkDown 中使用 LaTeX 渲染公式
 
 直接用字符串写算式可读性很差，发现 MarkDown 是兼容 LaTeX 的，可以学一手：
 
-```
-1. 上下标：
-   - 上标：使用^符号，例如$x^2$表示x的平方。
-   - 下标：使用_符号，例如$a_0$表示a的下标为0。
-2. 分式：使用\frac{}{}命令，例如$\frac{a}{b}$表示a除以b的分式。
-3. 根号：使用\sqrt命令，例如$\sqrt{2}$表示2的平方根。
-4. 求和、积分：使用\sum和\int命令，例如$\sum_{i=1}^n i$表示1到n的所有整数之和，$\int_{a}^{b} f(x) dx$表示函数f(x)在a到b之间的积分。
-5. 矩阵：使用\begin{matrix}和\end{matrix}命令，例如$\begin{matrix} 1 & 2 \ 3 & 4 \end{matrix}$表示一个2行2列的矩阵。
-6. 向量：使用\vec命令，例如$\vec{v}$表示向量v。
-7. 上、下箭头：使用\overset和\underset命令，例如$\overset{\rightarrow}{AB}$表示向量AB，$\underset{n\to\infty}{\lim}a_n$表示n趋近于无穷时a_n的极限值。
-```
+1. ```c
+   1. 上下标：
+      - 上标：使用^符号，例如$x^2$表示x的平方。
+      - 下标：使用_符号，例如$a_0$表示a的下标为0。
+   2. 分式：使用\frac{}{}命令，例如$\frac{a}{b}$表示a除以b的分式。
+   3. 根号：使用\sqrt命令，例如$\sqrt{2}$表示2的平方根。
+   4. 求和、积分：使用\sum和\int命令，例如$\sum_{i=1}^n i$表示1到n的所有整数之和，$\int_{a}^{b} f(x) dx$表示函数f(x)在a到b之间的积分。
+   5. 矩阵：使用\begin{matrix}和\end{matrix}命令，例如$\begin{matrix} 1 & 2 \ 3 & 4 \end{matrix}$表示一个2行2列的矩阵。
+   6. 向量：使用\vec命令，例如$\vec{v}$表示向量v。
+   7. 上、下箭头：使用\overset和\underset命令，例如$\overset{\rightarrow}{AB}$表示向量AB，$\underset{n\to\infty}{\lim}a_n$表示n趋近于无穷时a_n的极限值。
+   ```
+
+   
 
 上下标：
 $$
@@ -4187,7 +4152,7 @@ $$
 
 
 
-# 可能遇到的浮点精度问题以及对策
+## 可能遇到的浮点精度问题以及对策
 
 以前一直觉得浮点精度问题根本不会影响到我，但这次实打实吃亏了，Debug 了好久。
 
@@ -4217,7 +4182,7 @@ int frame = (int) result;
 
 
 
-# Animation  Curve 和 Undo
+## Animation  Curve 和 Undo
 
 Animation Curve 是 Unity 中的一个类型。
 
@@ -4252,7 +4217,7 @@ private void OnCurveChanged() => Undo.RegisterCompleteObjectUndo(this, "OnCurveC
 
 
 
-# 使用 SavePanel 制作导出功能 
+## 使用 SavePanel 制作导出功能 
 
 以前我的工具的导出功能居然都是让用户自己写好路径和名称、再用字符串拼接然后用 AssetDataBase 的 API 导出的。
 
@@ -4284,7 +4249,7 @@ string path = EditorUtility.SaveFilePanel
 
 
 
-# 反转 Mesh 法线的正确姿势
+## 反转 Mesh 法线的正确姿势
 
 我之前一直认为一个三角面的正反仅由它的法线决定。
 
@@ -4302,15 +4267,11 @@ string path = EditorUtility.SaveFilePanel
 
 例如，如果您按顺序定义三角形顶点，如下所示：
 
-```
-0 -> 1 -> 2
-```
+`0 -> 1 -> 2`
 
 那么三角形的正面将面向您的屏幕。如果您按相反的顺序定义三角形顶点，如下所示：
 
-```
-2 -> 1 -> 0
-```
+`2 -> 1 -> 0`
 
 那么三角形的正面将面向屏幕外部。如果您想要确保所有三角形都面向屏幕内部，您可以通过调整三角形顶点的顺序来实现这一点。
 
@@ -4320,9 +4281,9 @@ string path = EditorUtility.SaveFilePanel
 
 经过测试，**法线仅影响光照的计算，而并不影响正反面的判断。**
 
-**所以正确的反转 Mesh 法线的姿势是：**
+<u>所以正确的反转 Mesh 法线的姿势是：</u>
 
-**需要同时反转法线和三角面，才能得到正确的效果。**
+<u>需要同时反转法线和三角面，才能得到正确的效果。</u>
 
 ```c#
 // 获取网格组件
@@ -4354,7 +4315,7 @@ mesh.triangles = triangles;
 
 
 
-# 导出一个 Mesh 的正确姿势
+## 导出一个 Mesh 的正确姿势
 
 如果想要 **导出一个 Mesh**，我会想当然地写下：
 
@@ -4427,7 +4388,7 @@ AssetDatabase.CreateAsset(mesh2Export, path);
 
 
 
-# 修改枚举的显示内容
+## 修改枚举的显示内容
 
 以前我主张直接用中文定义枚举。
 
@@ -4449,7 +4410,7 @@ AssetDatabase.CreateAsset(mesh2Export, path);
 
 
 
-# 修改 Editor Window 的名称
+## 修改 Editor Window 的名称
 
 Editor Window 集成了一个变量：`titleContent`
 
@@ -4463,7 +4424,7 @@ Editor Window 集成了一个变量：`titleContent`
 
 
 
-# Editor Window 和对话框
+## Editor Window 和对话框
 
 对于简单的对话框需求：
 
@@ -4494,11 +4455,11 @@ public void TestB() =>  EditorUtility.DisplayDialog
 
 这时候有两个选择；
 
-**自己写一个额外的 Editor Window，然后自己维护一套 Dialog 逻辑**
+<u>自己写一个额外的 Editor Window，然后自己维护一套 Dialog 逻辑</u>
 
 非常麻烦，写代码写的正欢，哪有心思突然去写一个不太相关的 Dialog 逻辑？
 
-**或者，可以试试这个**
+<u>或者，可以试试这个</u>
 
 ```c#
 [Button("Test")]
@@ -4525,7 +4486,7 @@ public void TestB() =>  Debug.Log( EditorUtility.DisplayDialogComplex
 
 
 
-# #define 和 const
+## #define 和 const
 
 C#中的#define 和 C 中的完全不一样。
 
@@ -4539,7 +4500,7 @@ C#中的#define 和 C 中的完全不一样。
 
 C#中的#define 是一个 [预处理器指令](#预处理器指令)，需要和#if 的预处理器命令配合使用。
 
-使用起来和 Shader 中的关键字有点像。——[关于 Shader 变体](#关于Shader变体)
+使用起来和 Shader 中的关键字有点像。——[关于 Shader 变体](# 关于 Shader 变体)
 
 在 Shader 关键字中，我们通过#program 命令定义关键字，然后 Unity 会把关键字的开关暴露在材质面板，Shader 编译器再根据关键字的开关情况，对代码进行切割、分块组合和编译。
 
@@ -4585,11 +4546,11 @@ const 变量一般以大写字母开头，同时以驼峰法分隔单词。
 
 
 
-# C#和原始字符串（raw string）
+## C#和原始字符串（raw string）
 
 有时我们需要在代码中写 路径，比如：
 
-` string a = "C:\path\to\your\target";`
+`string a = "C:\path\to\your\target";`
 
 这是错误的，编译器会报错：
 
@@ -4601,7 +4562,7 @@ const 变量一般以大写字母开头，同时以驼峰法分隔单词。
 
 所以，在代码中的路径经常会变成这样：
 
-` string a = "C:\\path\\to\\your\\target"`，如下：
+`string a = "C:\\path\\to\\your\\target"`，如下：
 
 ![image-20231124144159451](./Images/image-20231124144159451.png) 
 
@@ -4617,7 +4578,7 @@ const 变量一般以大写字母开头，同时以驼峰法分隔单词。
 
 
 
-# 使用 nameof 而不是字符串 
+## 使用 nameof 而不是字符串 
 
 在 Odin 的 Attribute 中，很多时候我们需要链接一个属性、字段或者方法。
 
@@ -4637,7 +4598,7 @@ const 变量一般以大写字母开头，同时以驼峰法分隔单词。
 
 
 
-## 向 Odin Attribute 传入函数的返回值
+### 向 Odin Attribute 传入函数的返回值
 
 有时我们迫切希望 Attribute 中的内容是通过函数计算出来的，而不是一个定值或者变量，怎么办呢？
 
@@ -4653,7 +4614,7 @@ const 变量一般以大写字母开头，同时以驼峰法分隔单词。
 
 
 
-# C#和插值字符串（interpolated string）
+## C#和插值字符串（interpolated string）
 
 这么久以来，我在 C#中的字符串操作居然还在++--，这真的非常低效和不优雅。
 
@@ -4675,11 +4636,11 @@ Console.WriteLine(formattedString);
 
 
 
-# Unity 的组合开关、位标志（bit flag）和位运算
+## Unity 的组合开关、位标志（bit flag）和位运算
 
 
 
-## 使用上
+### 使用上
 
 通常，枚举类型用于多 currentSeason 个选项选其一的情况。
 
@@ -4730,7 +4691,7 @@ public Seasons currentSeasons;
 
 
 
-## 使用位与运算符判断枚举对象的开关状态
+### 使用位与运算符判断枚举对象的开关状态
 
 那么需要读取和判断开关状态的时候，我们该怎么做呢？
 
@@ -4821,7 +4782,7 @@ public enum Seasons
 
 
 
-## 使用位与、位或和位与非运算符对组合开关进行开关操作
+### 使用位与、位或和位与非运算符对组合开关进行开关操作
 
 一般来说，我们定义 bit flag 是希望将其暴露在检查器中供用户使用。
 
@@ -4873,7 +4834,7 @@ public enum Seasons
 
 
 
-## 使用位或运算符进行组合枚举的定义
+### 使用位或运算符进行组合枚举的定义
 
 我们在定义 bit flag 的时候，一般来说只定义每个独立开关，比如之前的春夏秋冬
 
@@ -4967,7 +4928,7 @@ public enum Colors
 
 
 
-# foreach 迭代中修改 List（Collection）
+## foreach 迭代中修改 List（Collection）
 
 记这一点属于是有点缺乏编程常识了。
 
@@ -5036,7 +4997,7 @@ foreach (int number in numbers.ToArray())
 
 经过评论区大佬的指点后，了解到原来还有其他更好用的方法！
 
-**使用 Linq 查询**
+<u>使用 Linq 查询</u>
 
 Linq 查询是一种能在 C#中写出很像 SQL 查询的语句，表达式会返回一个 IEnumerable 对象。
 
@@ -5048,7 +5009,7 @@ list = (from item in list where item % 2 != 0 select item).ToList();
 
 
 
-**使用 IEnumerable <T> IEnumerable <T>.Where <T>(Func <T, bool> predicate)**
+<u>使用 `IEnumerable <T> IEnumerable <T>.Where <T>(Func <T, bool> predicate)`</u>
 
 从函数声明中可以看出，这个函数也返回一个 IEnumerable 对象，和上面那种一样。
 
@@ -5066,7 +5027,7 @@ list = (from item in list where item % 2 != 0 select item).ToList();
 
 
 
-**使用 int List <int>.RemoveAll(Predicate <T> match)**
+<u>使用 `int List <int>.RemoveAll(Predicate <T> match)`</u>
 
 这个函数接受一个 Predicate <T> 类型的委托作为参数，返回一个 int 值。返回值为所移除的对象的数量。
 
@@ -5113,7 +5074,7 @@ ChatGPT 说的，不知道准不准嗷。
 
 
 
-# Unity 中整合多个 Odin Attribute 为一个的方法
+## Unity 中整合多个 Odin Attribute 为一个的方法
 
 有些脚本中会有大量的字段或者属性，如果一个一个地为他们配置 Odin Attribute，会有很多重复工作，像这样：
 
@@ -5154,7 +5115,7 @@ private class MyDebug : Attribute {}
 
 
 
-# 如果已有打开的、则不创建
+## 如果已有打开的、则不创建
 
 自定义 Editor Window 工具时，避免多次打开同一个类型的窗口。
 
@@ -5169,7 +5130,7 @@ if ( HasOpenInstances<MyEditorWindow>() )  return;
 
 
 
-# 旋转 MeshUV 的方法
+## 旋转 MeshUV 的方法
 
 其实都知道是普通的变换，但是真要自己从头写还是会很烦，所以记录一下：
 
@@ -5210,7 +5171,7 @@ mesh.uv = uvs.ToArray();
 
 
 
-# 在 Scene 视口画点东西
+## 在 Scene 视口画点东西
 
 很多时候，如果能用 Mono 组件、或者 Editor Window 工具在 Scene 视口绘制一些调试信息，会极大地方便制作和查错。
 
@@ -5218,7 +5179,7 @@ mesh.uv = uvs.ToArray();
 
 
 
-## 绘制的入口
+### 绘制的入口
 
 首先我们需要知道想在 Scene 中绘制元素、入口在哪里。
 
@@ -5228,7 +5189,7 @@ mesh.uv = uvs.ToArray();
 
 
 
-### MonoBehaviour.OnDrawGizmos()
+#### MonoBehaviour.OnDrawGizmos()
 
 是 MonoBehaviour 类的回调，可以像 update、start 那样直接定义使用。
 
@@ -5250,7 +5211,7 @@ OnDrawGizmos 是不管你有没有选中，都会执行、OnDrawGizmosSelected �
 
 
 
-### Editor.OnSceneGUI()
+#### Editor.OnSceneGUI()
 
 Editor 可以通过派生来自定义组件的 Inspector 等界面的表现。通过它的 OnSceneGUI 回调，我们也可以在 SceneView 中绘制。
 
@@ -5272,7 +5233,7 @@ class MyCustomEditor : Editor
 
 
 
-## EditorWindow 怎么办
+### EditorWindow 怎么办
 
 EditorWindow 不太绷得住主要是因为没有呼入的 Message。（相对的 Mono 有 OnDrawGizmos，Editor 有 OnSceneGUI）
 
@@ -5290,7 +5251,7 @@ EditorWindow 不太绷得住主要是因为没有呼入的 Message。（相对�
 
 
 
-## 用什么画
+### 用什么画
 
 从上面两个简单的例子可以看到，通过 Gizmos 类和 Handles 类，就可以在 SceneView 中绘制。
 
@@ -5298,7 +5259,7 @@ EditorWindow 不太绷得住主要是因为没有呼入的 Message。（相对�
 
 
 
-### Gizmos
+#### Gizmos
 
 Gizmos 类常用于绘制简单的调试信息，如直线、圆形等二维图元、图片、Mesh 或线框等，通常不具备可交互的功能，仅提供调试信息用。
 
@@ -5310,7 +5271,7 @@ Gizmos 类常用于绘制简单的调试信息，如直线、圆形等二维图�
 
 
 
-### Handlers
+#### Handlers
 
 相比 Gizmos，Handlers 多了一些可以交互的功能。用户可以创建像 Transform 那样的手柄用于指定三维空间中的一个点、或是创建一个像碰撞体那样的可交互的线框、亦或是直接在 Scene View 中创建按钮。
 
@@ -5318,7 +5279,7 @@ Gizmos 类常用于绘制简单的调试信息，如直线、圆形等二维图�
 
 
 
-## 参考
+### 参考
 
 [Handlers 官方文档](https://docs.unity3d.com/ScriptReference/Handles.html)
 
@@ -5340,7 +5301,7 @@ Gizmos 类常用于绘制简单的调试信息，如直线、圆形等二维图�
 
 
 
-# 关于 Utility、静态工具类
+## 关于 Utility、静态工具类
 
 不管是参与工业项目的开发，还是使用第三方的插件，总能看到一些 XXXUtillty 类。这其实是一种经验性的技巧。
 
@@ -5360,7 +5321,7 @@ Gizmos 类常用于绘制简单的调试信息，如直线、圆形等二维图�
 
 
 
-# 关于 Editor Preference
+## 关于 Editor Preference
 
 制作工具的时候，有时候会有这样迫切的希望：
 
@@ -5394,7 +5355,7 @@ void EditorPrefsTest()
 
 
 
-## Delete All 大重置
+### Delete All 大重置
 
 之所以会查到这个类，是因为我碰到了一个疑难杂症：
 
@@ -5442,7 +5403,7 @@ public class DeleteAllExample : ScriptableObject
 
 
 
-# Burst 编译
+## Burst 编译
 
 在 Unity 中，Burst 编译可以优化 Job System 的效率。Burst 是 Unity 的一套性能优化方案。
 
@@ -5478,7 +5439,7 @@ Burst 是一个编译器，它使用 `LLVM` 将 `IL/.NET字节码` 转换为高�
 
 
 
-## 在 Unity 中使用
+### 在 Unity 中使用
 
 在 Unity 中使用 Burst，需要 enable 启用编译设置。
 
@@ -5516,7 +5477,7 @@ Job 支持的类和语法并不多，而 IDE 是只判断 C#语法的，没办�
 
 
 
-## 在 Profiler 中验证 Burst 的结果
+### 在 Profiler 中验证 Burst 的结果
 
 使用 Job 能提升游戏性能，是因为 Job 可以把任务分发到子线程，减轻主线程的压力；并且 Job 可以使用 Burst 进行编译，在多层面进行优化，也可以带来性能的提升。
 
@@ -5540,7 +5501,7 @@ Job 支持的类和语法并不多，而 IDE 是只判断 C#语法的，没办�
 
 
 
-## 并行地使用 Job System
+### 并行地使用 Job System
 
 Job 不止可以分发到一个线程中，可以利用并行 Job 接口进一步榨干硬件的性能：
 
@@ -5579,7 +5540,7 @@ struct MyJob : IJobParallelFor
 
 
 
-# C# 返回多个对象和元组
+## C# 返回多个对象和元组
 
 以前提到过使用 out 关键字可以做到让 C#函数返回多个值，如下示例代码：
 
@@ -5607,7 +5568,7 @@ Console.WriteLine($"Number: {result.Item1}, Text: {result.Item2}");
 
 
 
-## 元组
+### 元组
 
 [微软 C#开发文档](https://learn.microsoft.com/zh-cn/dotnet/csharp/language-reference/builtin-types/value-tuples)
 
@@ -5636,11 +5597,11 @@ static (string Name, int Age) GetPerson()
 
 
 
-# C# "? :" 、"?."、"??" 和 "??=" 
+## C# "? :" 、"?."、"??" 和 "??=" 
 
 偶然接触了这些运算符，带问号的基本都和判空有关。
 
-**?: 三元条件运算符(ternary conditional operator)**
+<u>?: 三元条件运算符(ternary conditional operator)</u>
 
 用于简化 ifelse 的两支判断, 同时是一个表达式, 在很多情况下比直接使用 ifelse 更具优势。
 
@@ -5649,7 +5610,7 @@ int y = (x > 5) ? 100 : 200;
 // 如果 x 大于 5，则 y 的值为 100，否则为 200
 ```
 
-**?.空值传播运算符（null-conditional operator）**
+<u>?.空值传播运算符（null-conditional operator）</u>
 
 它允许在对象为 null 时避免引发 NullReferenceException 异常，直接返回 null。
 
@@ -5658,7 +5619,7 @@ int y = (x > 5) ? 100 : 200;
 string cityName = person?.Address?.City;
 ```
 
-**??空合并运算符(null-coalescing operator)**
+<u>??空合并运算符(null-coalescing operator)</u>
 
 左侧的操作数是否为 null，如果是 null，则返回右侧的操作数，否则返回左侧的操作数
 
@@ -5667,7 +5628,7 @@ string cityName = person?.Address?.City;
 string result = nullableString ?? "默认字符串";
 ```
 
-**??= 空合并赋值运算符(null-coalescing assignment operator)**
+<u>??= 空合并赋值运算符(null-coalescing assignment operator)</u>
 
 将右侧的值赋给左侧的变量，但仅当左侧的变量为 null 时。如果左侧的变量不为 null，则不执行赋值操作。
 
@@ -5681,7 +5642,7 @@ nullableNumber ??= defaultValue;
 
 
 
-# C# new、GC 和性能问题
+## C# new、GC 和性能问题
 
 [参考文章](https://kb.cnblogs.com/page/106720/)
 
@@ -5716,7 +5677,7 @@ int main() {
 
 
 
-## GC 和 GC 问题
+### GC 和 GC 问题
 
 C#中的 GC 就是用来管理内存的。
 
@@ -5750,7 +5711,7 @@ Unity 中，Allocate 常分散在程序的各个环节，开销较小，也比�
 
 
 
-# C# 值和引用
+## C# 值和引用
 
 [参考](https://www.cnblogs.com/yinrq/p/5588330.html)
 
@@ -5788,7 +5749,7 @@ C#中的数据类型有两种，一种是值类型，一种是引用类型。
 
 
 
-## 装箱和拆箱
+### 装箱和拆箱
 
 在 C#中，装箱（boxing）是将值类型转换为引用类型的过程，而拆箱（unboxing）是将之前被装箱的引用类型转换回值类型的过程。装箱会将值类型封装为一个对象，而拆箱则是从对象中提取出原始的值类型。
 
@@ -5808,7 +5769,7 @@ C#中的数据类型有两种，一种是值类型，一种是引用类型。
 
 
 
-# C#别名
+## C#别名
 
 [参考](https://learn.microsoft.com/zh-cn/dotnet/csharp/language-reference/keywords/using-directive)
 
@@ -5832,7 +5793,7 @@ using ST = System.Text;
 
 
 
-# C# 指针
+## C# 指针
 
 之前想在函数间传递 struct 的引用的，别名不是走不通嘛，我就想用指针。结果发现 C#其实并不推荐使用指针。
 
@@ -5892,7 +5853,7 @@ Output:
 
 
 
-# C# 参数列表， params 关键字 和 args
+## C# 参数列表， params 关键字 和 args
 
 以前学 Java 就很好奇，为什么 main 函数的参数是 string [] argss
 
@@ -5933,7 +5894,7 @@ Python 也有类似的用法，叫做有名参数和无名参数之类的，可�
 
 
 
-# 每帧强制更新 MonoGUI 的方式
+## 每帧强制更新 MonoGUI 的方式
 
 **[每帧强制更新 MonoGUI 的方式 ▪ 極](#每帧强制更新MonoGUI的方式 ▪ 極) ——建议优先用这个**
 
@@ -5966,7 +5927,7 @@ void Update() {
 
 
 
-# MipMap、DDX、DDY 和极坐标
+## MipMap、DDX、DDY 和极坐标
 
 [参考文章](https://blog.csdn.net/u013746357/article/details/107975128)
 
@@ -6016,7 +5977,7 @@ void Update() {
 
 
 
-# C# 可空值类型
+## C# 可空值类型
 
 [dotnet 文档](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/nullable-value-types)
 
@@ -6056,7 +6017,7 @@ public void Test()
 
 
 
-# C# 位或运算用于 bool 类型
+## C# 位或运算用于 bool 类型
 
 [Unity 的组合开关、位标志（bit flag）和位运算](https://zhuanlan.zhihu.com/p/668657143)
 
@@ -6094,7 +6055,7 @@ a |= c;
 
 
 
-# Job-并行写入安全声明
+## Job-并行写入安全声明
 
 默认情况下，**并行 Job 只能给你传入的数组的当前 index 位置写入内容**。
 
@@ -6114,11 +6075,11 @@ a |= c;
 
 
 
-# 从一个 Matrix4x4 中获取 pos rot 和 Scale
+## 从一个 Matrix4x4 中获取 pos rot 和 Scale
 
 从位置旋转缩放计算出一个矩阵是很容易的，但是想从矩阵得到位置旋转缩放没有那么容易。参考这个：
 
-https://discussions.unity.com/t/how-to-decompose-a-trs-matrix/63681/2
+<https://discussions.unity.com/t/how-to-decompose-a-trs-matrix/63681/2>
 
 ```c#
 // Extract new local position
@@ -6148,7 +6109,7 @@ Vector3 scale = new Vector3(
 
 
 
-# 使 NameID 而非 String name 去 Set 材质的属性
+## 使 NameID 而非 String name 去 Set 材质的属性
 
 当需要使用代码设定一个材质或者一块 MaterialPropertyBlock 的某个属性值的时候，我们倾向于使用 Set 系的方法：
 
@@ -6166,7 +6127,7 @@ Vector3 scale = new Vector3(
 
 
 
-`int nameID = Shader.PropertyToID("盯帧"); `
+`int nameID = Shader.PropertyToID("盯帧");`
 
 上面是获取 nameID 的方式，初见时让我感到非常困惑。
 
@@ -6182,7 +6143,7 @@ Vector3 scale = new Vector3(
 
 
 
-# 使用并行的 Job 完成筛选类任务
+## 使用并行的 Job 完成筛选类任务
 
 并行 Job 在处理大批量数据的时候相比单线程的 Job 具有非常大的优势，但是只要并行就会有不可避免的缺陷：数据竞争问题。
 
@@ -6228,7 +6189,7 @@ Vector3 scale = new Vector3(
 
 
 
-**关于 Unity.Jobs.IJobFilter**
+<u>关于 Unity.Jobs.IJobFilter</u>
 
 这是较新版本的 Jobs 包加入的新接口，可以完成筛选类任务。
 
@@ -6262,7 +6223,7 @@ Vector3 scale = new Vector3(
 
 
 
-# 在 Editor 下使用携程
+## 在 Editor 下使用携程
 
 啥也不用说了：`EditorCoroutineUtility.StartCoroutineOwnerless(DelayedFunctionCall());`
 
@@ -6276,7 +6237,7 @@ Vector3 scale = new Vector3(
 
 
 
-# Git 只托管手动 Add 的文件
+## Git 只托管手动 Add 的文件
 
 在大型项目工作时，项目往往会托管到一个云端版本管理系统上，比如 Git 或者 SVN。
 
@@ -6288,7 +6249,7 @@ Vector3 scale = new Vector3(
 
 然而有时，我们需要修改的文件散落在项目的各个文件夹中，这种情况下我们找不到一个合适的目录去建立 Git 库，则可以考虑在项目的根目录建立一个总库，然后在 GitIgnore 中加入：
 
-```
+```bash
 * # 默认忽略全部文件
 !/.gitignore  # 确保.gitignore文件本身不被忽略
 ```
@@ -6312,13 +6273,13 @@ git init
 
 
 
-# 在顶点着色器中采样贴图
+## 在顶点着色器中采样贴图
 
 在 ShaderGraph 中，如果你在节点树中使用了普通的 SampleTexture2D 节点，会发现你的节点树无法连接到顶点位置的 Slot 接口中。
 
 这是因为普通的 SampleTexture2D 节点是片元着色器专用的，**如果需要在顶点着色器中采样贴图，需要使用 Sample Texture 2D LOD 节点。**
 
-为什么？回想下 [MipMap、DDX、DDY 和极坐标](#MipMap、DDX、DDY和极坐标)，普通的 SampleTexture 函数并不需要输入贴图的 Mip、也就是 LOD，因为它的 LOD 是通过同时输入片元着色器的 4 个片元的 UV 自动计算偏导数后，进一步自动计算出的。在顶点着色器中，并没有同时输入一块（4 个）的概念，因此这个 LOD 成为了必须手动输入的数据；也因此普通的 SampleTexture 函数无法在顶点着色器中使用。
+为什么？回想下 [MipMap、DDX、DDY 和极坐标](# MipMap、DDX、DDY 和极坐标)，普通的 SampleTexture 函数并不需要输入贴图的 Mip、也就是 LOD，因为它的 LOD 是通过同时输入片元着色器的 4 个片元的 UV 自动计算偏导数后，进一步自动计算出的。在顶点着色器中，并没有同时输入一块（4 个）的概念，因此这个 LOD 成为了必须手动输入的数据；也因此普通的 SampleTexture 函数无法在顶点着色器中使用。
 
 
 
@@ -6326,7 +6287,7 @@ git init
 
 
 
-# SDK
+## SDK
 
 "SDK" 指的是软件开发工具包（Software Development Kit）。
 
@@ -6344,7 +6305,7 @@ git init
 
 
 
-# 点关于平面的镜像位置
+## 点关于平面的镜像位置
 
 虽然自己是能推导的，但是每次都推导一次都好麻烦啊 ==
 
@@ -6403,7 +6364,7 @@ float3 CalculateMirrorPoint(float3 point, float3 planePoint, float3 planeNormal)
 
 
 
-# Transparent 和 Transcluent
+## Transparent 和 Transcluent
 
 Transparent，以下译作半透明，半透明材料允许光线几乎不受阻碍地穿过，从而清晰显现背后的物体。
 
@@ -6419,7 +6380,7 @@ Transcluent 透出的部分一般是通过多 Pass 实现的，对透出的部�
 
 举例来说：
 
-**Transparent**
+<u>Transparent</u>
 
 - **玻璃**：窗户、镜片、透明墙壁等。
 - **水体表面**：清澈的湖泊、水池表面。
@@ -6428,7 +6389,7 @@ Transcluent 透出的部分一般是通过多 Pass 实现的，对透出的部�
 - **气泡**：肥皂泡、泡沫等。
 - **透明布料**：例如薄纱、窗帘等。
 
-**Translucent**
+<u>Translucent</u>
 
 - **磨砂玻璃**：浴室玻璃门、办公室隔板。
 - **冰块**：未完全透明的冰块。
@@ -6445,7 +6406,7 @@ Transcluent 透出的部分一般是通过多 Pass 实现的，对透出的部�
 
 
 
-# Mathf.Epsilon-微小浮点数
+## Mathf.Epsilon-微小浮点数
 
 判断浮点数是否相等类的问题经常需要用 Mathf.Epsilon，因为浮点数精度问题直接判两个 Float 相等会出问题。
 
@@ -6461,7 +6422,7 @@ Transcluent 透出的部分一般是通过多 Pass 实现的，对透出的部�
 
 
 
-# 绕着指定的轴旋转
+## 绕着指定的轴旋转
 
 核心就是构造四元数，关于四元数的数学知识后面补。
 
@@ -6500,7 +6461,7 @@ public class RotateVector : MonoBehaviour
 
 
 
-# 求直线和平面的交点
+## 求直线和平面的交点
 
 妈的，真有人每次用都重新推导一遍？
 
@@ -6535,7 +6496,7 @@ float3 IntersectLineWithPlane(float3 lineOrigin, float3 lineDirection, float3 pl
 
 
 
-# Git 从库中彻底删除文件
+## Git 从库中彻底删除文件
 
 如果只是使用 Git 的 delete 功能，文件只是在当前的 Head 中被删除了，它的副本其实还在 Git 储存库中，方便随时回溯。
 
@@ -6573,7 +6534,7 @@ python git-filter-repo --invert-paths --path TA零散知识/TA零散知识Images
 
 
 
-# Compute Shader
+## Compute Shader
 
 [知乎](https://zhuanlan.zhihu.com/p/368307575) 这篇文章写得非常好，基本把所有内容都说完了。以下补一些个人使用中了解到的内容：
 
@@ -6587,7 +6548,7 @@ ComputeBuffer 本质上类似于 Texture 或者 RenderTexture，在 RenderDoc �
 
 
 
-# 每帧强制更新 MonoGUI 的方式 ▪ 極
+## 每帧强制更新 MonoGUI 的方式 ▪ 極
 
 之前这篇 [每帧强制更新 MonoGUI 的方式](# 每帧强制更新MonoGUI的方式) ，感觉这么写比较屎，有些不能改的怎么办呢？比如材质面板。而且每个想看更新的面板都得弄个 Update 加上这一段，非常麻烦。
 
@@ -6601,7 +6562,7 @@ ComputeBuffer 本质上类似于 Texture 或者 RenderTexture，在 RenderDoc �
 
 
 
-# localToWorldMatrix 和 worldToLocalMatrix
+## localToWorldMatrix 和 worldToLocalMatrix
 
 Unity 的 Transform 里面有两个矩阵，分别是 localToWorldMatrix 和 worldToLocalMatrix。
 
@@ -6619,13 +6580,13 @@ worldToLocalMatrix 一般用于将世界空间的点转移到此 Transform 的�
 
 
 
-# C# delegate event 和 事件系统
+## C# delegate event 和 事件系统
 
 游戏开发中常用 **事件模式** 的设计思路；以 Unity 为例，**借助 C#的特性可以轻松地实现事件系统**。
 
 
 
-## delegate 委托 
+### delegate 委托 
 
 通俗地说，委托就是一个 **占坑用的方法**，这个方法会在开发者指定的时刻被调用，至于方法的内容是什么，就看代码逻辑中给委托里订阅了什么内容了。
 
@@ -6740,7 +6701,7 @@ del -= delegate { Console.WriteLine("Anonymous Method"); }; // 无效
 
 
 
-### 带有返回值的委托
+#### 带有返回值的委托
 
 委托类型也可以在声明时指定返回类型：
 
@@ -6771,7 +6732,7 @@ static void PrintMessage(string message) => Console.WriteLine(message);
 
 
 
-### Action 和 Func
+#### Action 和 Func
 
 如果开发者要为每个命名空间内的每种返回类型和参数列表的组合都声明一种委托类型的话，实在是太麻烦了。
 
@@ -6801,7 +6762,7 @@ static void PrintMessage(string message) => Console.WriteLine(message);
 
 
 
-## event 事件
+### event 事件
 
 **event 是一种特殊的委托，它与普通委托的核心区别在于它只能在声明它的类内调用。**
 
@@ -6828,7 +6789,7 @@ event 相较于 delegate 具有更好的封装性和安全性，但相对地也�
 
 
 
-# C# 泛型方法
+## C# 泛型方法
 
 Unity 里有很多内置的泛型方法，比如 `GetComponent<>`、`GetObjectOfType<>` 等。
 
@@ -6875,13 +6836,13 @@ static bool ActionHasDelegate<T>(T action, Delegate del) where T : Delegate
 
 
 
-# 在 Unity C#中执行其他的程序 或 cmd 命令行
+## 在 Unity C#中执行其他的程序 或 cmd 命令行
 
 如果能在 Unity 中直接使用一些外部工具有时会非常方便。
 
 
 
-## 直接在 Unity 中执行 Tortoise 指令
+### 直接在 Unity 中执行 Tortoise 指令
 
 有时想看一个文件或文件夹的 Git Log，我们需要先在 Unity 中右键单击文件，再在文件夹中找到这个文件，然后再右键单击文件，才能打开 Git Log。如果能在 Unity 中右键选中文件后直接打开 GitLog 会方便很多。
 
@@ -6931,7 +6892,7 @@ private static bool GetAssetPath(out string targetFullPath)
 
 
 
-## 直接在 Unity 中使用 Python 脚本
+### 直接在 Unity 中使用 Python 脚本
 
 Python 有一些好用的库，如果能在 Unity 中直接执行 Python 脚本处理指定的对象，我们就不用自己从头开始实现一些功能了。
 
@@ -7006,13 +6967,13 @@ if __name__ == "__main__":
 
 
 
-### 注意 Python 的输出流和编码问题
+#### 注意 Python 的输出流和编码问题
 
 在 C#代码中，`RedirectStandardError = true;`  可以重定向 Python 程序的输出流，如果 Python 程序出错，我们可以在 Unity 中输出 Log；若如此做，需要注意一下输出内容的编码问题。Python 直接通过 Print 输出的内容在中文操作系统中一般为 GBK 编码，而 Unity 中的 Log 输出为 UTF-16 编码，两边编码格式不一样导致输出时出现乱码问题。要解决上述的乱码问题，最简单的方式是在 Python 中设定输出流的编码格式：`sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')`
 
 
 
-### 使用终端显示外部程序的处理进度
+#### 使用终端显示外部程序的处理进度
 
 在 C#代码中，`UseShellExecute = true` 可以让外部程序执行时，保持终端窗口可见。此时外部程序的输出可以实时地显示在终端窗口中。如果不显示终端窗口，而是使用重定向输出流到 Unity 输出，只有在外部程序退出后才能输出到 Unity Log，它不是实时的。有时我们希望通过终端显示外部程序的处理进度，那么就需要在 C#中如下处理：
 
@@ -7040,7 +7001,7 @@ print("Hello World",flush=True)
 
 
 
-## 直接在 Unity 中执行 bat 脚本
+### 直接在 Unity 中执行 bat 脚本
 
 有时我们会需要在 Unity 中执行一些 bat 脚本，用于做资产的检查等操作。
 
@@ -7083,7 +7044,7 @@ private static bool ValidateRunBat() =>
 
 
 
-# VSCode 清理 "GIT: 重新打开已关闭的储存库" 列表
+## VSCode 清理 "GIT: 重新打开已关闭的储存库" 列表
 
 VSCode 以一个文件夹为 Root 创建工作区，也就是 WorkSpace。
 
@@ -7127,7 +7088,7 @@ VSCode 中有一个常用命令，叫做 `Git：重新打开已关闭的储存�
 
 
 
-# C# Enumerable Aggregate
+## C# Enumerable Aggregate
 
 之前都没注意到有这么好用的东西，这个东西的大体思路是对于一个 Enumerable 的对象，以列表为例，传一个任意类型的初始的随意什么东西进去，然后遍历列表中的每一对象，对这个初始的东西做累计的任意操作，遍历完后还可以进行一次转换，返回遍历完的这个初始对象。
 
@@ -7184,7 +7145,7 @@ Console.WriteLine(reversed);
 
 
 
-# Mesh 顶点的连接性
+## Mesh 顶点的连接性
 
 盘问 GPT 榨出来的代码，测过了，非常好用。
 
@@ -7300,7 +7261,7 @@ public static List<int> GetConnectedComponents(Mesh mesh)
 
 
 
-# Unity 切线空间及其应用
+## Unity 切线空间及其应用
 
 ![Untitled](./Images/Untitled-1737013294595-1.png)
 
@@ -7310,7 +7271,7 @@ Object 空间是每个 Mesh 独有的、在建模阶段就已经确定的空间�
 
 
 
-## 切线的确定方式
+### 切线的确定方式
 
 模型文件导入 Unity 后会生成 Mesh 资产，Vertex 的法线直接从模型文件中读取，而切线会根据 Vertex 的 UV 重新计算。
 
@@ -7322,7 +7283,7 @@ Object 空间是每个 Mesh 独有的、在建模阶段就已经确定的空间�
 
 
 
-## 副切线的确定方式
+### 副切线的确定方式
 
 副切线是同时垂直于法线和切线的向量，存在两个这样的方向。
 
@@ -7335,7 +7296,7 @@ fixed3 worldBinormal = cross(worldNormal, worldTangent) * tangentSign;
 
 
 
-## 切线空间的变换矩阵
+### 切线空间的变换矩阵
 
 从 Mesh 中可以获取 Vertex 在 Object 空间中的位置、切线、副切线和法线的方向，可以来构建 TangentToObject 矩阵了。
 
@@ -7359,7 +7320,7 @@ var objectToTangent = Matrix4x4.Inverse(tangentToObject);
 
 
 
-## 切线空间的应用思路
+### 切线空间的应用思路
 
 切线空间的应用思路一般是：将 Object 空间信息在制作阶段转为 Tangent 空间信息（特殊的位置、方向等），保存到 Vertex 的数据位或者贴图中；在 Shader 中，将读取到的 Tangent 空间信息重新转回 Object 空间使用。
 
@@ -7387,7 +7348,7 @@ var objectToTangent = Matrix4x4.Inverse(tangentToObject);
 
 
 
-# Unity 调试技巧——异常抛出中断
+## Unity 调试技巧——异常抛出中断
 
 在调试 Unity 项目时，有时会希望断点命中在产生异常的地方，尤其是异常在循环体内的情况；这时使用简单的断点需要每个 index 都去检查、若想使用条件断点又可能不知道出错的 index。
 
@@ -7403,7 +7364,7 @@ var objectToTangent = Matrix4x4.Inverse(tangentToObject);
 
 
 
-# CSV 特殊字符和多行输出
+## CSV 特殊字符和多行输出
 
 csv 作为一种用简单文本形式记录的表格格式，用逗号分隔列，用换行号分隔行。
 
@@ -7419,7 +7380,7 @@ csv 作为一种用简单文本形式记录的表格格式，用逗号分隔列�
 
 
 
-# 通过符号链接解决 Typora 的图片路径问题
+## 通过符号链接解决 Typora 的图片路径问题
 
 我习惯使用 Typora 编辑 Markdown 文件。
 
@@ -7450,7 +7411,7 @@ mklink /D Images ..\images
 
 
 
-# cmd 参数和双引号
+## cmd 参数和双引号
 
 [在 Unity C#中执行其他的程序 或 cmd 命令行](#在 Unity C#中执行其他的程序 或 cmd 命令行) 这篇中说明了在 C#中使用 cmd 的方法，这里补充一个小注意事项：如果 cmd 的参数包含空格、转义字符等特殊字符，那么需要用双引号将此参数包裹，这最常用于路径参数的场合。
 
@@ -7460,7 +7421,7 @@ mklink /D Images ..\images
 
 
 
-# Unity中打开URL
+## Unity 中打开 URL
 
 ```c#
 Application.OpenURL(url);
