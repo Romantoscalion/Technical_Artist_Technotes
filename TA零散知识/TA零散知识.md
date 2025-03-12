@@ -7006,7 +7006,37 @@ if __name__ == "__main__":
 
 
 
-※：在 C#代码中，`RedirectStandardError = true;`  可以重定向 Python 程序的输出流，如果 Python 程序出错，我们可以在 Unity 中输出 Log；若如此做，需要注意一下输出内容的编码问题。Python 直接通过 Print 输出的内容在中文操作系统中一般为 GBK 编码，而 Unity 中的 Log 输出为 UTF-16 编码，两边编码格式不一样导致输出时出现乱码问题。要解决上述的乱码问题，最简单的方式是在 Python 中设定输出流的编码格式：`sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')`
+### 注意 Python 的输出流和编码问题
+
+在 C#代码中，`RedirectStandardError = true;`  可以重定向 Python 程序的输出流，如果 Python 程序出错，我们可以在 Unity 中输出 Log；若如此做，需要注意一下输出内容的编码问题。Python 直接通过 Print 输出的内容在中文操作系统中一般为 GBK 编码，而 Unity 中的 Log 输出为 UTF-16 编码，两边编码格式不一样导致输出时出现乱码问题。要解决上述的乱码问题，最简单的方式是在 Python 中设定输出流的编码格式：`sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')`
+
+
+
+### 使用终端显示外部程序的处理进度
+
+在 C#代码中，`UseShellExecute = true` 可以让外部程序执行时，保持终端窗口可见。此时外部程序的输出可以实时地显示在终端窗口中。如果不显示终端窗口，而是使用重定向输出流到 Unity 输出，只有在外部程序退出后才能输出到 Unity Log，它不是实时的。有时我们希望通过终端显示外部程序的处理进度，那么就需要在 C#中如下处理：
+
+```c#
+// /K表示保持窗口， -u 表示强制刷新输出流 &&puse 表示程序退出后维持cmd窗口
+var arguments = $"/K python -u {YourArguments} && pause";
+
+var process = Process.Start( new ProcessStartInfo
+{
+    FileName = "cmd.exe",
+    Arguments = arguments,
+    WindowStyle = ProcessWindowStyle.Normal,
+    UseShellExecute = true
+});
+process.WaitForExit();
+```
+
+另外，在 py 的 print 语句中，也需要给 print 语句指定 flush 为 True：
+
+```python
+print("Hello World",flush=True)
+```
+
+这样我们的输出内容就能实时地显示在终端中了。
 
 
 
@@ -7423,6 +7453,18 @@ mklink /D Images ..\images
 # cmd 参数和双引号
 
 [在 Unity C#中执行其他的程序 或 cmd 命令行](#在 Unity C#中执行其他的程序 或 cmd 命令行) 这篇中说明了在 C#中使用 cmd 的方法，这里补充一个小注意事项：如果 cmd 的参数包含空格、转义字符等特殊字符，那么需要用双引号将此参数包裹，这最常用于路径参数的场合。
+
+
+
+---
+
+
+
+# Unity中打开URL
+
+```c#
+Application.OpenURL(url);
+```
 
 
 
