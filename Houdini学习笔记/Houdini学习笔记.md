@@ -201,7 +201,7 @@
 
 
 
-# 导出带多个Mesh的FBX
+## 导出带多个Mesh的FBX
 
 放几个Cube然后Merge导出FBX，得到的只有一个Mesh。
 
@@ -221,7 +221,7 @@ path属性一般是面的属性，可以通过AttributeCreate节点简单添加�
 
 
 
-# 多边面转三角面、四边面
+## 多边面转三角面、四边面
 
 [参考](https://www.bilibili.com/read/cv11549531/) 使用Divide节点。若不转化，导入引擎的Mesh可能会出现连线混乱、多边面内有折线等问题。
 
@@ -231,7 +231,7 @@ path属性一般是面的属性，可以通过AttributeCreate节点简单添加�
 
 
 
-# 提取模型的边缘，连成线
+## 提取模型的边缘，连成线
 
 使用Labs Edge Group to Curve节点可以将输入线组转换为curve。
 
@@ -249,7 +249,7 @@ path属性一般是面的属性，可以通过AttributeCreate节点简单添加�
 
 
 
-# HDA导入目标平台时时无法生成模型——HDA的Editable Nodes列表
+## HDA导入目标平台时时无法生成模型——HDA的Editable Nodes列表
 
 当我试图在HDA内通过Python节点更改HDA内的其他节点的参数时，遇到了在Maya中无法生成几何体的问题，但是在Houdini中一切正常。
 
@@ -267,7 +267,7 @@ path属性一般是面的属性，可以通过AttributeCreate节点简单添加�
 
  
 
-# 在Houdini使用Python
+## 在Houdini使用Python
 
 可以通过Python节点在节点树中插入自定义内容。Python节点非常强大，在任何节点处（不管在节点树中是在Python节点之前还是之后），节点参数的增删改查、几何体各类的属性的增删改查都可以通过Python节点做到。
 
@@ -318,7 +318,7 @@ nodeproject.parm("tz").set(center[2])
 
 
 
-# 在HDA中制作ItemMenu——下拉菜单
+## 在HDA中制作ItemMenu——下拉菜单
 
 可能有更规范的方式。
 
@@ -346,7 +346,7 @@ nodeproject.parm("tz").set(center[2])
 
 
 
-# 几何体的独立性——遍历每一个封闭几何体
+## 几何体的独立性——遍历每一个封闭几何体
 
 使用connectivity节点，给面或者点添加属性（int或string），同属一个封闭几何体的会被归为一类，用class属性值做区分。
 
@@ -366,17 +366,17 @@ nodeproject.parm("tz").set(center[2])
 
  
 
-# 使用本地变量
+## 使用本地变量
 
 每一个节点都有自己特殊的本地变量，使用$NAME进行访问。
 
 这里的变量往往是该节点相关的、常用的一些只读信息，经常使用在节点参数的计算中，如下：
 
-![截图.png](Images/clip_image020.gif)
+![截图.png](Images/clip_image020.gif) 
 
 比如在UVTransform节点中，就有如下本地变量：
 
-![截图.png](Images/clip_image022.gif)
+![截图.png](Images/clip_image022.gif) 
 
  
 
@@ -386,7 +386,7 @@ nodeproject.parm("tz").set(center[2])
 
 
 
-# 使用Channel函数和表达式链接节点间的参数
+## 使用Channel函数和表达式链接节点间的参数
 
 很多时候一个节点的某些参数会和其他节点的某些参数相关，需要从其他节点的参数计算而来。这时，就需要连接属性。
 
@@ -430,7 +430,7 @@ ch("../../nodename/paraname")
 
 
 
-# 在HDA中制作勾选项
+## 在HDA中制作勾选项
 
 同样可以使用Switch节点，将Switch的Input参数拖入HDA参数页面后，可以修改参数的类型为Toggle
 
@@ -446,7 +446,7 @@ ch("../../nodename/paraname")
 
 
 
-#  一次性BooleanUnion多个物体的方法
+##  一次性BooleanUnion多个物体的方法
 
 如果现在有一个物体的很多小零件，现希望将他们全部BooleanUnion起来，最粗暴的方法就是两两逐个用Boolean节点。
 
@@ -464,7 +464,7 @@ ch("../../nodename/paraname")
 
 
 
-# 更换节点的版本
+## 更换节点的版本
 
 Houdini的节点是会随着Houdini的更新而更新的，有些时候新版本的节点无法满足功能，可能需要让节点退版本。
 
@@ -482,7 +482,7 @@ Houdini的节点是会随着Houdini的更新而更新的，有些时候新版本
 
 
 
-# 延法线方向移动图元
+## 延法线方向移动图元
 
 使用Peak节点，可以选择点线面。
 
@@ -492,11 +492,11 @@ Houdini的节点是会随着Houdini的更新而更新的，有些时候新版本
 
 
 
-#  疑难杂症
+##  疑难杂症
 
 
 
-##  HDA与DCC（Maya等）的链接问题
+###  HDA与DCC（Maya等）的链接问题
 
 有时我试图通过Maya打开HDA，Maya会报错，说链接不上Houdini的会话，各种报服务器地址不对之类的，这似乎是插件的一个缺陷。
 

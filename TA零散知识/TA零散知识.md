@@ -42,7 +42,7 @@ GAMES 202 —— SSAO：
 
 参考文章：[罪恶装备](https://zhuanlan.zhihu.com/p/493802718)
 
-![img](Images/clip_image004.png)    ![img](Images/clip_image005.png) ![img](Images/clip_image006.png) 
+![img](Images/clip_image004.png)    ![img](Images/clip_image005.png) ![img](Images/clip_image006.png)
 
 
 
@@ -68,7 +68,7 @@ _MyFloat("MyFloat",Range(0,1)) = 1.0
 
 效果：
 
-![image-20230609144606972](Images/image-20230609144606972.png) 
+![image-20230609144606972](Images/image-20230609144606972.png)
 
 除了上面这两个能用的，其他的 C#能用的这里都不能用，很垃圾。
 
@@ -102,15 +102,15 @@ _MyFloat("MyFloat",Range(0,1)) = 1.0
 
 不可追溯全称，其是一种分布函数，可以参与 BRDF 的计算，主要体现在 **渲染粗糙度大的镜面反射** 上，能渲染出更逼真的 j 页面反射部分。
 
-在 202 笔记中也出现了 GGX，本质上 GGX 就是一个 **类似高斯分布的函数**，但它不是一成不变，它会随着粗糙度变化，**它记录的是相对与面法线，微表面的分布如何（微表面与面法线的对齐程度）**。   
+在 202 笔记中也出现了 GGX，本质上 GGX 就是一个 **类似高斯分布的函数**，但它不是一成不变，它会随着粗糙度变化，**它记录的是相对与面法线，微表面的分布如何（微表面与面法线的对齐程度）**。
 
 比如 PBR 中，计算 D 项（法线分布函数）需要使用微表面模型，自然也使用了 GGX 来计算微表面分布，不仅如此，在 G 项（自我遮蔽项）中也参考了 GGX 的值。     **总结：GGX 是一个实时级的分布函数，常用来在微表面模型中计算微表面与视线的对齐程度。在微表面模型的 D 项、G 项中，用来计算观察方向有多少能量反射。因为其作用于 DG 项，所以其本质仅对镜面反射部分产生影响。**
 
-![img](Images/clip_image013.png)            
+![img](Images/clip_image013.png)
 
 
 
-![img](Images/clip_image014.png) 
+![img](Images/clip_image014.png)
 
 
 
@@ -147,11 +147,11 @@ Unity URP 中的阴影方案称作“SSSM（Screen Space Shadow Mapping，屏幕
 
 有光源才能投出阴影，光源上也有一些阴影相关的设置。
 
-![Untitled(2)](./Images/Untitled(2).png) 
+![Untitled(2)](./Images/Untitled(2).png)
 
 以主平行光为例，当我们调整主光源的阴影配置时，可以通过 FrameDebuger 观察到传入 GPU 的_MainLightShadowParams 发生了变化。
 
-![Untitled(3)](./Images/Untitled(3).png) 
+![Untitled(3)](./Images/Untitled(3).png)
 
 
 
@@ -167,7 +167,7 @@ float4      _MainLightShadowParams;   // (x: shadowStrength, y: >= 1.0 if soft s
 
 在 Unity 的渲染管线资产中，我们可以配置主光源的级联阴影参数。
 
-![image-20241211184132662](./Images/image-20241211184132662.png) 
+![image-20241211184132662](./Images/image-20241211184132662.png)
 
 级联阴影是以牺牲远处阴影质量为代价、提升近处阴影质量的一种技术。
 
@@ -179,7 +179,7 @@ float4      _MainLightShadowParams;   // (x: shadowStrength, y: >= 1.0 if soft s
 
 下图为 4 级联的示意阴影图。
 
-![image-20241212165828684](./Images/image-20241212165828684.png) 
+![image-20241212165828684](./Images/image-20241212165828684.png)
 
 级联阴影的做法有点类似于图像的伽马编码，将更多的精度用于存储人眼比较敏感的暗部信息。
 
@@ -195,7 +195,7 @@ float4      _MainLightShadowParams;   // (x: shadowStrength, y: >= 1.0 if soft s
 
 以主平行光为例，我们可以从 FrameDebuger 中看到在渲染管线流程的靠前部分，渲染了主光源的 Shadow Map。这里暂时没有考虑级联阴影。
 
-![Untitled(4)](./Images/Untitled(4).png) 
+![Untitled(4)](./Images/Untitled(4).png)
 
 
 
@@ -215,13 +215,13 @@ float4      _MainLightShadowParams;   // (x: shadowStrength, y: >= 1.0 if soft s
 
 首先，我们来确定相机的 Transform。相机的朝向就是光源的朝向，相机的位置则是主相机前方最大阴影距离处，这个最大阴影距离通过渲染管线资产进行配置。
 
-![image-20241212161248301](./Images/image-20241212161248301.png) 
+![image-20241212161248301](./Images/image-20241212161248301.png)
 
 然后我们来配置相机上的参数，根据平行光的特性，我们需要将相机的投影类型改为正交投影；然后我们将相机的视野大小也改为最大阴影距离，同时为了避免场景被远近裁剪平面裁剪，我们给一个合适的裁剪平面距离。
 
 设置完成后，我们就能从这个新的相机中看到与主相机 ShadowMap 一模一样的轮廓，主平行光渲染 ShadowMap 的相机就是使用类似这样的方法确定的。
 
-![Untitled(5)](./Images/Untitled(5).png) 
+![Untitled(5)](./Images/Untitled(5).png)
 
 
 
@@ -233,9 +233,7 @@ float4      _MainLightShadowParams;   // (x: shadowStrength, y: >= 1.0 if soft s
 
 其次每个级联相机的位置和视野大小也是不同的，需要根据级联的分割参数做出对应的调整。
 
-![image-20241212171017782](./Images/image-20241212171017782.png) 
-
-
+![image-20241212171017782](./Images/image-20241212171017782.png)
 
 
 
@@ -350,11 +348,11 @@ half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat,
 >
 > **粗糙度控制着什么？**
 >
-> 1.直接光照的镜面反射部分的 D 项，越粗糙，D 项一般越小，代表渲染点的微表面们，和反射方向不太对齐。     
+> 1.直接光照的镜面反射部分的 D 项，越粗糙，D 项一般越小，代表渲染点的微表面们，和反射方向不太对齐。
 >
-> 2.直接光照的镜面反射的 G 项，越粗糙，自遮蔽现象越重，G 项越小。      
+> 2.直接光照的镜面反射的 G 项，越粗糙，自遮蔽现象越重，G 项越小。
 >
-> 3.间接光照镜面反射第一部分入射光的计算。间接光照镜面反射的光源通过观察方向做反射，再对 CubeMap 采样确定，但是由于粗糙度不同，其实也需要对不同清晰度的 CubeMap 采样，这样的效果更真实，此处粗糙度作为参考值，决定采用哪一个层级的 CubeMap。越粗糙，使用越模糊的 CubeMap。    
+> 3.间接光照镜面反射第一部分入射光的计算。间接光照镜面反射的光源通过观察方向做反射，再对 CubeMap 采样确定，但是由于粗糙度不同，其实也需要对不同清晰度的 CubeMap 采样，这样的效果更真实，此处粗糙度作为参考值，决定采用哪一个层级的 CubeMap。越粗糙，使用越模糊的 CubeMap。
 >
 > 4.间接光照镜面反射第二部分，作为参数之一，和 NV 一起、参与数值拟合，避免计算积分，越粗糙，一般来说镜面反射越弱。
 >
@@ -362,7 +360,7 @@ half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat,
 >
 > 1.直接光照镜面反射部分的 F 项。金属度作为参考值，对 F0（0.04，可视为一个接近黑色的颜色）和物体本身颜色插值，得到的颜色经过计算后作为直接光照镜面反射部分使用。也就是说，非金属的镜面反射颜色不太受自身颜色影响，而金属的镜面反射颜色受自身颜色影响大。观察手连 PBR，得到相同的结论。
 >
-> 2.直接光照漫反射的 KD。KD 本是 1-KS（KS 也就是 F 项）得到，但是 KD 又做了一步乘（1 -  Metallic），意味着，非金属漫反射强，能量几乎没有吸收，金属漫反射弱，有能量的吸收。     
+> 2.直接光照漫反射的 KD。KD 本是 1-KS（KS 也就是 F 项）得到，但是 KD 又做了一步乘（1 -  Metallic），意味着，非金属漫反射强，能量几乎没有吸收，金属漫反射弱，有能量的吸收。
 >
 > 3.间接光照的镜面反射的 F 项，金属度控制 F0（指通过金属度在 0.04 和 baseColor 插值后得到的颜色），而 F0 参与 F 项的计算，产生的影响和 1.中一致。
 
@@ -374,7 +372,7 @@ half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat,
 
 ## 为什么法线贴图总呈现蓝紫色
 
-法线扰动向量是 xyz 三维值,  我们得找个东西来储存它, 用什么来存呢? 
+法线扰动向量是 xyz 三维值,  我们得找个东西来储存它, 用什么来存呢?
 
 正好, 图片也是 rgb3 个值, 就用它吧。不过, 法线扰动向量 **xyz 这 3 个值的取值范围都是(-1, 1), 而 rgb 的取值范围是(0, 1), 需要换算一下。**
 
@@ -398,7 +396,7 @@ half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat,
 
 用户可以指定是否开启深度测试、是否开启深度写入，这两个完全独立。唯一的一点点联系就是，如果片元的深度测试没有通过，这个片元会被直接舍弃，不再进行后续的流程。深度写入作为深度测试后面的一个流程，自然会被直接跳过。
 
-![image-20220925011913289](Images/image-20220925011913289.png) 
+![image-20220925011913289](Images/image-20220925011913289.png)
 
 
 
@@ -410,7 +408,7 @@ half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat,
 
 虽然在入门精要里了解过，但是入门精要的笔记做得实在垃圾，没有写具体方法，而连连看获取时间相对简单，所以一直没有掌握。写理发店 Shader 的时候，遇到了这个问题，故回顾入门精要，要记住如下用法：
 
-<img src="Images/IMG_20220927_155303_edit_468075674430656.jpg.jpg" alt="IMG_20220927_155303_edit_468075674430656.jpg" style="zoom:67%;" /> 
+<img src="Images/IMG_20220927_155303_edit_468075674430656.jpg.jpg" alt="IMG_20220927_155303_edit_468075674430656.jpg" style="zoom:67%;" />
 
 
 
@@ -420,7 +418,7 @@ half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat,
 
 ## 在 Shader 中添加 HDR 性质的颜色
 
-![image-20220927155507592](Images/image-20220927155507592.png) 
+![image-20220927155507592](Images/image-20220927155507592.png)
 
 
 
@@ -633,17 +631,17 @@ FallBack "ProPixelizer/Hidden/MyPixelBase"
 
 **Layer 是物体（GameObject）的一个属性，本质是 int 型的一个参数。**
 
-![image-20221013200939822](Images/image-20221013200939822.png) 
+![image-20221013200939822](Images/image-20221013200939822.png)
 
 它依附于每一个 Game Object。
 
 **Render Layer 是仅 SRP 才拥有的、一个 FilterSetting 的属性，本质也是一个 int 型的参数 。**
 
-![image-20221013201215689](Images/image-20221013201215689.png) 
+![image-20221013201215689](Images/image-20221013201215689.png)
 
 上句是调用一次 Draw Call 的函数，参数 m_FilteringSettings 中，包含了 Render Layer。
 
-![image-20221013201356695](Images/image-20221013201356695.png) 
+![image-20221013201356695](Images/image-20221013201356695.png)
 
 
 
@@ -660,7 +658,7 @@ FallBack "ProPixelizer/Hidden/MyPixelBase"
 
 我们可以 **粗略的把 Render Layer 理解为一个 Pass 的属性**。默认情况下，**通过 Layer 筛选过一遍要渲染的对象后，还要通过一遍物体对 Pass 的筛选。**
 
-![image-20221013202808023](Images/image-20221013202808023.png) 
+![image-20221013202808023](Images/image-20221013202808023.png)
 
 每一个 **Renderer 组件都有一个 Render Layer Mask（渲染层遮罩）的属性**，本质是一个 int 型列表。当你想用一个 Pass 去渲染这个物体，Renderer 组件会检查一下，你这个 Pass 的 Render Layer 的值，有没有在我的 Render Layer Mask 的列表中。只有在的情况，这个 Renderer 才会允许这个 Pass 去渲染这个 Mesh。
 
@@ -701,19 +699,14 @@ FallBack "ProPixelizer/Hidden/MyPixelBase"
 
 在 Shader 的属性声明处，使其被包裹在 CBUFFER 字段中，即可使同 Shader、不同材质的物体被合批。
 
-> ​	CBUFFER_START(UnityPerMaterial)
->
-> ​      
->
-> ​      half4 _Color;
->
-> ​      half _Width;
->
-> 
->
-> ​      CBUFFER_END
+```glsl
+ CBUFFER_START(UnityPerMaterial)
+ half4 _Color;
+ half _Width;
+CBUFFER_END
+```
 
-![image-20221015201946577](Images/image-20221015201946577.png) 
+![image-20221015201946577](Images/image-20221015201946577.png)
 
 **但是要注意，多 PassShader 不可以喔。**
 
@@ -745,7 +738,7 @@ CBUFFER_END
 
 具体来说，**当 Unity 执行 DrawCall 时，它会将所有需要绑定的数据打包成一个成为“渲染状态”（Render State）的对象**，然后将这个对象传递给 GPU。渲染状态中包含了 Shader 所需的所有数据，包括属性、常量、纹理等等。GPU 在渲染时会根据这些数据来执行 Shader，从而得到最终的渲染结果。
 
-![image-20230823103229674](Images/image-20230823103229674.png) 
+![image-20230823103229674](Images/image-20230823103229674.png)
 
 
 
@@ -759,7 +752,7 @@ CBUFFER_END
 
 **在渲染过程中，渲染管线会将 Mesh 数据和渲染状态结合起来，生成一组渲染命令（Render Command），并将其发送给 GPU 进行渲染。** 渲染命令中包含了需要渲染的 Mesh 数据和对应的渲染状态，GPU 根据这些信息来执行相应的渲染操作，并最终生成屏幕上的像素。
 
-![image-20230823103431691](Images/image-20230823103431691.png) 
+![image-20230823103431691](Images/image-20230823103431691.png)
 
 
 
@@ -781,15 +774,11 @@ Render Command（渲染命令）和 Draw Call（绘制调用）是 Unity 中两�
 2. 在使用几何剪裁（culling）时，可以将要剪裁的几何体分成多个批次进行绘制，但这些批次可以使用相同的渲染状态和着色器，因此可以共用一个 Render Command。
 3. 在使用条件渲染（conditional rendering）时，需要进行多个 Draw Call 来确定是否需要渲染某些物体，但这些 Draw Call 可以使用相同的渲染状态和着色器，并且只有一个 Render Command 被执行来渲染这些物体。
 
-![image-20230823103821078](Images/image-20230823103821078.png) 
+![image-20230823103821078](Images/image-20230823103821078.png)
 
 在 Unity 中，每个 Draw Call 都会产生一定的 CPU 和 GPU 开销，因此减少 Draw Call 的数量是提高渲染性能的关键。合批（Batching）就是一种将多个 Draw Call 合并成一个的技术，从而减少 CPU 和 GPU 的开销。在合批的过程中，多个 Render Command 被打包成一个大的 Render Command，并通过一个 Draw Call 来执行。这样可以减少 Draw Call 的数量，从而提高渲染性能。
 
-![未命名文件](Images/未命名文件.png) 
-
-
-
-
+![未命名文件](Images/未命名文件.png)
 
 
 
@@ -803,7 +792,7 @@ Render Command（渲染命令）和 Draw Call（绘制调用）是 Unity 中两�
 
 我们通过上面的描述可以知道，合批被打断的一般原因就是 Draw Call 之间的渲染状态有差异。而如果把材质的属性缓存到 CBUFFER 中，那么其实被缓存的数据就 **不再通过渲染状态传入 Draw Call 中，而是在渲染的 GPU 阶段直接从 CBUFFER 中获取**。如此一来，可能造成材质参数有差异的情况就从普通的渲染流程中被抽离出来了，可喜可贺，可喜可贺。
 
-![未命名文件 (1)](Images/未命名文件 (1).png) 
+![未命名文件 (1)](Images/未命名文件 (1).png)
 
 既然它这么好用，为什么不把所有的参数都放到 CBUFFER 中呢？
 
@@ -837,7 +826,7 @@ Render Command（渲染命令）和 Draw Call（绘制调用）是 Unity 中两�
 
 ## 关于软粒子
 
-![image-20230116223031154](Images/image-20230116223031154.png) 
+![image-20230116223031154](Images/image-20230116223031154.png)
 
 效果一目了然。
 
@@ -851,7 +840,7 @@ Render Command（渲染命令）和 Draw Call（绘制调用）是 Unity 中两�
 
 [ASE 中的连法](https://blog.csdn.net/qq_39574690/article/details/126448580)——注：ASE 的默认粒子 Shader 模板中包含软粒子的算法，但是需要开启 SOFTPARTICLES_ON 的 Shader 关键字。
 
-![image-20230116223848517](Images/image-20230116223848517.png) 
+![image-20230116223848517](Images/image-20230116223848517.png)
 
 
 
@@ -865,11 +854,11 @@ Render Command（渲染命令）和 Draw Call（绘制调用）是 Unity 中两�
 
 如下的 melee，我希望其中一个头骨在 dissolved 的时候不要影响另一个，就需要材质实例
 
-![image-20230131225637772](Images/image-20230131225637772.png) 
+![image-20230131225637772](Images/image-20230131225637772.png)
 
 **使用材质实例时，检查器中的材质面板会显示 Instance：**
 
-![image-20230131225708991](Images/image-20230131225708991.png) 
+![image-20230131225708991](Images/image-20230131225708991.png)
 
 
 
@@ -900,7 +889,7 @@ Render Command（渲染命令）和 Draw Call（绘制调用）是 Unity 中两�
 
 ShaderGraph 中，会默认把颜色、Float 等属性写入 CBUFFER 中：
 
-![image-20230906103522210](./Images/image-20230906103522210.png) 
+![image-20230906103522210](./Images/image-20230906103522210.png)
 
 
 
@@ -908,7 +897,7 @@ ShaderGraph 中，会默认把颜色、Float 等属性写入 CBUFFER 中：
 
 **成功被合批。**
 
-![image-20230906103649208](./Images/image-20230906103649208.png) 
+![image-20230906103649208](./Images/image-20230906103649208.png)
 
 关于 CBUFFER：[跳转](#关于 CBUFFER)
 
@@ -949,7 +938,7 @@ void OnDestroy()
 
 因此，只需要在颜色计算时考虑 **顶点色**，即可使粒子系统组件对材质表现出控制权。
 
-<img src="Images/image-20230205212419240.png" alt="image-20230205212419240" style="zoom: 80%;" /> 
+<img src="Images/image-20230205212419240.png" alt="image-20230205212419240" style="zoom: 80%;" />
 
 
 
@@ -965,7 +954,7 @@ void OnDestroy()
 
 所有类型的资产（如模型、音频、图片）导入时都会过一遍该类型的所有的预处理，如下模型的：
 
-![image-20230210213445574](Images/image-20230210213445574.png) 
+![image-20230210213445574](Images/image-20230210213445574.png)
 
 预处理可以帮助 Unity 更好的理解资产，可以给资产做规范化等等。
 
@@ -979,7 +968,7 @@ void OnDestroy()
 
 2. 在相关回调中编写需要处理的代码
 
-   ![image-20230210214049010](Images/image-20230210214049010.png) 
+   ![image-20230210214049010](Images/image-20230210214049010.png)
 
 3. 触发相应的重新导入，即可看到效果。
 
@@ -1007,9 +996,9 @@ void OnDestroy()
 
 统一资源定位符（Uniform Resource Locator）。就是一个 **标记文件在在服务器主机中的位置的字符串**。
 
-如：例如，<http://www.example.com/index.html> 就是一个 URL，其中 http 是协议，<www.example.com> 是主机名，index.html 是路径。
+如：例如，<http://www.example.com/index.html> 就是一个 URL，其中 http 是协议，<www.example.com> 是主机名，index.HTML 是路径。
 
- 
+
 
 那么 URL 如何在更新中被使用？
 
@@ -1031,11 +1020,11 @@ urllib.request.urlretrieve(url, save_path)
 print('文件下载成功！')
 ```
 
- 
+
 
 ### 更新的整体思路
 
- 
+
 
 <u>在初版插件中就内置检查更新功能。</u>
 
@@ -1043,19 +1032,19 @@ print('文件下载成功！')
 
 如果用户版本不是最新的，则弹出对话框提示用户更新。
 
- 
+
 
 <u>下载</u>
 
 用上面的代码下载最新的插件文件到本地。
 
- 
+
 
 <u>安装</u>
 
 也可以写在更新程序中（通常更新程序和本体程序区分开来），主要是一些文件的替换和移动。
 
- 
+
 
 ### 企业中运用
 
@@ -1063,11 +1052,11 @@ print('文件下载成功！')
 
 但是了解一下也不是坏事，对吧？
 
- 
+
 
 ---
 
- 
+
 
 ## 关于 Python 装饰器
 
@@ -1102,123 +1091,171 @@ After the function is called.
 
 ---
 
- 
-
-## 空间、矩阵和变换
 
 
+## 矩阵、空间和变换
 
-### 结论
+==// TODO: 这篇还没写完==
 
-父空间坐标到子，消除父影响，左乘子空间在父空间的逆变换矩阵
+几何中可以用一个 4x4 矩阵来表示某空间中的变换，一个变换具有位移 Translate、旋转 Rotation 和缩放 Scale 这三个基本信息。
 
-子空间坐标到父，重新考虑父影响，左乘子空间在父空间的变换矩阵
+空间可以理解为参照物，如世界空间中的某个变换，它的 Translate 值代表相对于世界空间原点的位移变化；而物体 A 的 Local 空间下的某个变换，它的 Translate 值则代表相对于物体 A 的位移变化。
 
-如果一个矩阵能使 A 空间坐标转移到 B 空间，那么这个矩阵的逆矩阵就可以把 B 空间的坐标转移到 A 空间。
+在 Unity 中，常用矩阵计算物体的变换，如使用 Transform Job 操控大批量物体的位移、使用 Graphic.DrawMeshInstance 系 API 指定大批量绘制实例的位置等。总之，涉及变换确定时，往往离不开矩阵计算。
 
-如果矩阵和坐标同空间，就是简单的变换。
+矩阵的计算有时抽象难懂，笔者在这里做一些总结归纳。
 
-如果矩阵是同空间逆矩阵，既可以理解为同空间做逆变换，也可以理解为父空间坐标到子空间，数学结果相同。
 
- 
 
-### 关于 SMTP 的个人理解
+### 矩阵与向量的运算
 
-![截图.png](Images/clip_image002.gif) 
+向量可以表示一个某空间中的位置或者方向。
 
-![截图.png](Images/clip_image004.gif) 
+试想这么一个问题：现在世界空间中有一个角色，我想知道角色 MotionRoot 前方 1m 位置的世界空间坐标以及 MotionRoot 的前方在世界空间中的方向向量，我们应该怎么做？
 
- 
+其实很简单，我们把角色 MotrionRoot 的 Local 空间下的位置 `(0,0,1)` 和前向 `(0,0,1)` 变换到世界空间下就好了，此时可以这样写：
 
-### 关于空间转换的小推导和验证
+```C#
+void OnDrawGizmos() 
+{
+    var forwardPosition = transform.localToWorldMatrix.MultiplyPoint(Vector3.forward);
+    var forwardDirection = transform.localToWorldMatrix.MultiplyVector(Vector3.forward);
+    Gizmos.color = Color.green;
+    Gizmos.DrawWireSphere(forwardPosition, 0.1f);
+    Gizmos.DrawLine(forwardPosition, forwardPosition + forwardDirection);
+}
+```
 
-想要把子空间下的坐标转移到父空间？那不就是把子空间在父空间中的变换再应用到坐标就行吗。
+这里的 `transform.localToWorldMatrix` 就是代表角色 MotionRoot 在世界空间的变换，我们使用 `MultiplyPoint` 和 `MultiplyVector` 将这个变换应用到 Local 空间下的向量 `(0,0,1)`，即可将位置或者方向从 Local 空间转换到世界空间。
 
-如子空间有一点 P（1，1）
+![demo](./Images/demo-1746002938238-1.gif)
 
-子空间在父空间的变换矩阵为：
 
-1 0 1
 
-0 1 1
+### 矩阵与矩阵的运算
 
-0 0 1
+矩阵与矩阵之间一般使用乘法运算，两个矩阵相乘可以表示变换的叠加。需要尤其注意矩阵乘法不满足交换律，符号两边矩阵的位置特别重要。
 
-意义是向 XY 方向各前进一个单位。
+矩阵 A * 矩阵 B 是一个让 B 变换接受 A 变换的过程，我们一般说成 “矩阵 B 左乘矩阵 A”。
 
-再把这个变换应用于坐标 P，得到坐标 P（2，2）
+比如说，在角色 MotionRoot 的正前方 1m、正上方 1 米处，有一个以角色前向为轴，不停旋转和缩放的 Cube，此时我们就无法通过简单的矩阵与向量运算得到目标的矩阵了，但是我们可以构造 Local 空间下的这个变换，然后让它接受角色 MotionRoot 的变换，就可以得到这个 Cube 在世界空间下的变换了。
 
-这不就是 P 在父空间下的坐标吗？
+![demo](./Images/demo-1746008305961-3.gif)
 
-小结：
+```c#
+void OnDrawGizmos()
+{
+    // 用已知的Loacal位移、旋转和缩放构造出Local空间下的变换矩阵
+    var translate = new Vector3(0, 1, 1);
+    var rotatetion = Quaternion.Euler(0, 0, rotate_z);
+    var scale = Vector3.one;
+    scale *= this.scale * 0.1f;
+    var localMartix = Matrix4x4.TRS(translate, rotatetion, scale);
 
-子空间坐标到父空间坐标，给坐标应用子空间在父空间的变换即可
+    // 使用矩阵乘法，localMartix左乘worldMartix，让local变换接受角色MotionRoot的变换
+    var worldMatrix = transform.localToWorldMatrix * localMartix;
 
- 
+    // 绘制矩阵代表的物体
+    Gizmos.color = Color.red;
+    var pos = worldMatrix.GetColumn(3);
+    var rotation = worldMatrix.rotation;
+    scale = worldMatrix.lossyScale;
+    Gizmos.DrawMesh(mesh, pos, rotation, scale);
 
-反过来，想要把父空间的坐标转移到子空间？那不就是撤销一下子空间在父空间的变换就行嘛
+    // 绘制矩阵代表的xyz轴
+    Gizmos.color = Color.red;
+    Gizmos.DrawLine((Vector3)pos, (Vector3)pos + (worldMatrix.rotation * Vector3.right * scale.x * 2) );
+    Gizmos.color = Color.green;
+    Gizmos.DrawLine((Vector3)pos, (Vector3)pos + (worldMatrix.rotation * Vector3.up * scale.x * 2));
+    Gizmos.color = Color.blue;
+    Gizmos.DrawLine((Vector3)pos, (Vector3)pos + (worldMatrix.rotation * Vector3.forward * scale.x * 2));
+}
+```
 
-如有父空间一点 P（1，1）
+核心代码：`var worldMatrix = transform.localToWorldMatrix * localMartix;`
 
-子空间在父空间的变换矩阵为：
+这里我们构建了一个 Local 的变换矩阵，让它左乘上角色在世界空间下的变换矩阵，即让它接受了角色的变换，也可以理解为这个 Local 的变换的参照物是世界空间的角色，最终我们从结果矩阵中读取到此变换的世界空间位置旋转和缩放信息，使用 Gizmos 将它绘制出来。
 
-1 0 1
 
-0 1 1
 
-0 0 1
+### 矩阵变换的叠加
 
-它的逆变换为：
+试想这么一个需求：现在我希望上面例子中的 Cube 不要以自己为中心旋转了，改为以它的一个顶点旋转，应该如何编写代码？
 
-1 0 -1
+![Untitled](./Images/Untitled-1747391090572-4.png)
 
-0 1 -1
+如果这个 Cube 是场景中的一个物体，我想我们的思路应该很清晰：给这个 Cube 加一个父 Transform，Cube 自己的 Transform 旋转到指定的姿态，最后旋转时只要旋转父 Transform 就好了：
 
-0 1 1
+![demo](./Images/demo-1747391401653-6.gif)
 
-我们将逆变换应用于顶点，得到坐标（0，0）
+确实如此，反映到代码上，就成了矩阵变换的嵌套。我们构造一个将 Cube 旋转到指定姿态的变换矩阵，然后让他接受不断旋转的父空间的变换，最后接受角色的世界空间变换，就能做到设想的效果：
 
-这不就是 P 点在子空间下的坐标吗？
+【图片】
 
-小结：
+代码如下：
 
-父空间坐标到子空间坐标，给坐标应用子空间到父空间的逆变换即可
+```c#
+// 构造一个先让Cube旋转到指定姿态的变换矩阵
+var rotation = Quaternion.Euler(45f, 35.264f, 0);
+var cubeMatrix = Matrix4x4.Rotate(rotation);
 
-![截图.png](Images/clip_image006.gif) 
+// 构造不断旋转的父物体的变换矩阵
+rotation = Quaternion.Euler(0, 0, rotate_z);
+var translate = new Vector3(0, 1, 1);
+var parentTransformMatrix = Matrix4x4.TRS(translate, rotation, Vector3.one);
 
- 
+// 让Cube先接受旋转父物体的变换、再接受角色MotionRoot的变换，就能得到Cube在世界空间下的变换矩阵
+var worldMatrix = transform.localToWorldMatrix * parentTransformMatrix * cubeMatrix;
 
----
+// 绘制矩阵代表的物体
+Gizmos.color = Color.red;
+var pos = worldMatrix.GetColumn(3);
+rotation = worldMatrix.rotation;
+var scale = worldMatrix.lossyScale;
+Gizmos.DrawMesh(mesh, pos, rotation, Vector3.one * 0.2f);
 
- 
+// 绘制矩阵代表的xyz轴
+scale = Vector3.one * 0.1f;
+Gizmos.color = Color.red;
+Gizmos.DrawLine((Vector3)pos, (Vector3)pos + (worldMatrix.rotation * Vector3.right * scale.x * 2) );
+Gizmos.color = Color.green;
+Gizmos.DrawLine((Vector3)pos, (Vector3)pos + (worldMatrix.rotation * Vector3.up * scale.x * 2));
+Gizmos.color = Color.blue;
+Gizmos.DrawLine((Vector3)pos, (Vector3)pos + (worldMatrix.rotation * Vector3.forward * scale.x * 2));
+```
 
-## 矩阵左乘和右乘
 
-我一直没有理解，感觉也不太能理解。
 
-根据 GPT 总结的经验：
+### 构造和修改矩阵
 
-变换应用到坐标时，坐标（列向量）右乘变换矩阵
+对于已知某空间下的 Translate、Rotation 和 LocalScale，我们可以使用 `Matrix4x4.TRS` 来构造这套信息代表的变换矩阵，它类似于上面提到的 `localToWorldMatrix`，可以从中直接获取到这个变换代表的 translate 等值。
 
-给坐标换坐标系时，坐标左乘逆父变换矩阵
+```c#
+// 用已知的Loacal位移、旋转和缩放构造出Local空间下的变换矩阵
+var translate = new Vector3(0, 1, 1);
+var rotatetion = Quaternion.Euler(0, 0, rotate_z);
+var scale = Vector3.one;
+scale *= this.scale * 0.1f;
+var localMartix = Matrix4x4.TRS(translate, rotatetion, scale);
+```
 
-**这是错误的！**
 
-**在图形学中，全部都是：坐标左乘变换矩阵！**
 
-如有仿射变换矩阵 M，使其作用于坐标的方式是：
+当我们想在一个矩阵上追加变换时，
 
-P’ = MP
+需要先构造出追加变换的矩阵，然后将其左乘到要叠加变换矩阵上。
 
-如果有多个变换依次作用于坐标，如依次对坐标做 M1、M2 变换，理论的最终坐标值是：
+比如说，在矩阵与矩阵的运算章节中例子的基础上，现在希望给这个 Cube 追加上绕着角色运动的 Translate 变换、使 Cube 的前向始终指向运动轨迹的法线方向的 rotation 变换、在角色的侧面是变大、而在正后面时变小的 Scale 变换，我们就可以这样构造并应用追加变换矩阵：
 
-P‘ = M2M1P
 
-计算过程都是从右向左，意为：P’ =（M2（M1P））
 
-写在 UnityShader 中为：P‘ = mul(M2, mul(M1, P))
+### 变换和逆矩阵
 
- 
+
+
+### Matrix4x4 和 float4x4
+
+
 
 ---
 
@@ -1228,11 +1265,11 @@ P‘ = M2M1P
 
 参考文章：[CSDN](https://blog.csdn.net/n5/article/details/3105872)
 
- 
+
 
 ### 骨骼的本质
 
-在 Maya 等 DCC 中，骨骼本质上是 **一个 Transform 的节点树**。将带有骨骼和蒙皮的模型导入 Unity，也可以看到骨骼组成了一个 Transform 的节点树。 
+在 Maya 等 DCC 中，骨骼本质上是 **一个 Transform 的节点树**。将带有骨骼和蒙皮的模型导入 Unity，也可以看到骨骼组成了一个 Transform 的节点树。
 
 ![Untitled](./Images/Untitled.png)
 
@@ -1248,7 +1285,7 @@ Mesh 的顶点储存了 Object 空间下的位置。
 
 这里说的模型矩阵，就是代表 Transform 的 localToWorldMatrix，可以从 transform 对象中获取。
 
- 
+
 
 但是对于蒙皮 Mesh 则需要做进一步的处理：
 
@@ -1256,7 +1293,7 @@ Mesh 的顶点储存了 Object 空间下的位置。
 
 <u>顶点在模型空间的坐标---<骨骼偏移矩阵>---> 顶点在骨骼空间的坐标---<骨骼组合变换矩阵>---> 顶点在世界空间下坐标</u>
 
- 
+
 
 ### 什么是 BoneOffsetMatrix 矩阵？怎么算？
 
@@ -1286,9 +1323,9 @@ Pb2 = ((M1M2M3)^-1)Pw
 
 *：M1M2M3 可以理解为初始状态的 BoneCombinedTransformMatrix，初始状态下，BoneOffsetMatrix 就是 BoneCombinedTransformMatrix 的逆矩阵。
 
-![截图.png](Images/clip_image008.jpg) 
+![截图.png](Images/clip_image008.jpg)
 
- 
+
 
 ### 什么是 BoneCombinedTransformMatrix？怎么算？
 
@@ -1310,9 +1347,9 @@ Pw = M1M2M3Pb2
 
 这个 M1M2M3 也就是需要的 BoneCombinedTransformMatrix 了。
 
-![截图.png](Images/clip_image010.gif) 
+![截图.png](Images/clip_image010.gif)
 
- 
+
 
 ### 疑惑
 
@@ -1332,7 +1369,7 @@ Pw = M1M2M3Pb2
 
 而后一个步骤的 M1M2M3 已经被动画改变，而且每一帧都会更新，所以其实这两个步骤中的矩阵并不是同一个矩阵，那会使得坐标变化也是理所应当的啦。
 
- 
+
 
 ### 蒙皮 Mesh 的渲染流程
 
@@ -1396,7 +1433,7 @@ void myDisplay(void) {
 
 通过递归的方法算出每一节骨骼的 BCTM（递归地对子骨骼应用父骨骼的变换）
 
- 
+
 
 <u>蒙皮变形</u>
 
@@ -1414,13 +1451,13 @@ void myDisplay(void) {
 
 再考虑加权的情况，无非就是根据顶点中的数据（两个数组，一个保存骨骼的指针、一个保存骨骼的权重），遍历会影响它的骨骼，然后得出四个位置，再根据权值计算出平均位置，即是这个点最终的世界空间位置。
 
- 
+
 
 <u>渲染</u>
 
 计算出的图元通过 DrawCall 调用 GPU 绘制
 
- 
+
 
 ### 解答疑问：为了实现蒙皮，需要哪些条件？
 
@@ -1434,10 +1471,9 @@ void myDisplay(void) {
 
 
 
-
 ---
 
- 
+
 
 ## 在工具设计中使用状态模式
 
@@ -1451,11 +1487,11 @@ void myDisplay(void) {
 
 ![截图.png](Images/clip_image012.jpg)
 
- 
+
 
 ---
 
- 
+
 
 ## 配置文件-把代码写得优雅
 
@@ -1559,7 +1595,7 @@ def ChooseBoneCombineMode(sel):
 }
 ```
 
- 
+
 
 这个 JSON 数据包含了一个人的姓名、年龄、婚姻状况、爱好和地址信息。其中，name、age、isMarried、hobbies 和 address 均为键，对应的值分别为字符串、数字、布尔值、数组和对象。
 
@@ -1585,7 +1621,7 @@ print(data['hobbies'][0])
 print(data['address']['city'])
 ```
 
- 
+
 
 这样就可以将 JSON 数据转换成 Python 的字典对象，方便后续的处理。
 
@@ -1691,21 +1727,21 @@ cmds.setParent('..')
 
 这不是清爽多了？😀
 
- 
+
 
 ---
 
- 
+
 
 ## 哈希
 
- 
+
 
 ### 什么是？
 
 哈希是一类算法，可以把 **任意长度的输入转化为指定长度的字符串输出**。如：a7529dfe23（这是一个哈希值，10 位 16 进制，可以表达最多 16^10 种情况）
 
- 
+
 
 ### 特点
 
@@ -1715,7 +1751,7 @@ cmds.setParent('..')
 
 只能从资产到哈希值，哈希值无法反推出原资产。
 
- 
+
 
 ### 怎么用？在哪里用？
 
@@ -1725,7 +1761,7 @@ cmds.setParent('..')
 
 3. **数据库索引。** 和数字签名类似的，可以在服务器中通过哈希值查询到某个指定的资产。目前 Stable Diffusion 就是这么做的。
 
- 
+
 
 ### 大概是怎么被算出来的？
 
@@ -1733,7 +1769,7 @@ cmds.setParent('..')
 
 常见的有 SHA-1、SHA-256、MD5 等。
 
- 
+
 
 ### 哈希冲突
 
@@ -1743,7 +1779,7 @@ cmds.setParent('..')
 
 正常使用的话，一般来说不会造成哈希冲突。
 
- 
+
 
 ### 哈希碰撞
 
@@ -1757,7 +1793,7 @@ cmds.setParent('..')
 
 上面也说了，哈希值常作为签名、密码使用，这一旦被破解，各种数据安全和证书等问题，就会变得不堪一击。
 
- 
+
 
 ### 在高级编程语言中的用处
 
@@ -1783,7 +1819,7 @@ cmds.setParent('..')
 
 而键值对的概念比较宽，只要是把键和值映射的、一对一的映射关系，都可以被称为键值对。
 
- 
+
 
 ---
 
@@ -1805,7 +1841,7 @@ include 的处理方式非常简单，就是直接把 include 的文件的内容
 
 那么在执行 import 时，导入的是模块的源代码还是编译后的内容？
 
-这取决于编程语言和具体的实现。 
+这取决于编程语言和具体的实现。
 
 在 Python 中，当你执行 import 语句时，Python 会在 sys.path 路径中查找指定的模块，并将其编译为字节码文件（.pyc 或.pyc 文件）缓存到 `__pycache__` 目录中。下一次导入相同的模块时，Python 会直接加载缓存的字节码文件，而不是重新编译源代码。因此，在 Python 中执行 import 语句实际上是导入编译后的字节码文件。
 
@@ -1815,7 +1851,7 @@ include 的处理方式非常简单，就是直接把 include 的文件的内容
 
 总之，大多数编程语言都会在导入模块时进行编译或转换，以便在运行时更高效地执行代码。
 
- 
+
 
 ---
 
@@ -1827,15 +1863,15 @@ include 的处理方式非常简单，就是直接把 include 的文件的内容
 
 再你妈的见，有道。
 
- 
+
 
 ### 重置参数
 
-![截图.png](Images/clip_image014.gif) 
+![截图.png](Images/clip_image014.gif)
 
 在 TortoiseGUI 中，可以在版本树中回退版本：
 
-![截图.png](Images/clip_image016.gif) 
+![截图.png](Images/clip_image016.gif)
 
 
 
@@ -1843,11 +1879,11 @@ include 的处理方式非常简单，就是直接把 include 的文件的内容
 
 右键菜单中可以从库中删除这个文件，也可以通过配置把这个文件加入忽略列表中
 
-![截图.png](Images/clip_image018.gif) 
+![截图.png](Images/clip_image018.gif)
 
-![截图.png](Images/clip_image020.gif) 
+![截图.png](Images/clip_image020.gif)
 
- 
+
 
 ### 使用分支并行开发
 
@@ -1855,17 +1891,17 @@ include 的处理方式非常简单，就是直接把 include 的文件的内容
 
 在新分支上的修改会连同新分支的创建一起提交到云端，届时云端也会出现新的分支。
 
-![截图.png](Images/clip_image022.gif) 
+![截图.png](Images/clip_image022.gif)
 
 合并操作需要先切换到 **“合并的目标”** 这个分支，再使用合并命令指定合并的源。
 
- 
+
 
 ### 变基
 
 一图看懂好吧：
 
-![截图.png](Images/clip_image024.gif) 
+![截图.png](Images/clip_image024.gif)
 
 好处是可以不用再手动清理无用分支，工作树比较好看。
 
@@ -1873,21 +1909,21 @@ include 的处理方式非常简单，就是直接把 include 的文件的内容
 
 一般来说，如果是自己一个人开发的项目，可以用用变基，但如果安全性有要求，或者和别人合作的话，还是别变基了。
 
- 
+
 
 ### 版本回退
 
 本地版本回退只要选中要退的版本，右键重置就行，上面也提及了回退的参数。
 
-![截图.png](Images/clip_image026.gif) 
+![截图.png](Images/clip_image026.gif)
 
 但是云端的项目版本是最新的，你退了版本再推上去是推不动的，要强制覆盖：
 
-![截图.png](Images/clip_image028.gif) 
+![截图.png](Images/clip_image028.gif)
 
 如此，之前的所有更改就都没了，记得备份。
 
- 
+
 
 ### SSH 协议和 HTTP 协议
 
@@ -1903,11 +1939,11 @@ SSH 密钥分为公钥和私钥，公钥交给项目，当项目添加了你的�
 
 总的来说，SSH 就像是一个简易的账号密码，不依赖于第三方的什么服务器而已，只有被添加进项目的人才可以提交更改。
 
- 
+
 
 但是如果是自己个人的垃圾项目 HTTP 协议就完全够用了。。。
 
- 
+
 
 ---
 
@@ -1973,7 +2009,7 @@ public partial class Person
 2. 可能会导致代码逻辑不连贯，需要开发者进行额外的工作来确保 partial 类或 partial 方法在合并后的代码中具有正确的顺序。
 3. 可能会导致代码的 **执行效率降低**，因为 partial 类或 partial 方法会增加额外的开销。
 
- 
+
 
 ---
 
@@ -1983,7 +2019,7 @@ public partial class Person
 
 选中代码块后右键菜单中选重构，就能弹出重构菜单：
 
-![image-20230518145408106](Images/image-20230518145408106.png) 
+![image-20230518145408106](Images/image-20230518145408106.png)
 
 
 
@@ -2138,7 +2174,7 @@ tex.Apply() 方法用于将设置了颜色的 Texture2D 对象提交到 GPU 进�
 
 Texture2D 类的方法，将 Texture2D 对象编码为对应格式所需要的 byte 数组
 
-![image-20230519174031149](Images/image-20230519174031149.png) 
+![image-20230519174031149](Images/image-20230519174031149.png)
 
 
 
@@ -2181,7 +2217,7 @@ Texture2D 类的方法，将 Texture2D 对象编码为对应格式所需要的 b
 5. **编译器可以进行更多的优化**，因为它们知道代码中的类型信息。
 6. 静态类型语言比动态类型语言 **更适合大型项目和团队开发**，因为它们提供了更强的类型安全性和更好的文档支持。
 
- 
+
 
 ### 动态语言
 
@@ -2198,7 +2234,7 @@ Texture2D 类的方法，将 Texture2D 对象编码为对应格式所需要的 b
 5. 动态类型语言通常比静态类型语言更 **适合快速原型开发和小型项目**，因为它们提供了更高的灵活性和快速迭代的能力。
 6. 动态类型语言在 **运行时可能会出现类型错误**，因为类型检查是在运行时进行的，而不是在编译时进行的。
 
- 
+
 
 ### 强类型性
 
@@ -2231,7 +2267,7 @@ Texture2D 类的方法，将 Texture2D 对象编码为对应格式所需要的 b
 
 ### 常见语言分类
 
-![image-20230526174844950](Images/image-20230526174844950.png) 
+![image-20230526174844950](Images/image-20230526174844950.png)
 
 
 
@@ -2382,7 +2418,7 @@ public static class PathUtil {
 
 **关于正则表达式的编写：**
 
-![常用语法](Images/常用语法.png) 
+![常用语法](Images/常用语法.png)
 
 
 
@@ -2604,19 +2640,19 @@ for (int i = 0; i < size; i++)
 
 导入项目的所有资产（甚至是文件夹）都有一个自己专属的 **Meta 文件**，这个文件叫做 **元数据**，用于 **告诉 Unity 如何解释这个资产**。
 
-![image-20230605170023436](Images/image-20230605170023436.png) 
+![image-20230605170023436](Images/image-20230605170023436.png)
 
 一般来说，用户在 **检查器上的修改不会修改到资产的源文件上**，**而是修改到元数据上**，让 Unity 对这个资产文件的理解发生改变。
 
 注意，这个资产的名字后就带了 **“Import Setting”，它的本质就是元数据**，其实我们在直接修改的只有元数据。
 
-![image-20230605170133536](Images/image-20230605170133536.png) 
+![image-20230605170133536](Images/image-20230605170133536.png)
 
 最后在 **打包时，Unity 也根据这些资产的元数据去处理这些资产，处理完后再打入包体中。**
 
 有些资产是不显示所谓的 Import Settings，比如材质（mat）文件就不显示，大概是因为不需要显示。（虽然它有 meta 文件）
 
-![image-20230605170444056](Images/image-20230605170444056.png) 
+![image-20230605170444056](Images/image-20230605170444056.png)
 
 
 
@@ -2716,7 +2752,7 @@ for (int i = 0; i < times; i++) {
 
 **验证：**
 
-![image-20230906193944213](./Images/image-20230906193944213.png) 
+![image-20230906193944213](./Images/image-20230906193944213.png)
 
 
 
@@ -2763,7 +2799,7 @@ for (int i = 0; i < times; i++) {
 
 在 ASE 中，可以使 **用 Static Switch 节点做到这件事**：
 
-![image-20230719190234409](Images/image-20230719190234409.png) 
+![image-20230719190234409](Images/image-20230719190234409.png)
 
 
 
@@ -2810,7 +2846,6 @@ for (int i = 0; i < times; i++) {
 但有条件的话，**最好还是不要让全局关键字重复**，因为这可能导致 `Shader.EnableKeywords()` 等 API 开启了我本不想开启的关键字。
 
 而且，如果也确实不需要通过全局方法去控制 Shader 的关键字，那 **大可以设置为 local 的**。
-
 
 
 
@@ -2924,7 +2959,7 @@ Pass 中的#Pragma 命令：
 
 说白了，整个工作流程大概如下图：
 
-![image-20231227202757174](./Images/image-20231227202757174.png) 
+![image-20231227202757174](./Images/image-20231227202757174.png)
 
 
 
@@ -2932,7 +2967,7 @@ Pass 中的#Pragma 命令：
 
 它会清楚地把 GUI 产生的关键字列表显示出来，方便我们判断问题所在。
 
-![image-20231227202925090](./Images/image-20231227202925090.png) 
+![image-20231227202925090](./Images/image-20231227202925090.png)
 
 
 
@@ -2950,7 +2985,7 @@ Pass 中的#Pragma 命令：
 
 > 在“材料检查器”中，此属性的值将 **从 Renderer 的 MaterialPropertyBlock 中查询**，而 **不是从材料中查询**。该值也将显示为只读。这对应于着色器代码中属性前面的“[PerRendererData]”属性。
 
-![image-20230808203620239](Images/image-20230808203620239.png) 
+![image-20230808203620239](Images/image-20230808203620239.png)
 
 如上图，这里 **没有标志为 [PreRenderData]**，所以_MainTex 属性被显示并且可以修改。
 
@@ -2980,9 +3015,9 @@ Pass 中的#Pragma 命令：
 
 后来学百人计划的时候，又了解得稍微深入了一点：
 
-> 就是 **蒙版**。有一块 **额外的屏幕缓冲区**，**每个像素记录一个 8 位的值**，也就是 0~255 的。初始里面都是 0，**在 Shader 中可以修改和读取里面的值**。通过读取，就可以把 Shader 中你算出来、或者指定好的值和缓冲区中读到的值进行比较，**根据比较的结果来决定要不要保留这个片元**。      
+> 就是 **蒙版**。有一块 **额外的屏幕缓冲区**，**每个像素记录一个 8 位的值**，也就是 0~255 的。初始里面都是 0，**在 Shader 中可以修改和读取里面的值**。通过读取，就可以把 Shader 中你算出来、或者指定好的值和缓冲区中读到的值进行比较，**根据比较的结果来决定要不要保留这个片元**。
 >
-> 若要作为 **蒙版使用**，基本的思路就是 **放置一个平面，先渲染这个平面，不要颜色，只开启模板值写入，然后渲染需要遮的物体，在渲染的模板测试中，根据自身参考值和模板值缓冲区中读到的值的比较结果决定要不要这个片元。**     
+> 若要作为 **蒙版使用**，基本的思路就是 **放置一个平面，先渲染这个平面，不要颜色，只开启模板值写入，然后渲染需要遮的物体，在渲染的模板测试中，根据自身参考值和模板值缓冲区中读到的值的比较结果决定要不要这个片元。**
 >
 > **模板测试在透明度测试和深度测试之间。**
 
@@ -2990,7 +3025,7 @@ Pass 中的#Pragma 命令：
 
 后来在联想的实习中，我实践了模板测试：
 
-![image-20230811102742326](Images/image-20230811102742326.png) 
+![image-20230811102742326](Images/image-20230811102742326.png)
 
 
 
@@ -3065,7 +3100,7 @@ Stencil
 
 数字是它们对应的枚举值，如果使用材质面板来指定比较规则，则需要输入相应的数字。
 
-![image-20230811110937088](Images/image-20230811110937088.png) 
+![image-20230811110937088](Images/image-20230811110937088.png)
 
 
 
@@ -3165,7 +3200,7 @@ Stencil
 
 最终效果如下：
 
-![修复](Images/修复.gif) 
+![修复](Images/修复.gif)
 
 
 
@@ -3295,27 +3330,27 @@ public class RoomBossGradeWaveController : EditModeTweenableMono
 
 DOTweenAnimation 那花哨的界面，没有 Custom Editor 是不可能的，于是我翻到了它的 Custom Editor
 
-![image-20230813185816448](Images/image-20230813185816448.png) 
+![image-20230813185816448](Images/image-20230813185816448.png)
 
 再翻这个 CustomEditor，发现预览部分的界面代码被写在一个叫 DOTweenPreviewManager 的类的 PreviewviewGUI 的函数中，这里的参数是这个 CustomEditor 所获取到的 DOTweenAnimation 的实例。
 
-![image-20230813185931835](Images/image-20230813185931835.png) 
+![image-20230813185931835](Images/image-20230813185931835.png)
 
 终于找到了 Play Button 的代码！
 
-![image-20230813190130435](Images/image-20230813190130435.png) 
+![image-20230813190130435](Images/image-20230813190130435.png)
 
 如上，按下 Play 按钮后，执行两个步骤，其一：
 
-![image-20230813150124286](Images/image-20230813150124286.png) 
+![image-20230813150124286](Images/image-20230813150124286.png)
 
 无非是在进入 PlayMode 的时候、停止所有的预览
 
 第二个是核心：
 
-![image-20230813150156600](Images/image-20230813150156600.png) 
+![image-20230813150156600](Images/image-20230813150156600.png)
 
-核心是从 src 得到一个 tween 对象，这对于我们自定义的 tween 来说非常方便，不需要从 DOTweenAnimation 组件获取 
+核心是从 src 得到一个 tween 对象，这对于我们自定义的 tween 来说非常方便，不需要从 DOTweenAnimation 组件获取
 
 最后是调用 DOTweenEditorPreview.PrepareTweenForPreview，即可在 Edit 模式下播放这个 Tween
 
@@ -3339,7 +3374,7 @@ DOTweenAnimation 那花哨的界面，没有 Custom Editor 是不可能的，于
 
 <u>是什么？</u>
 
-Material Property Block（材质属性块）是 Unity 中的一个 **数据结构**，用于在渲染过程中 **向材质实例提供额外的属性数据**。它可以包含 **一组键值对**，每个键值对对应于材质实例中的一个 **属性**。在渲染时，可以 **将多个对象的 MPB 实例传递给渲染器**，以 **避免为每个对象创建新的材质数据副本**，从而提高渲染性能。同时，使用 MPB 还可以 **更容易地实现材质属性的动态变化，因为它可以在渲染过程中动态修改材质属性**。 
+Material Property Block（材质属性块）是 Unity 中的一个 **数据结构**，用于在渲染过程中 **向材质实例提供额外的属性数据**。它可以包含 **一组键值对**，每个键值对对应于材质实例中的一个 **属性**。在渲染时，可以 **将多个对象的 MPB 实例传递给渲染器**，以 **避免为每个对象创建新的材质数据副本**，从而提高渲染性能。同时，使用 MPB 还可以 **更容易地实现材质属性的动态变化，因为它可以在渲染过程中动态修改材质属性**。
 
 
 
@@ -3372,7 +3407,7 @@ private void OnValidate() {
 
 MPB 在 GPUInstance 中也有非常广泛的应用。
 
-![image-20240627105325439](./Images/image-20240627105325439.png) 
+![image-20240627105325439](./Images/image-20240627105325439.png)
 
 
 
@@ -3388,7 +3423,7 @@ MPB 在 GPUInstance 中也有非常广泛的应用。
 
 经过验证、不同的 MPB 会 **导致合批被打断**。
 
-![image-20230906102005415](Images/image-20230906102005415.png) 
+![image-20230906102005415](Images/image-20230906102005415.png)
 
 
 
@@ -3509,8 +3544,6 @@ public class JobSystemExample : MonoBehaviour
 4. 在多线程环境下使用自定义结构体时，**需要使用 JobParallelFor 或 JobParallelForTransform 等基于作业的 API**，以确保线程安全和最佳性能。
 
 总之，使用自定义结构体可以在某些情况下提高性能，但需要遵循一些规则以确保线程安全和最佳性能。
-
-
 
 
 
@@ -3656,7 +3689,7 @@ public class Person
 
 以前的记录：
 
-![image-20231011111947256](./Images/image-20231011111947256.png) 
+![image-20231011111947256](./Images/image-20231011111947256.png)
 
 它是一种 **预先计算出像素区域和** 的数据结构，可以 **快速地计算出任何矩形区域内像素的和**。Summed Area Tables 广泛应用于计算机视觉领域的特征提取、图像分割、边缘检测、运动检测等算法中。
 
@@ -3835,7 +3868,7 @@ public class Program
 
 [参考](https://www.cnblogs.com/luna-hehe/p/10143748.html)
 
-![image-20231011145334550](./Images/image-20231011145334550.png) 
+![image-20231011145334550](./Images/image-20231011145334550.png)
 
 
 
@@ -3861,7 +3894,7 @@ Unity 中有一些自带的程序集：
 
 [官方参考文档](https://docs.unity3d.com/cn/2021.3/Manual/ScriptCompileOrderFolders.html)
 
-![image-20231011151153239](./Images/image-20231011151153239.png) 
+![image-20231011151153239](./Images/image-20231011151153239.png)
 
 程序集是比 C＃ 代码 **更好复用** 的东西（尤其是 DLL）。
 
@@ -3873,7 +3906,7 @@ Unity 中有一些自带的程序集：
 
 Unity 中，默认情况下自己写的 C＃ 代码都会打到 Assembly-CSharp 的 dll 中：
 
-![image-20231011151846035](./Images/image-20231011151846035.png) 
+![image-20231011151846035](./Images/image-20231011151846035.png)
 
 但代码多了的话，这个程序集会编译好长时间，所以可以手动分割程序集。
 
@@ -3881,7 +3914,7 @@ Unity 中，默认情况下自己写的 C＃ 代码都会打到 Assembly-CSharp 
 
 然后因为划分了程序集嘛，它默认是没有程序集引用的，以为着如果要访问一些具有自己程序集的类等，需要在程序集定义里面引用一下那个程序集，这样在使用 using 的时候才不会报错。
 
-![image-20231011152003388](./Images/image-20231011152003388.png) 
+![image-20231011152003388](./Images/image-20231011152003388.png)
 
 有一个经典的错误就是我在 Editor 文件夹以外的地方（这些地方的代码一般会打到 Assembly-CSharp 中），使用了一些 Editor 的类库，然后就一直报 using 的类找不到，非常恼火。
 
@@ -3899,7 +3932,7 @@ pdb 文件是程序数据库文件（Program Database），它包含了与编译
 
 dll 或 exe 可以脱离 pdb 文件运行。pdb 文件只包含调试信息，不包含程序运行所需的代码和数据，因此程序可以在没有 pdb 文件的情况下运行。但是，如果程序出现了问题需要进行调试时，没有 pdb 文件将会使调试变得困难。在调试时，调试器需要 pdb 文件来识别程序中的符号信息，如变量名、函数名等等，以便能够正确地显示源代码和帮助调试者找到问题所在。所以，建议在发布程序时同时保留 pdb 文件，以便在需要时进行调试。
 
-![image-20231011153322436](./Images/image-20231011153322436.png) 
+![image-20231011153322436](./Images/image-20231011153322436.png)
 
 
 
@@ -4110,39 +4143,53 @@ MeshFilter:
    7. 上、下箭头：使用\overset和\underset命令，例如$\overset{\rightarrow}{AB}$表示向量AB，$\underset{n\to\infty}{\lim}a_n$表示n趋近于无穷时a_n的极限值。
    ```
 
-   
+
 
 上下标：
+
 $$
 X^2-----X_0
 $$
+
 分式、除法
+
 $$
 \frac{a}{b}
 $$
+
 开方
+
 $$
 \sqrt{2}
 $$
+
 积分
+
 $$
 \int_{1}^{100} k*Xds
 $$
+
 求和、累加
+
 $$
 \sum_{i = 1}^{100} i
 $$
+
 矩阵
+
 $$
 \begin{matrix} 1 & 2 \\ 3 & 4 \end{matrix}
 $$
 
 
 向量
+
 $$
 \vec{a}
 $$
+
 上下箭头
+
 $$
 \overset{\rightarrow} {AB} ----- \underset{n\to\infty}{\lim}a_n
 $$
@@ -4186,7 +4233,7 @@ int frame = (int) result;
 
 Animation Curve 是 Unity 中的一个类型。
 
-![image-20231018201758213](./Images/image-20231018201758213.png) 
+![image-20231018201758213](./Images/image-20231018201758213.png)
 
 在 Monobehavior 和 Editor Window 的开发中，这个曲线很常用，但是它有一个问题，就是 **默认状态下无法 Undo。**
 
@@ -4217,7 +4264,7 @@ private void OnCurveChanged() => Undo.RegisterCompleteObjectUndo(this, "OnCurveC
 
 
 
-## 使用 SavePanel 制作导出功能 
+## 使用 SavePanel 制作导出功能
 
 以前我的工具的导出功能居然都是让用户自己写好路径和名称、再用字符串拼接然后用 AssetDataBase 的 API 导出的。
 
@@ -4394,15 +4441,15 @@ AssetDatabase.CreateAsset(mesh2Export, path);
 
 这他妈居然是合法的表达。
 
-![image-20231026195922605](./Images/image-20231026195922605.png) 
+![image-20231026195922605](./Images/image-20231026195922605.png)
 
 
 
 后来发现使用比较新版本的 Odin，可以 **用 LableText 去标记枚举内的元素**，也可以达到修改枚举显示的目的
 
-![image-20231026200253426](./Images/image-20231026200253426.png) 
+![image-20231026200253426](./Images/image-20231026200253426.png)
 
-![image-20231026200242338](./Images/image-20231026200242338.png) 
+![image-20231026200242338](./Images/image-20231026200242338.png)
 
 
 
@@ -4430,7 +4477,7 @@ Editor Window 集成了一个变量：`titleContent`
 
 这种：
 
-![image-20231026201711941](./Images/image-20231026201711941.png) 
+![image-20231026201711941](./Images/image-20231026201711941.png)
 
 ```c#
 [Button("Test")]
@@ -4451,7 +4498,7 @@ public void TestB() =>  EditorUtility.DisplayDialog
 
 你喜欢大的、小的，还是不大不小的？
 
- ![image-20231026202334399](./Images/image-20231026202334399.png) 
+ ![image-20231026202334399](./Images/image-20231026202334399.png)
 
 这时候有两个选择；
 
@@ -4522,9 +4569,9 @@ C#中的#define 是一个 [预处理器指令](#预处理器指令)，需要和#
 
 另外，除了在脚本中定义关键字，在 Unity 中也可以通过 Player Setting 去定义关键字：
 
-![image-20231031203233487](./Images/image-20231031203233487.png) 
+![image-20231031203233487](./Images/image-20231031203233487.png)
 
-在这里注册过的关键字也会被启用。 
+在这里注册过的关键字也会被启用。
 
 
 
@@ -4554,7 +4601,7 @@ const 变量一般以大写字母开头，同时以驼峰法分隔单词。
 
 这是错误的，编译器会报错：
 
-![image-20231124144115153](./Images/image-20231124144115153.png) 
+![image-20231124144115153](./Images/image-20231124144115153.png)
 
 在 C＃ 中，反斜杠号”＼“是转义字符，如”\n“代表换行。
 
@@ -4564,13 +4611,13 @@ const 变量一般以大写字母开头，同时以驼峰法分隔单词。
 
 `string a = "C:\\path\\to\\your\\target"`，如下：
 
-![image-20231124144159451](./Images/image-20231124144159451.png) 
+![image-20231124144159451](./Images/image-20231124144159451.png)
 
 两三个就算了，如果很多呢？是不是感觉很烦，明明只是一个字符，却要敲两下键盘。
 
 为了偷懒 C#加了这个原始字符串的功能，在字符串前加一个@符号即可，这么做的话，将不再对字符串内容进行转义，意味着\n 等内容全部会失效，直接作为对应的字符内容被输出：
 
-![image-20231124144332072](./Images/image-20231124144332072.png) 
+![image-20231124144332072](./Images/image-20231124144332072.png)
 
 
 
@@ -4578,7 +4625,7 @@ const 变量一般以大写字母开头，同时以驼峰法分隔单词。
 
 
 
-## 使用 nameof 而不是字符串 
+## 使用 nameof 而不是字符串
 
 在 Odin 的 Attribute 中，很多时候我们需要链接一个属性、字段或者方法。
 
@@ -4661,7 +4708,7 @@ public Season currentSeason;
 
 像这样：
 
-![image-20231124163854010](./Images/image-20231124163854010.png) 
+![image-20231124163854010](./Images/image-20231124163854010.png)
 
 
 
@@ -4687,7 +4734,7 @@ public Seasons currentSeasons;
 
 可以得到这样的效果：
 
-![image-20231124163121825](./Images/image-20231124163121825.png) 
+![image-20231124163121825](./Images/image-20231124163121825.png)
 
 
 
@@ -4743,7 +4790,7 @@ public Seasons currentSeasons;
 
 0111 & 1000 = 0000 = 0
 
-0 == 0 
+0 == 0
 
 所以判断为冬关。
 
@@ -4920,7 +4967,7 @@ public enum Colors
 
 在 Unity 的检查器中，我们定义的组合枚举会像“预设”一样，被显示出来 ：
 
-![image-20231124180602055](./Images/image-20231124180602055.png) 
+![image-20231124180602055](./Images/image-20231124180602055.png)
 
 
 
@@ -4985,7 +5032,7 @@ foreach (int number in numbers.ToArray())
 
 可以看到，确实是起作用了的。
 
-![image-20231205195548041](./Images/image-20231205195548041.png) 
+![image-20231205195548041](./Images/image-20231205195548041.png)
 
 瞬间清爽，但是有风险，一方面原 List 内元素可能在迭代期间改变，这样你 ToArray 得到的值就是过时的缓存。
 
@@ -5053,7 +5100,7 @@ for 循环确实可以规避这个问题，但是我们在做增删操作的时�
 
 
 
-另外 ，不只是 List，只是 List 比较常用。C#中这类数据结构称为：Collection 
+另外 ，不只是 List，只是 List 比较常用。C#中这类数据结构称为：Collection
 
 大概有下面这些：
 
@@ -5185,7 +5232,7 @@ mesh.uv = uvs.ToArray();
 
 可以在 MonoBehaviour 类的 OnDrawgizmos 和 Editor 的 OnSceneGUI 中绘制。
 
-![image-20231228202600431](./Images/image-20231228202600431.png) 
+![image-20231228202600431](./Images/image-20231228202600431.png)
 
 
 
@@ -5207,7 +5254,7 @@ OnDrawGizmos 是不管你有没有选中，都会执行、OnDrawGizmosSelected �
     }
 ```
 
-![image-20231228202721831](./Images/image-20231228202721831.png) 
+![image-20231228202721831](./Images/image-20231228202721831.png)
 
 
 
@@ -5229,7 +5276,7 @@ class MyCustomEditor : Editor
 }
 ```
 
-![image-20231228195530229](./Images/image-20231228195530229.png) 
+![image-20231228195530229](./Images/image-20231228195530229.png)
 
 
 
@@ -5305,7 +5352,7 @@ Gizmos 类常用于绘制简单的调试信息，如直线、圆形等二维图�
 
 不管是参与工业项目的开发，还是使用第三方的插件，总能看到一些 XXXUtillty 类。这其实是一种经验性的技巧。
 
-![image-20231229101830275](./Images/image-20231229101830275.png) 
+![image-20231229101830275](./Images/image-20231229101830275.png)
 
 它其实就是某个模块的静态工具类。
 
@@ -5347,7 +5394,7 @@ void EditorPrefsTest()
 
 和官方文档说的一样，使用 EditorPrefs 保存的值会被放在这个注册表键下：
 
-![image-20231229104527019](./Images/image-20231229104527019.png) 
+![image-20231229104527019](./Images/image-20231229104527019.png)
 
 为了防止重名造成的冲突，键后面还加上了一串哈希值（应该是）。
 
@@ -5419,7 +5466,7 @@ Burst 是一个编译器，它使用 `LLVM` 将 `IL/.NET字节码` 转换为高�
 
 - **IL 码/.NET 字节码：** 普通使用 dotnet 框架的程序，其编译结果是 exe 或者 dll 文件。然而其内部并不是 CPU 可以直接读取和运行的程序，而是 IL 码。IL 码（Intermediate Language / 中间语言）是 dotnet 框架中的中间语言。在需要运行时，通过 CLR（Common Language Runtime / 无合适译名）进行即时编译（JIT / just in time）为本机代码，才能在特定平台上执行，如下图：
 
-  ![image-20240103200853649](./Images/image-20240103200853649.png) 
+  ![image-20240103200853649](./Images/image-20240103200853649.png)
 
   dotnet 框架之所以采用这样的形式，是因为：
 
@@ -5443,7 +5490,7 @@ Burst 是一个编译器，它使用 `LLVM` 将 `IL/.NET字节码` 转换为高�
 
 在 Unity 中使用 Burst，需要 enable 启用编译设置。
 
-![image-20240105201840019](./Images/image-20240105201840019.png) 
+![image-20240105201840019](./Images/image-20240105201840019.png)
 
 然后，在 Job 上标记，这个 Job 使用 Burst 编译：
 
@@ -5473,7 +5520,7 @@ BurstCompile Attribute 是可以进行配置的，用于控制编译中的一些
 
 Job 支持的类和语法并不多，而 IDE 是只判断 C#语法的，没办法识别出来哪些 Burst 能用哪些不能用，所以开发的时候，最好每隔一小段时间就试着编译一下，看下 Burst 编译器会不会报错，否则可能遇到写了一大堆写到最后发现编译不出来，只能大改的尴尬局面。
 
-![image-20240105203412941](./Images/image-20240105203412941.png) 
+![image-20240105203412941](./Images/image-20240105203412941.png)
 
 
 
@@ -5485,19 +5532,17 @@ Job 支持的类和语法并不多，而 IDE 是只判断 C#语法的，没办�
 
 在 Update 中每帧更新一千万个 Vector3 时，卡到 10 帧左右。
 
-![image-20240108190712071](./Images/image-20240108190712071.png) 
+![image-20240108190712071](./Images/image-20240108190712071.png)
 
 
 
 而如果使用 Job：
 
-![image-20240108194634235](./Images/image-20240108194634235.png) 
+![image-20240108194634235](./Images/image-20240108194634235.png)
 
 可以看到，快了将近 10 倍。
 
-![image-20240108194802847](./Images/image-20240108194802847.png) 
-
-
+![image-20240108194802847](./Images/image-20240108194802847.png)
 
 
 
@@ -5520,19 +5565,19 @@ struct MyJob : IJobParallelFor
 }
 ```
 
-![image-20240108195734481](./Images/image-20240108195734481.png) 
+![image-20240108195734481](./Images/image-20240108195734481.png)
 
 同样是更新一千万个 Vector3，分发线程比不分发又快了 3 倍左右，相比单线程快了 30 倍左右。
 
 从 Profiler 中也能看到，各线程的性能都被榨干。
 
-![image-20240108195842613](./Images/image-20240108195842613.png) 
+![image-20240108195842613](./Images/image-20240108195842613.png)
 
 除了 IJobParallelFor 接口，还有其他的 ParallelFor（并行用）接口。
 
 主要是为 Transform 和 Particle System 的大批量计算提供解决方案。
 
-![image-20240108200033092](./Images/image-20240108200033092.png) 
+![image-20240108200033092](./Images/image-20240108200033092.png)
 
 
 
@@ -5597,7 +5642,7 @@ static (string Name, int Age) GetPerson()
 
 
 
-## C# "? :" 、"?."、"??" 和 "??=" 
+## C# "? :" 、"?."、"??" 和 "??="
 
 偶然接触了这些运算符，带问号的基本都和判空有关。
 
@@ -5691,11 +5736,11 @@ GC 会在特定的时候进行扫描和识别，对于已经“死亡”的对�
 
 Unity 中，Allocate 常分散在程序的各个环节，开销较小，也比较灵活，不太造成卡顿
 
-![image-20240110202409310](./Images/image-20240110202409310.png) 
+![image-20240110202409310](./Images/image-20240110202409310.png)
 
 而 Unity 中的 Collect 功能还是很恐怖的，会造成明显的卡顿。
 
-![image-20240110202804713](./Images/image-20240110202804713.png) 
+![image-20240110202804713](./Images/image-20240110202804713.png)
 
 
 
@@ -5717,7 +5762,7 @@ Unity 中，Allocate 常分散在程序的各个环节，开销较小，也比�
 
 C#中的数据类型有两种，一种是值类型，一种是引用类型。
 
-![543714-20160617170410354-326965855](./Images/543714-20160617170410354-326965855.png) 
+![543714-20160617170410354-326965855](./Images/543714-20160617170410354-326965855.png)
 
 值类型本身就存储对应 Type 的数据，而引用类型本质上存的是内存地址，有点像 C 的指针。
 
@@ -5935,7 +5980,7 @@ void Update() {
 
 但是一般普通的采样节点是不要求输入 LOD 的。LOD 一般会根据输入的 UV 求偏导（DDX、DDY）后、映射到 LOD。
 
-![image-20240118185449808](./Images/image-20240118185449808.png) 
+![image-20240118185449808](./Images/image-20240118185449808.png)
 
 偏导反映的是两个片元的输入信息在 XY 轴向的变化的剧烈程度。如果纹理在相机中非常小，那么两个片元之间的 UV 相对来说会有更大的差异，更大的差异意味着更大的偏导数值；偏导数值大了，计算出的 LOD 也就大了（意味着不需要那么精细的纹理，意味着更模糊的 Mip 等级）。如此一来，图形 API 就能自动地得到应该的 Mip 等级了。
 
@@ -5947,7 +5992,7 @@ void Update() {
 
 而如果此时纹理在屏幕上变小的话，相邻片元的 UV 的变化就变得剧烈了，此时算出的偏导数的值就会变大，这也导向了更高的 LOD、即更模糊的 Mip 等级。
 
-![image-20240118191532457](./Images/image-20240118191532457.png) 
+![image-20240118191532457](./Images/image-20240118191532457.png)
 
 
 
@@ -5957,7 +6002,7 @@ void Update() {
 
 [ShaderToy](https://www.shadertoy.com/view/7sSGWG?source=post_page-----cce38d36797b--------------------------------)
 
-![image-20240118192741055](./Images/image-20240118192741055.png) 
+![image-20240118192741055](./Images/image-20240118192741055.png)
 
 这是因为极坐标的 Y 维是映射到（-0.5,0.5）的相对弧度，它的弧度 ±0.5 处其实是重叠的。[参考](https://www.cyanilux.com/tutorials/polar-coordinates/)
 
@@ -5965,11 +6010,11 @@ void Update() {
 
 在 Mip 非常模糊的时候，基本是只有一个颜色的，所以在这种情况下，我们能看到一条固定颜色的缝。
 
- <img src="./Images/image-20240118194040501.png" alt="image-20240118194040501" style="zoom: 50%;" />   
+ <img src="./Images/image-20240118194040501.png" alt="image-20240118194040501" style="zoom: 50%;" />
 
 知道了问题的原因，那解决方案也呼之欲出了，那就是用极坐标转换之前的 UV 计算 DDX 和 DDY，然后传入可以指定偏导值的采样器中：
 
-![image-20240118194508491](./Images/image-20240118194508491.png) 
+![image-20240118194508491](./Images/image-20240118194508491.png)
 
 
 
@@ -5989,7 +6034,7 @@ C#中的值类型一般就是栈上直接分配的指定的类型大小的内存
 
 如果直接对一个值类型赋予 null 的话，编译器也会报错：
 
-![image-20240118200029926](./Images/image-20240118200029926.png) 
+![image-20240118200029926](./Images/image-20240118200029926.png)
 
 但有时候就是会迫切希望一个值类型是可空的，尤其是对于 Struct。
 
@@ -6113,7 +6158,7 @@ Vector3 scale = new Vector3(
 
 当需要使用代码设定一个材质或者一块 MaterialPropertyBlock 的某个属性值的时候，我们倾向于使用 Set 系的方法：
 
-![image-20240627113133843](./Images/image-20240627113133843.png) 
+![image-20240627113133843](./Images/image-20240627113133843.png)
 
 图方便的话、倾向于直接使用 string name 去找到对应的属性。
 
@@ -6151,11 +6196,11 @@ Vector3 scale = new Vector3(
 
 这样的差异会导致一些任务难以执行，比如说我想要并行地快速筛选出一个长 float 数组中，值大于 0.5 的数字，组成一个新的数组，直观来说会写出以下代码：
 
-![image-20240628184425453](./Images/image-20240628184425453.png) 
+![image-20240628184425453](./Images/image-20240628184425453.png)
 
 然而，并行执行起来的时候，只会得到这样的输出：（这里是连续 5 次测试的结果）
 
-![image-20240628184542131](./Images/image-20240628184542131.png) 
+![image-20240628184542131](./Images/image-20240628184542131.png)
 
 可以发现，每次执行这个 Job，它找到的大于 0.5 的数值都不一样，而且每次只能找到一两个。
 
@@ -6165,11 +6210,11 @@ Vector3 scale = new Vector3(
 
 再想想呢？这种情况、用 List 不是很合适吗？而且 Unity 也有 NativeList，让我们试一试：
 
-![image-20240628190443629](./Images/image-20240628190443629.png) 
+![image-20240628190443629](./Images/image-20240628190443629.png)
 
 然而，实际执行时，还是出现了数据竞争的问题，与上面类似地、每次输出的结果都不一样：
 
-![image-20240628190402714](./Images/image-20240628190402714.png) 
+![image-20240628190402714](./Images/image-20240628190402714.png)
 
 
 
@@ -6177,15 +6222,15 @@ Vector3 scale = new Vector3(
 
 可以！
 
-![code](./Images/code.png) 
+![code](./Images/code.png)
 
 当我们并行地做完一个判断流程后，可以再接一个这样的单线程 Job，来将 boolResult 转成一个 NativeList 输出，可以看到现在的结果是稳定正确的：
 
-![image-20240628192225415](./Images/image-20240628192225415.png) 
+![image-20240628192225415](./Images/image-20240628192225415.png)
 
 这么做看上去有点麻烦，但其实这个转换 Job 是可以轻松地换成泛型结构体的，非常好复用：
 
-![image-20240628192657778](./Images/image-20240628192657778.png) 
+![image-20240628192657778](./Images/image-20240628192657778.png)
 
 
 
@@ -6197,11 +6242,11 @@ Vector3 scale = new Vector3(
 
 定义 Job 结构体的时候，Execute 方法会传入一个 index、并返回一个 bool 表示是否通过筛选。
 
-![image-20240702201729508](./Images/image-20240702201729508.png) 
+![image-20240702201729508](./Images/image-20240702201729508.png)
 
 使用的时候，必须调用 ScheduleFilter 方法而不是通常的 Schedule 方法，并且需要以一个 NativeList <int> 的 indices 列表作为参数。理想情况下，通过筛选的输入数组元素的索引会被加入这个 NativeList，想要获取通过筛选的元素数组还是得做一步转换。
 
-![image-20240702201801732](./Images/image-20240702201801732.png) 
+![image-20240702201801732](./Images/image-20240702201801732.png)
 
 这个 Job 使用 NativeList，所以我猜想它并不是多线程的；同时由于其仍然需要转换、官方的文档也潦草至极，没有什么人用，所以这里笔者也不做过多探究了。
 
@@ -6215,7 +6260,7 @@ Vector3 scale = new Vector3(
 
 后续作者尝试了在 Job 中使用 Interlocked 原子加等操作试图直接在并行 Job 中让索引原子自加，这样就可以只用一个 Job 就完成筛选操作，但是并没有成功。失败的原因是 Unity 的 Native 系列容器无法作为 ref 传入原子自加函数中；另外，即使在 Job 里维护一个 Struct 成员变量，做简单自加或者原子自加，也无法解决数据竞争的问题。
 
-![870a5911-9c57-4a85-a8c9-cda0bd0b1cba](./Images/870a5911-9c57-4a85-a8c9-cda0bd0b1cba.png) 
+![870a5911-9c57-4a85-a8c9-cda0bd0b1cba](./Images/870a5911-9c57-4a85-a8c9-cda0bd0b1cba.png)
 
 
 
@@ -6356,7 +6401,7 @@ float3 CalculateMirrorPoint(float3 point, float3 planePoint, float3 planeNormal)
 
 在法线的另一端也是一样的，不用想了
 
-![image-20240911145639165](./Images/image-20240911145639165.png) 
+![image-20240911145639165](./Images/image-20240911145639165.png)
 
 
 
@@ -6506,7 +6551,7 @@ float3 IntersectLineWithPlane(float3 lineOrigin, float3 lineDirection, float3 pl
 
 因此非常需要手段去彻底删除 Git 库中的文件，及其存在过的历史。
 
-目前 Git 推荐的手段是使用：[git-filter-repo](https://github.com/newren/git-filter-repo). 这玩意儿的核心是一个 Python 脚本，要使用的时候，把这个脚本放到你的 Git 库根目录下，然后开 cmd 用 python 去跑这个脚本。
+目前 Git 推荐的手段是使用：[git-filter-repo](https://github.com/newren/git-filter-repo). 这玩意儿的核心是一个 Python 脚本，要使用的时候，把这个脚本放到你的 Git 库根目录下，然后开 cmd 用 Python 去跑这个脚本。
 
 以我这个项目为例，如果要删掉一个文件夹及其下所有文件的存在历史时，只需要跑这条命令：
 
@@ -6586,7 +6631,7 @@ worldToLocalMatrix 一般用于将世界空间的点转移到此 Transform 的�
 
 
 
-### delegate 委托 
+### delegate 委托
 
 通俗地说，委托就是一个 **占坑用的方法**，这个方法会在开发者指定的时刻被调用，至于方法的内容是什么，就看代码逻辑中给委托里订阅了什么内容了。
 
@@ -6594,7 +6639,7 @@ worldToLocalMatrix 一般用于将世界空间的点转移到此 Transform 的�
 
 这么做可以大大提升程序的 **灵活性、可重用性，也将不同模块的耦合度降低了**，
 
-![image-20241227174247246](./Images/image-20241227174247246.png) 
+![image-20241227174247246](./Images/image-20241227174247246.png)
 
 
 
@@ -6768,7 +6813,7 @@ static void PrintMessage(string message) => Console.WriteLine(message);
 
 如果我们在另一个类中试图触发 event，编译器会报出错误：
 
-![image-20241230164831246](./Images/image-20241230164831246.png) 
+![image-20241230164831246](./Images/image-20241230164831246.png)
 
 在声明一个 event 时，相较于声明普通的委托对象，我们只需要在声明语句中加入关键字 `event` 即可：
 
@@ -6888,7 +6933,7 @@ private static bool GetAssetPath(out string targetFullPath)
 }
 ```
 
-![demo](./Images/demo.gif) 
+![demo](./Images/demo.gif)
 
 
 
@@ -6963,7 +7008,7 @@ if __name__ == "__main__":
 
 可以得到这样的效果：
 
-![demo](./Images/demo-1735807256023-2.gif) 
+![demo](./Images/demo-1735807256023-2.gif)
 
 
 
@@ -7036,7 +7081,7 @@ private static bool ValidateRunBat() =>
 
 可以做到这样的效果：
 
-![demo](./Images/demo-1735807900631-4.gif) 
+![demo](./Images/demo-1735807900631-4.gif)
 
 
 
@@ -7072,7 +7117,7 @@ VSCode 中有一个常用命令，叫做 `Git：重新打开已关闭的储存�
 
 在 workspaceStorage 这个文件夹中右键，用 VSCode 打开，然后通过侧边栏中的全局搜索功能去搜你的工作区名字：
 
-![image-20250103143952909](./Images/image-20250103143952909.png) 
+![image-20250103143952909](./Images/image-20250103143952909.png)
 
 找到这个文件所处的文件夹，直接删掉整个文件夹。
 
@@ -7279,7 +7324,7 @@ Object 空间是每个 Mesh 独有的、在建模阶段就已经确定的空间�
 
 下面这张 GIF 中，蓝线代表 Vertex 的法线，黄线代表 Vertex 的切线。可以观察到，当 UV 开始旋转时，Vertex 的切线方向也随之旋转，它始终指向 UV 中 U 维增大的方向。
 
-![demo](./Images/demo-1737015590428-5.gif) 
+![demo](./Images/demo-1737015590428-5.gif)
 
 
 
@@ -7328,17 +7373,17 @@ var objectToTangent = Matrix4x4.Inverse(tangentToObject);
 
 从下面的 GIF 中，我们可以清晰地观察到切线空间的变化：
 
- ![demo](./Images/demo-1737528465210-2.gif) 
+ ![demo](./Images/demo-1737528465210-2.gif)
 
 切线空间最广泛的应用是法线贴图，一般来说法线贴图中储存的就是切线空间中对法线方向的<u>扰动</u>。
 
 我们来通过一个例子来看下如果将法线方向扰动储存在 Object 空间中会导致什么样的结果：
 
-![image-20250122120145767](./Images/image-20250122120145767.png) 
+![image-20250122120145767](./Images/image-20250122120145767.png)
 
 如果按照常规将法线偏移信息储存在切线空间中，变形后的物体法线方向正确：
 
-![image-20250122120320798](./Images/image-20250122120320798.png) 
+![image-20250122120320798](./Images/image-20250122120320798.png)
 
 ※：这也能引申出法线贴图总是呈现蓝紫色的原因，物体的表面大部分区域扰动并不强烈，即“扰动方向和几何图元法线的夹角很小”，表现在偏移方向向量上就是：（x 方向-切线方向-小值，y 方向-副切线方向-小值，z 方向-几何图元法线方向-大值），几乎（0,0,1）的状态；又因为单位向量每维度的取值范围是-1~1，因此需要做一步 `remap(-1,1,0,1,x);`，就变成了（0.5,0.5,1），将其转换为颜色就是法线贴图中常见的蓝紫色。
 
@@ -7356,7 +7401,7 @@ var objectToTangent = Matrix4x4.Inverse(tangentToObject);
 
 以“Visual Studio 调试 unity 项目”为例，可以通过调试 -> 窗口 -> 异常设置 来打开下面的窗口，然后在 Common Language RunTime Exception 栏中选择要中断的错误类型即可，默认情况下是全部关闭的。
 
-![image-20250224190032623](./Images/image-20250224190032623.png) 
+![image-20250224190032623](./Images/image-20250224190032623.png)
 
 
 
@@ -7372,7 +7417,7 @@ csv 作为一种用简单文本形式记录的表格格式，用逗号分隔列�
 
 为了避免上述错误，字段带有这类特殊字符的时候，需要用双引号包裹字段；而当字段本身带有双引号的时候，双引号的每边都需要变成两个双引号，具体来说就是：`"你好" -> ""你好""` 。
 
-![image-20250224211213840](./Images/image-20250224211213840.png) 
+![image-20250224211213840](./Images/image-20250224211213840.png)
 
 
 
@@ -7397,7 +7442,7 @@ cd /d "你的Hexo项目根目录\source\_posts"
 mklink /D Images ..\images
 ```
 
-![image-20250211164526429](./Images/image-20250211164526429.png) 
+![image-20250211164526429](./Images/image-20250211164526429.png)
 
 如此一来，就能在不改动 Typora 插入图片路径设置的情况下将图片放到正确的位置了；并且，经过验证，使用符号链接后生成的 Hexo 页面可以正确找到图像。
 
@@ -7426,6 +7471,20 @@ mklink /D Images ..\images
 ```c#
 Application.OpenURL(url);
 ```
+
+
+
+---
+
+
+
+## HLSL 编译优化可能带来的编译错误
+
+Shader 在编译的时候，不影响最终输出的部分是不会被编译的，这有时候会导致 Shader 编译报出莫名其妙的编译报错，比如 XXX 采样器变量没有被定义之类的，实际上我们根本没有修改那块代码。
+
+遇到 HLSL 编译疑难杂症的时候，可以看下是不是这个编译优化导致的。
+
+PS 的输出往往是多个系数混合的结果，当想要调试看其中几个系数的时候，我们可能会习惯性地先不混合其他系数，或者其他系数直接乘 0，这种情况下就比较容易出现编译优化导致的编译报错。
 
 
 
